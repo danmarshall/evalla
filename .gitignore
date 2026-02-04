@@ -49,6 +49,8 @@ web_modules/
 
 # Generated parser from Peggy
 src/parser.js
+packages/evalla/src/parser.js
+packages/evalla/src/parser.mjs
 
 # Optional npm cache directory
 .npm
@@ -100,6 +102,9 @@ dist
 
 # Sveltekit cache directory
 .svelte-kit/
+
+# Astro cache directory
+.astro/
 
 # vitepress build output
 **/.vitepress/dist

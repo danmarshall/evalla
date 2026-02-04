@@ -7,14 +7,26 @@
     "url": "https://github.com/danmarshall/evalla.git"
   },
   "homepage": "https://github.com/danmarshall/evalla",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/cjs/index.d.ts"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "prebuild": "peggy --output src/parser.js --format commonjs src/grammar.pegjs",
-    "build": "tsc && cpx src/parser.js dist",
+    "prebuild": "npm run prebuild:cjs && npm run prebuild:esm",
+    "prebuild:cjs": "peggy --output src/parser.js --format commonjs src/grammar.pegjs",
+    "prebuild:esm": "peggy --output src/parser.mjs --format es src/grammar.pegjs",
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc -p tsconfig.cjs.json && cpx src/parser.js dist/cjs",
+    "build:esm": "tsc -p tsconfig.esm.json && cpx src/parser.mjs dist/esm && node scripts/fix-esm-imports.js",
     "test": "jest"
   },
   "keywords": [

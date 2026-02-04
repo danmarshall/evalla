@@ -43,13 +43,56 @@ console.log(result.values.area.toString()); // "5000"
 console.log(result.order); // ['width', 'height', 'area']
 ```
 
+### Using Direct Values
+
+Instead of stringifying objects, you can pass them directly using the `value` property:
+
+```typescript
+const result = await evalla([
+  { name: 'point', value: { x: 10, y: 20 } },
+  { name: 'offset', value: { x: 5, y: 10 } },
+  { name: 'resultX', expr: 'point.x + offset.x' },
+  { name: 'resultY', expr: 'point.y + offset.y' }
+]);
+
+console.log(result.values.resultX.toString()); // "15"
+console.log(result.values.resultY.toString()); // "30"
+```
+
 ### Input Format
 
 ```typescript
 interface ExpressionInput {
-  name: string;  // Variable name (cannot start with $)
-  expr: string;  // Math expression
+  name: string;         // Variable name (cannot start with $)
+  expr?: string;        // Math expression (optional if value is provided)
+  value?: any;          // Direct value (optional if expr is provided)
 }
+```
+
+You must provide either `expr` or `value` (or both). The `value` property allows you to pass objects directly without stringifying them into expressions.
+
+**Using expressions:**
+```typescript
+const result = await evalla([
+  { name: 'width', expr: '100' },
+  { name: 'height', expr: '50' }
+]);
+```
+
+**Using direct values:**
+```typescript
+const result = await evalla([
+  { name: 'point', value: { x: 10, y: 20 } },
+  { name: 'offset', value: { x: 5, y: 10 } }
+]);
+```
+
+**Mixing both:**
+```typescript
+const result = await evalla([
+  { name: 'data', value: { width: 100, height: 50 } },
+  { name: 'area', expr: 'data.width * data.height' }
+]);
 ```
 
 ### Output Format

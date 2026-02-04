@@ -27,16 +27,27 @@ async function main() {
   console.log(`   Evaluation order: ${ex2.order.join(' -> ')}`);
   console.log(`   Results: a=${ex2.values.a}, b=${ex2.values.b}, c=${ex2.values.c}, d=${ex2.values.d}\n`);
 
-  // Example 3: Object literals and property access
-  console.log('3. Object Literals & Property Access:');
-  const ex3 = await evalla([
+  // Example 3: Using direct values instead of stringified expressions
+  console.log('3. Direct Values (No Stringification):');
+  const ex3a = await evalla([
+    { name: 'point', value: { x: 10, y: 20 } },
+    { name: 'offset', value: { x: 5, y: 3 } },
+    { name: 'resultX', expr: 'point.x + offset.x' },
+    { name: 'resultY', expr: 'point.y + offset.y' }
+  ]);
+  console.log(`   Using direct values (no stringification needed):`);
+  console.log(`   point + offset = (${ex3a.values.resultX}, ${ex3a.values.resultY})\n`);
+
+  // Example 3b: Object literals (alternative approach)
+  console.log('3b. Object Literals (as expressions):');
+  const ex3b = await evalla([
     { name: 'point', expr: '{x: 10, y: 20}' },
     { name: 'offset', expr: '{x: 5, y: 3}' },
     { name: 'resultX', expr: 'point.x + offset.x' },
     { name: 'resultY', expr: 'point.y + offset.y' }
   ]);
-  console.log(`   point + offset = result`);
-  console.log(`   (${ex3.values.resultX}, ${ex3.values.resultY})\n`);
+  console.log(`   Using object literal expressions:`);
+  console.log(`   point + offset = (${ex3b.values.resultX}, ${ex3b.values.resultY})\n`);
 
   // Example 4: $math namespace
   console.log('4. Math Namespace:');

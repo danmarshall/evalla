@@ -163,6 +163,63 @@ test('input validation - variable names cannot contain dots', async () => {
   );
 });
 
+test('input validation - must provide either expr or value', async () => {
+  await assert.rejects(
+    async () => await evalla([
+      { name: 'test' }
+    ]),
+    /must have either "expr" or "value"/
+  );
+});
+
+test('value property - direct object value', async () => {
+  const result = await evalla([
+    { name: 'point', value: { x: 10, y: 20 } },
+    { name: 'sum', expr: 'point.x + point.y' }
+  ]);
+  
+  assert.equal(result.values.sum.toString(), '30');
+});
+
+test('value property - direct number value', async () => {
+  const result = await evalla([
+    { name: 'a', value: 10 },
+    { name: 'b', value: 20 },
+    { name: 'c', expr: 'a + b' }
+  ]);
+  
+  assert.equal(result.values.c.toString(), '30');
+});
+
+test('value property - mixed with expr', async () => {
+  const result = await evalla([
+    { name: 'width', value: 100 },
+    { name: 'height', expr: '50' },
+    { name: 'area', expr: 'width * height' }
+  ]);
+  
+  assert.equal(result.values.area.toString(), '5000');
+});
+
+test('value property - complex object without stringification', async () => {
+  const complexObj = {
+    dimensions: {
+      width: 100,
+      height: 50
+    },
+    scale: 2
+  };
+  
+  const result = await evalla([
+    { name: 'box', value: complexObj },
+    { name: 'scaledWidth', expr: 'box.dimensions.width * box.scale' },
+    { name: 'scaledHeight', expr: 'box.dimensions.height * box.scale' }
+  ]);
+  
+  assert.equal(result.values.scaledWidth.toString(), '200');
+  assert.equal(result.values.scaledHeight.toString(), '100');
+});
+
 test('empty input', async () => {
   const result = await evalla([]);
   assert.equal(Object.keys(result.values).length, 0);

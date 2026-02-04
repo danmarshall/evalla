@@ -23,8 +23,11 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
     if (input.name.includes('.')) {
       throw new Error(`Variable names cannot contain dots: ${input.name} (dots are only for property access in expressions)`);
     }
-    if (typeof input.expr !== 'string') {
-      throw new Error('Each input must have a string "expr"');
+    if (!input.expr && input.value === undefined) {
+      throw new Error(`Each input must have either "expr" or "value": ${input.name}`);
+    }
+    if (input.expr !== undefined && typeof input.expr !== 'string') {
+      throw new Error(`"expr" must be a string if provided: ${input.name}`);
     }
   }
   
@@ -40,10 +43,16 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
   // Determine evaluation order using topological sort (handles DAG + cycle detection)
   const order = topologicalSort(inputs);
   
-  // Create lookup for expressions
+  // Create lookup for expressions and values
   const exprMap = new Map<string, string>();
+  const valueMap = new Map<string, any>();
   for (const input of inputs) {
-    exprMap.set(input.name, input.expr);
+    if (input.expr !== undefined) {
+      exprMap.set(input.name, input.expr);
+    }
+    if (input.value !== undefined) {
+      valueMap.set(input.name, input.value);
+    }
   }
   
   // Evaluate in topological order
@@ -51,13 +60,19 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
   const context: Record<string, any> = Object.create(null);
   
   for (const name of order) {
-    const expr = exprMap.get(name);
-    if (!expr) {
-      throw new Error(`No expression found for: ${name}`);
-    }
+    let result: any;
     
-    // Evaluate with current context
-    const result = await evaluateExpression(expr, context);
+    // If value is provided directly, use it
+    if (valueMap.has(name)) {
+      result = valueMap.get(name);
+    } else {
+      // Otherwise, evaluate the expression
+      const expr = exprMap.get(name);
+      if (!expr) {
+        throw new Error(`No expression or value found for: ${name}`);
+      }
+      result = await evaluateExpression(expr, context);
+    }
     
     // Store result - if it's a Decimal, that's our value
     // If it's something else (object, array), store it in context but not in values

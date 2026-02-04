@@ -32,6 +32,12 @@ export const topologicalSort = (inputs: ExpressionInput[]): string[] => {
   
   // Then build dependency graph
   for (const input of inputs) {
+    // If no expr, there are no dependencies from expressions
+    if (!input.expr) {
+      graph.set(input.name, []);
+      continue;
+    }
+    
     const deps = extractDependencies(input.expr);
     // Filter to only include dependencies that are in our input set
     const validDeps = deps.filter(d => names.has(d));

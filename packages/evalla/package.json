@@ -1,0 +1,49 @@
+{
+  "name": "evalla",
+  "version": "0.1.1",
+  "description": "Safe math evaluator with variables, dependencies, and precision",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danmarshall/evalla.git"
+  },
+  "homepage": "https://github.com/danmarshall/evalla",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prebuild": "peggy --output src/parser.js --format commonjs src/grammar.pegjs",
+    "build": "tsc && cpx src/parser.js dist",
+    "test": "jest"
+  },
+  "keywords": [
+    "formula",
+    "expression",
+    "parser",
+    "evaluator",
+    "dag",
+    "dependency-graph",
+    "math",
+    "parametric",
+    "eval",
+    "safe",
+    "safe-eval",
+    "decimal",
+    "precision"
+  ],
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "dependencies": {
+    "decimal.js": "^10.4.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.11.5",
+    "cpx2": "^8.0.0",
+    "jest": "^30.2.0",
+    "peggy": "^5.0.6",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.3.3"
+  }
+}

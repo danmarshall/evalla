@@ -9,8 +9,11 @@ function makeRelative(htmlPath) {
   let content = fs.readFileSync(htmlPath, 'utf8');
   
   // Replace absolute paths starting with / to relative paths
+  // Handles both single and double quotes
+  // Avoids protocol-relative URLs (//)
   // /_astro/file.js -> _astro/file.js
-  content = content.replace(/\s(href|src)="\//g, ' $1="');
+  // /test.css -> test.css
+  content = content.replace(/(href|src)=(["'])\/(?!\/)/g, '$1=$2');
   
   fs.writeFileSync(htmlPath, content, 'utf8');
 }

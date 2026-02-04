@@ -7,10 +7,13 @@ import { evaluateAST } from './ast-evaluator';
 export const evaluateExpression = async (
   expr: string,
   context: Record<string, any>
-): Promise<Decimal> => {
+): Promise<any> => {
   try {
+    // Wrap expression in parens if it starts with { to handle object literals
+    const exprToParse = expr.trim().startsWith('{') ? `(${expr})` : expr;
+    
     // Parse expression to AST using acorn - safe, no execution
-    const program: any = parse(expr, { ecmaVersion: 2020 });
+    const program: any = parse(exprToParse, { ecmaVersion: 2020 });
     
     // Extract the expression from the Program node
     if (program.type !== 'Program' || !program.body || program.body.length === 0) {
@@ -41,15 +44,16 @@ export const evaluateExpression = async (
     // Evaluate AST with custom evaluator that uses Decimal for precision
     const result = await evaluateAST(ast, safeScope);
     
-    // Convert result to Decimal if needed
+    // Convert numeric results to Decimal for precision
     if (result instanceof Decimal) {
       return result;
     } else if (typeof result === 'number') {
       return new Decimal(result);
-    } else if (typeof result === 'string') {
+    } else if (typeof result === 'string' && !isNaN(Number(result))) {
       return new Decimal(result);
     } else {
-      throw new Error(`Expression result must be a number, got: ${typeof result}`);
+      // Return as-is for objects, arrays, etc.
+      return result;
     }
   } catch (error) {
     throw new Error(`Failed to evaluate expression "${expr}": ${error instanceof Error ? error.message : String(error)}`);

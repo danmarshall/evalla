@@ -21,8 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "acorn": "^8.11.3",
-    "decimal.js": "^10.4.3",
-    "eval-estree-expression": "^2.0.0"
+    "decimal.js": "^10.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",

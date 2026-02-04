@@ -19,12 +19,29 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       
     case 'MemberExpression':
       const object = await evaluateAST(node.object, context);
+      if (object === null || object === undefined) {
+        throw new Error(`Cannot access property of ${object}`);
+      }
       if (node.computed) {
         const property = await evaluateAST(node.property, context);
         return object[property];
       } else {
         return object[node.property.name];
       }
+      
+    case 'ObjectExpression':
+      const obj: any = {};
+      for (const prop of node.properties) {
+        if (prop.type === 'Property') {
+          const key = prop.key.type === 'Identifier' ? prop.key.name : await evaluateAST(prop.key, context);
+          const value = await evaluateAST(prop.value, context);
+          obj[key] = value;
+        } else if (prop.type === 'SpreadElement') {
+          const spread = await evaluateAST(prop.argument, context);
+          Object.assign(obj, spread);
+        }
+      }
+      return obj;
       
     case 'BinaryExpression':
       const left = await evaluateAST(node.left, context);

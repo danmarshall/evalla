@@ -20,6 +20,9 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
     if (input.name.startsWith('$')) {
       throw new Error(`Variable names cannot start with $: ${input.name} ($ is reserved for system namespaces)`);
     }
+    if (input.name.includes('.')) {
+      throw new Error(`Variable names cannot contain dots: ${input.name} (dots are only for property access in expressions)`);
+    }
     if (typeof input.expr !== 'string') {
       throw new Error('Each input must have a string "expr"');
     }
@@ -53,25 +56,25 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
       throw new Error(`No expression found for: ${name}`);
     }
     
-    // Evaluate with current context (Decimal values for precision)
-    const value = await evaluateExpression(expr, context);
-    values[name] = value;
+    // Evaluate with current context
+    const result = await evaluateExpression(expr, context);
     
-    // Update context for next evaluations
-    // Support dot-traversal: if name contains dots, create nested objects
-    if (name.includes('.')) {
-      const parts = name.split('.');
-      let obj: any = context;
-      for (let i = 0; i < parts.length - 1; i++) {
-        const part = parts[i];
-        if (!obj[part]) {
-          obj[part] = Object.create(null);
-        }
-        obj = obj[part];
-      }
-      obj[parts[parts.length - 1]] = value;
+    // Store result - if it's a Decimal, that's our value
+    // If it's something else (object, array), store it in context but not in values
+    if (result instanceof Decimal) {
+      values[name] = result;
+      context[name] = result;
     } else {
-      context[name] = value;
+      // Non-Decimal result (object, array, etc.) - store in context only
+      context[name] = result;
+      // For output, we need a Decimal - this should not happen if design is correct
+      // but let's handle it gracefully
+      if (typeof result === 'number') {
+        values[name] = new Decimal(result);
+      } else {
+        // Objects/arrays are stored in context for dot-access but not in output values
+        // This allows intermediate object values that aren't final results
+      }
     }
   }
   

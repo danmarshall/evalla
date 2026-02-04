@@ -154,6 +154,15 @@ test('input validation - variable names cannot start with $', async () => {
   );
 });
 
+test('input validation - variable names cannot contain dots', async () => {
+  await assert.rejects(
+    async () => await evalla([
+      { name: 'point.x', expr: '10' }
+    ]),
+    /Variable names cannot contain dots/
+  );
+});
+
 test('empty input', async () => {
   const result = await evalla([]);
   assert.equal(Object.keys(result.values).length, 0);

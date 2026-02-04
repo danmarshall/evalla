@@ -10,9 +10,10 @@ export const extractDependencies = (expr: string): string[] => {
   const matches = expr.match(identifierRegex) || [];
   
   for (const match of matches) {
-    // Store the full dotted path as a dependency
-    // This allows both "point" and "point.x" to be recognized as separate dependencies
-    deps.add(match);
+    // For dotted paths like "base.x", extract just the root variable "base"
+    // This is the actual variable dependency, not the property access
+    const root = match.split('.')[0];
+    deps.add(root);
   }
   
   return Array.from(deps);
@@ -24,12 +25,16 @@ export const topologicalSort = (inputs: ExpressionInput[]): string[] => {
   const graph = new Map<string, string[]>();
   const names = new Set<string>();
   
-  // Build dependency graph
+  // First, collect all variable names
   for (const input of inputs) {
     names.add(input.name);
+  }
+  
+  // Then build dependency graph
+  for (const input of inputs) {
     const deps = extractDependencies(input.expr);
     // Filter to only include dependencies that are in our input set
-    const validDeps = deps.filter(d => names.has(d) || inputs.some(i => i.name === d));
+    const validDeps = deps.filter(d => names.has(d));
     graph.set(input.name, validDeps);
   }
   

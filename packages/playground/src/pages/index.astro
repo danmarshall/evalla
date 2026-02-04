@@ -1,5 +1,6 @@
 ---
 const title = "Evalla Playground";
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <!DOCTYPE html>
@@ -8,8 +9,6 @@ const title = "Evalla Playground";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{title}</title>
-  <!-- Debug assets -->
-  <script is:inline src="/test.js"></script>
   <style>
     * {
       margin: 0;
@@ -247,6 +246,7 @@ const title = "Evalla Playground";
   <div class="container">
     <h1>✨ Evalla Playground</h1>
     <p class="subtitle">Safe math evaluator with variables, dependencies, and precision</p>
+    <p class="subtitle" style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Base URL: {baseUrl}</p>
 
     <div class="playground">
       <div class="section">

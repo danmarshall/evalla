@@ -8,8 +8,9 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "build:evalla": "npm run build --workspace=packages/evalla",
     "test": "npm run test --workspaces",
-    "dev:playground": "npm run dev --workspace=packages/playground"
+    "dev:playground": "npm run build:evalla && npm run dev --workspace=packages/playground"
   },
   "overrides": {
     "lodash": "^4.17.23"

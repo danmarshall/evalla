@@ -274,6 +274,47 @@ try {
 }
 ```
 
+### `checkSyntax(expr: string): SyntaxCheckResult`
+
+Checks the syntax of an expression without evaluating it. Useful for text editors to validate expressions before sending them for evaluation.
+
+**Parameters:**
+- `expr`: The expression string to check
+
+**Returns:**
+- Object with the following properties:
+  - `valid`: boolean - Whether the syntax is valid
+  - `error?`: string - Error message if syntax is invalid
+  - `line?`: number - Line number where error occurred (1-indexed)
+  - `column?`: number - Column number where error occurred (1-indexed)
+
+**Example:**
+```typescript
+import { checkSyntax } from 'evalla';
+
+// Valid expression
+const result1 = checkSyntax('a + b * 2');
+console.log(result1.valid); // true
+
+// Invalid expression - missing closing parenthesis
+const result2 = checkSyntax('(a + b');
+console.log(result2.valid); // false
+console.log(result2.error); // "Parse error at line 1, column 7: Expected..."
+console.log(result2.line); // 1
+console.log(result2.column); // 7
+
+// Use case: Validate before evaluating
+const userInput = '1 + 2 * 3';
+const check = checkSyntax(userInput);
+
+if (check.valid) {
+  const result = await evalla([{ name: 'result', expr: userInput }]);
+  console.log(result.values.result.toString()); // "7"
+} else {
+  console.error(`Syntax error: ${check.error}`);
+}
+```
+
 ## Philosophy
 
 - **Minimal**: Bare minimum dependencies and code

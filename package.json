@@ -1,0 +1,30 @@
+{
+  "name": "evalla",
+  "version": "0.1.0",
+  "description": "Safe math evaluator with variables, dependencies, and precision",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/*.test.js",
+    "test:watch": "node --test --watch dist/*.test.js",
+    "pretest": "npm run build"
+  },
+  "keywords": [
+    "math",
+    "evaluator",
+    "safe",
+    "decimal",
+    "precision"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "acorn": "^8.11.3",
+    "decimal.js": "^10.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "typescript": "^5.3.3"
+  }
+}

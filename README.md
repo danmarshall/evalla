@@ -24,7 +24,7 @@ console.log(result.order);               // ['c', 'a', 'b']
 - ✅ **Dot-Traversal**: Reference nested properties (e.g., `point.x`, `offset.y`)
 - ✅ **Topological Ordering**: Evaluates in correct dependency order (DAG)
 - ✅ **Circular Detection**: Throws error on circular dependencies
-- ✅ **Safe Evaluation**: Parses with Peggy parser, evaluates AST (no `eval()` or `Function()`)
+- ✅ **Safe Evaluation**: Parses with [Peggy](https://peggyjs.org/) parser, evaluates AST (no `eval()` or `Function()`)
 - ✅ **Keywords as Variables**: Unlike JavaScript, keywords like `return`, `if`, etc. can be used as variable names
 - ✅ [**Namespaces**](#namespaces): Built-in `$math`, `$unit`, and `$angle` functions
 

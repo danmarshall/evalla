@@ -54,7 +54,10 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       
       // Security check: block dangerous property access
       if (!isSafeProperty(propertyName)) {
-        throw new SecurityError(`Access to property "${propertyName}" is not allowed for security reasons`);
+        throw new SecurityError(
+          `Access to property "${propertyName}" is not allowed for security reasons`,
+          propertyName
+        );
       }
       
       return object[propertyName];

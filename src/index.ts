@@ -19,22 +19,40 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
       throw new ValidationError('Each input must have a non-empty string "name"');
     }
     if (input.name.startsWith('$')) {
-      throw new ValidationError(`Variable names cannot start with $: ${input.name} ($ is reserved for system namespaces)`);
+      throw new ValidationError(
+        `Variable names cannot start with $: ${input.name} ($ is reserved for system namespaces)`,
+        input.name
+      );
     }
     if (input.name.startsWith('__')) {
-      throw new ValidationError(`Variable names cannot start with __: ${input.name} (__ prefix is reserved for security reasons)`);
+      throw new ValidationError(
+        `Variable names cannot start with __: ${input.name} (__ prefix is reserved for security reasons)`,
+        input.name
+      );
     }
     if (/^\d/.test(input.name)) {
-      throw new ValidationError(`Variable names cannot start with a number: ${input.name}`);
+      throw new ValidationError(
+        `Variable names cannot start with a number: ${input.name}`,
+        input.name
+      );
     }
     if (input.name.includes('.')) {
-      throw new ValidationError(`Variable names cannot contain dots: ${input.name} (dots are only for property access in expressions)`);
+      throw new ValidationError(
+        `Variable names cannot contain dots: ${input.name} (dots are only for property access in expressions)`,
+        input.name
+      );
     }
     if (!input.expr && input.value === undefined) {
-      throw new ValidationError(`Each input must have either "expr" or "value": ${input.name}`);
+      throw new ValidationError(
+        `Each input must have either "expr" or "value": ${input.name}`,
+        input.name
+      );
     }
     if (input.expr !== undefined && typeof input.expr !== 'string') {
-      throw new ValidationError(`"expr" must be a string if provided: ${input.name}`);
+      throw new ValidationError(
+        `"expr" must be a string if provided: ${input.name}`,
+        input.name
+      );
     }
   }
   
@@ -42,7 +60,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
   const nameSet = new Set<string>();
   for (const input of inputs) {
     if (nameSet.has(input.name)) {
-      throw new ValidationError(`Duplicate name: ${input.name}`);
+      throw new ValidationError(`Duplicate name: ${input.name}`, input.name);
     }
     nameSet.add(input.name);
   }
@@ -108,5 +126,7 @@ export {
   SecurityError, 
   CircularDependencyError, 
   ValidationError, 
-  EvaluationError 
+  EvaluationError,
+  ParseError
 } from './errors';
+export { checkSyntax, SyntaxCheckResult } from './syntax-checker';

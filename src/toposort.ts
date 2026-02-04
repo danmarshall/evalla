@@ -1,7 +1,7 @@
 import * as parser from './parser.js';
 import { ExpressionInput } from './types';
 import { extractVariablesFromAST } from './ast-variables';
-import { CircularDependencyError, EvaluationError } from './errors';
+import { CircularDependencyError, EvaluationError, ParseError } from './errors';
 
 // Parse an expression and return the AST
 // Uses Peggy parser which allows keywords as identifiers
@@ -12,9 +12,12 @@ export const parseExpression = (expr: string): any => {
     // Handle Peggy syntax errors
     if (error.location) {
       const { line, column } = error.location.start;
-      throw new EvaluationError(`Parse error at line ${line}, column ${column}: ${error.message}`);
+      throw new ParseError(
+        `Parse error at line ${line}, column ${column}: ${error.message}`,
+        { line, column, expression: expr }
+      );
     }
-    throw new EvaluationError(`Parse error: ${error.message}`);
+    throw new ParseError(`Parse error: ${error.message}`, { expression: expr });
   }
 };
 
@@ -41,7 +44,22 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
         const ast = parseExpression(input.expr);
         asts.set(input.name, ast);
       } catch (error) {
-        throw new EvaluationError(`Failed to parse expression for "${input.name}": ${error instanceof Error ? error.message : String(error)}`);
+        // Re-throw with variable name if it's a ParseError
+        if (error instanceof ParseError) {
+          throw new ParseError(
+            `Failed to parse expression for "${input.name}": ${error.message}`,
+            {
+              variableName: input.name,
+              expression: input.expr,
+              line: error.line,
+              column: error.column
+            }
+          );
+        }
+        throw new ParseError(
+          `Failed to parse expression for "${input.name}": ${error instanceof Error ? error.message : String(error)}`,
+          { variableName: input.name, expression: input.expr }
+        );
       }
     }
   }
@@ -75,7 +93,10 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
     if (visiting.has(name)) {
       // Circular dependency detected
       const cycle = [...path, name];
-      throw new CircularDependencyError(`Circular dependency detected: ${cycle.join(' -> ')}`);
+      throw new CircularDependencyError(
+        `Circular dependency detected: ${cycle.join(' -> ')}`,
+        cycle
+      );
     }
     
     visiting.add(name);

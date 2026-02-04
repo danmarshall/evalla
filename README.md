@@ -253,26 +253,118 @@ Evaluates an array of math expressions with dependencies.
 
 **Throws:**
 - `ValidationError` - Invalid input (missing name, duplicate names, invalid variable names)
+  - Properties: `variableName`
 - `CircularDependencyError` - Circular dependencies detected
-- `EvaluationError` - Expression parsing or evaluation errors
+  - Properties: `cycle` (array of variable names in the cycle)
+- `ParseError` - Syntax/parsing errors in expressions (extends `EvaluationError`)
+  - Properties: `variableName`, `expression`, `line`, `column`
+- `EvaluationError` - Runtime evaluation errors (undefined variables, type errors)
+  - Properties: `variableName`
 - `SecurityError` - Attempt to access blocked properties (prototype, __proto__, constructor, __*)
+  - Properties: `property`
+
+All errors include structured details for programmatic access - no need to parse error messages!
 
 **Error Handling:**
 ```typescript
-import { evalla, SecurityError, CircularDependencyError, ValidationError } from 'evalla';
+import { evalla, ParseError, SecurityError, CircularDependencyError, ValidationError, EvaluationError } from 'evalla';
 
 try {
   const result = await evalla(inputs);
 } catch (error) {
-  if (error instanceof SecurityError) {
-    console.error('Security violation:', error.message);
+  // Catch ParseError first since it extends EvaluationError
+  if (error instanceof ParseError) {
+    console.error(`Syntax error in "${error.variableName}" at ${error.line}:${error.column}`);
+    console.error(`Expression: ${error.expression}`);
+  } else if (error instanceof EvaluationError) {
+    console.error(`Runtime error in "${error.variableName}"`);
+  } else if (error instanceof SecurityError) {
+    console.error(`Security violation: attempted to access "${error.property}"`);
   } else if (error instanceof CircularDependencyError) {
-    console.error('Circular dependency:', error.message);
+    console.error(`Circular dependency: ${error.cycle.join(' -> ')}`);
   } else if (error instanceof ValidationError) {
-    console.error('Invalid input:', error.message);
+    console.error(`Invalid variable: "${error.variableName}"`);
   }
 }
 ```
+
+### `checkSyntax(expr: string): SyntaxCheckResult`
+
+Checks the syntax of an expression without evaluating it. Useful for text editors to validate expressions before sending them for evaluation.
+
+**Parameters:**
+- `expr`: The expression string to check
+
+**Returns:**
+- Object with the following properties:
+  - `valid`: boolean - Whether the syntax is valid
+  - `error?`: string - Error message if syntax is invalid
+  - `line?`: number - Line number where error occurred (1-indexed)
+  - `column?`: number - Column number where error occurred (1-indexed)
+
+**Example:**
+```typescript
+import { checkSyntax } from 'evalla';
+
+// Valid expression
+const result1 = checkSyntax('a + b * 2');
+console.log(result1.valid); // true
+
+// Invalid expression - missing closing parenthesis
+const result2 = checkSyntax('(a + b');
+console.log(result2.valid); // false
+console.log(result2.error); // "Parse error at line 1, column 7: Expected..."
+console.log(result2.line); // 1
+console.log(result2.column); // 7
+```
+
+**Usage Patterns:**
+
+When to use `checkSyntax()` vs just calling `evalla()`:
+
+```typescript
+import { checkSyntax, evalla, EvaluationError } from 'evalla';
+
+// Pattern 1: Pre-validate for immediate user feedback (recommended for text editors/UI)
+const inputs = [
+  { name: 'a', expr: 'c + 5' },
+  { name: 'b', expr: 'a * 2' }
+];
+
+// Check syntax of each expression before calling evalla
+for (const input of inputs) {
+  if (input.expr) {
+    const check = checkSyntax(input.expr);
+    if (!check.valid) {
+      console.error(`Invalid syntax in "${input.name}": ${check.error}`);
+      return; // Don't call evalla with invalid syntax
+    }
+  }
+}
+
+// All syntax valid, now evaluate
+const result = await evalla(inputs);
+
+// Pattern 2: Let evalla handle all validation (simpler for batch processing)
+try {
+  const result = await evalla(inputs);
+  // Success - use result
+} catch (error) {
+  // Catch ParseError specifically to handle syntax errors
+  if (error instanceof ParseError) {
+    console.error(`Syntax error in "${error.variableName}" at ${error.line}:${error.column}`);
+  } else if (error instanceof EvaluationError) {
+    console.error('Runtime evaluation error:', error.message);
+  }
+  // Handle other error types (ValidationError, CircularDependencyError, etc.)
+}
+```
+
+**Note:** 
+- `checkSyntax()` only validates expression syntax. It does not check variable names, detect circular dependencies, or validate that referenced variables exist.
+- `evalla()` throws `ParseError` for syntax errors with the same details (line, column, message) as `checkSyntax()`, plus identifies which variable has the error.
+- `ParseError` extends `EvaluationError`, so catch `ParseError` first if you want to handle syntax errors differently from runtime errors.
+- Use `checkSyntax()` for pre-flight validation (e.g., real-time feedback as user types). Use `evalla()` for complete validation and evaluation.
 
 ## Philosophy
 

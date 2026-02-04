@@ -29,7 +29,7 @@ jobs:
       - name: Update Astro config for PR preview
         if: github.event.action != 'closed'
         run: |
-          cat > packages/playground/astro.config.mjs << 'EOF'
+          cat > packages/playground/astro.config.mjs << EOF
           import { defineConfig } from 'astro/config';
 
           export default defineConfig({

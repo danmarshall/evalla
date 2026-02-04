@@ -1,6 +1,6 @@
 import { strict as assert } from 'assert';
 import { test } from 'node:test';
-import { evalla, Decimal } from './index';
+import { evalla, Decimal } from '../src/index';
 
 test('object literals and property access', async () => {
   const result = await evalla([

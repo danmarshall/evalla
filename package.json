@@ -6,9 +6,9 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "node --test dist/*.test.js",
-    "test:watch": "node --test --watch dist/*.test.js",
-    "pretest": "npm run build"
+    "test": "tsc -p tsconfig.test.json && node --test dist-test/test/*.test.js",
+    "test:watch": "tsc -p tsconfig.test.json && node --test --watch dist-test/test/*.test.js",
+    "pretest": ""
   },
   "keywords": [
     "math",

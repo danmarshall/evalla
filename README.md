@@ -302,18 +302,48 @@ console.log(result2.valid); // false
 console.log(result2.error); // "Parse error at line 1, column 7: Expected..."
 console.log(result2.line); // 1
 console.log(result2.column); // 7
+```
 
-// Use case: Validate before evaluating
-const userInput = '1 + 2 * 3';
-const check = checkSyntax(userInput);
+**Usage Patterns:**
 
-if (check.valid) {
-  const result = await evalla([{ name: 'result', expr: userInput }]);
-  console.log(result.values.result.toString()); // "7"
-} else {
-  console.error(`Syntax error: ${check.error}`);
+When to use `checkSyntax()` vs just calling `evalla()`:
+
+```typescript
+import { checkSyntax, evalla, EvaluationError } from 'evalla';
+
+// Pattern 1: Pre-validate for immediate user feedback (recommended for text editors/UI)
+const inputs = [
+  { name: 'a', expr: 'c + 5' },
+  { name: 'b', expr: 'a * 2' }
+];
+
+// Check syntax of each expression before calling evalla
+for (const input of inputs) {
+  if (input.expr) {
+    const check = checkSyntax(input.expr);
+    if (!check.valid) {
+      console.error(`Invalid syntax in "${input.name}": ${check.error}`);
+      return; // Don't call evalla with invalid syntax
+    }
+  }
+}
+
+// All syntax valid, now evaluate
+const result = await evalla(inputs);
+
+// Pattern 2: Let evalla handle all validation (simpler for batch processing)
+try {
+  const result = await evalla(inputs);
+  // Success - use result
+} catch (error) {
+  if (error instanceof EvaluationError) {
+    console.error('Evaluation failed:', error.message);
+  }
+  // Handle other error types (ValidationError, CircularDependencyError, etc.)
 }
 ```
+
+**Note:** `checkSyntax()` only validates expression syntax. It does not check variable names, detect circular dependencies, or validate that referenced variables exist. Use `evalla()` for complete validation and evaluation.
 
 ## Philosophy
 

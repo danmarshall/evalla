@@ -1,6 +1,88 @@
 import { evalla, EvaluationError, ValidationError } from '../src/index';
 
 describe('Malformed Expression Handling', () => {
+  describe('Variable naming rules', () => {
+    test('variable names cannot start with numbers', async () => {
+      // Variable names starting with numbers are invalid JavaScript identifiers
+      await expect(
+        evalla([{ name: '9test', expr: '1' }])
+      ).rejects.toThrow(ValidationError);
+    });
+
+    test('variable names cannot start with double underscore', async () => {
+      // Double underscore prefix is reserved for security (blocks __proto__ etc.)
+      await expect(
+        evalla([{ name: '__test', expr: '1' }])
+      ).rejects.toThrow(ValidationError);
+    });
+
+    test('variable names cannot start with dollar sign', async () => {
+      // Dollar sign is reserved for namespaces like $math, $unit, $angle
+      await expect(
+        evalla([{ name: '$test', expr: '1' }])
+      ).rejects.toThrow(ValidationError);
+    });
+
+    test('non-reserved keywords can be used as variable names', async () => {
+      // Note: The expression language uses acorn (a JavaScript parser)
+      // This means JavaScript reserved words (if, while, for, new, return, etc.) 
+      // CANNOT be used as variable names due to parser limitations
+      // However, non-reserved words work fine
+      const result = await evalla([
+        { name: 'let', expr: '10' },      // 'let' is NOT reserved in expression context
+        { name: 'async', expr: '5' },    // 'async' is contextual, works here
+        { name: 'await', expr: '3' },    // 'await' is contextual, works here  
+        { name: 'result1', expr: 'let + async' },
+        { name: 'result2', expr: 'let * await' }
+      ]);
+      
+      expect(result.values.let.toString()).toBe('10');
+      expect(result.values.async.toString()).toBe('5');
+      expect(result.values.await.toString()).toBe('3');
+      expect(result.values.result1.toString()).toBe('15');
+      expect(result.values.result2.toString()).toBe('30');
+    });
+
+    test('reserved words as property names DO work', async () => {
+      // Reserved words CAN be used as property names in JavaScript
+      // So obj.if, obj.while, obj.new, etc. all work fine
+      const result = await evalla([
+        { name: 'obj', value: { if: 10, while: 20, for: 30, new: 40, return: 50 } },
+        { name: 'sum', expr: 'obj.if + obj.while + obj.for' },
+        { name: 'product', expr: 'obj.new * obj.return' }
+      ]);
+      
+      expect(result.values.sum.toString()).toBe('60');
+      expect(result.values.product.toString()).toBe('2000');
+    });
+
+    test('reserved words as object literal keys DO work', async () => {
+      // Reserved words are also valid as object literal keys
+      const result = await evalla([
+        { name: 'obj', expr: '{if: 1, while: 2, for: 3, new: 4, class: 5}' },
+        { name: 'total', expr: 'obj.if + obj.while + obj.for + obj.new + obj.class' }
+      ]);
+      
+      expect(result.values.total.toString()).toBe('15');
+    });
+
+    test('reserved words as variable names do NOT work (parser limitation)', async () => {
+      // JavaScript reserved words cannot be used as variable names
+      // This is a limitation of using acorn (JavaScript parser)
+      await expect(
+        evalla([{ name: 'validName', expr: 'if + 1' }])
+      ).rejects.toThrow(EvaluationError);
+      
+      await expect(
+        evalla([{ name: 'validName', expr: 'while + 1' }])
+      ).rejects.toThrow(EvaluationError);
+      
+      await expect(
+        evalla([{ name: 'validName', expr: 'new + new' }])
+      ).rejects.toThrow(EvaluationError);
+    });
+  });
+
   describe('Syntax Errors', () => {
     test('double dots in property access', async () => {
       await expect(
@@ -141,62 +223,66 @@ describe('Malformed Expression Handling', () => {
     });
   });
 
-  describe('Unsupported constructs', () => {
-    test('await keyword not allowed', async () => {
+  describe('Unsupported AST node types (statements, not expressions)', () => {
+    // This expression language only supports expressions, not statements
+    // The AST evaluator uses a whitelist of supported node types
+    // Statement constructs (if, while, for, etc.) produce AST nodes that are rejected
+    
+    test('await expressions not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: 'await foo' }])
       ).rejects.toThrow(EvaluationError);
     });
 
-    test('function keyword not allowed', async () => {
+    test('function declarations not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: 'function() {}' }])
       ).rejects.toThrow(EvaluationError);
     });
 
-    test('arrow function not allowed', async () => {
+    test('arrow functions not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: '() => 1' }])
       ).rejects.toThrow(EvaluationError);
     });
 
-    test('class keyword not allowed', async () => {
+    test('class declarations not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: 'class Foo {}' }])
       ).rejects.toThrow(EvaluationError);
     });
 
-    test('new keyword not allowed', async () => {
+    test('new expressions not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: 'new Date()' }])
       ).rejects.toThrow(EvaluationError);
     });
 
-    test('try/catch not allowed', async () => {
+    test('try/catch statements not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: 'try { 1 } catch(e) { 2 }' }])
       ).rejects.toThrow(EvaluationError);
     });
 
-    test('for loop not allowed', async () => {
+    test('for statements not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: 'for(let i=0; i<10; i++) {}' }])
       ).rejects.toThrow(EvaluationError);
     });
 
-    test('while loop not allowed', async () => {
+    test('while statements not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: 'while(true) {}' }])
       ).rejects.toThrow(EvaluationError);
     });
 
-    test('if statement not allowed', async () => {
+    test('if statements not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: 'if(true) { 1 }' }])
       ).rejects.toThrow(EvaluationError);
     });
 
-    test('variable declaration not allowed', async () => {
+    test('variable declarations not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: 'let x = 1' }])
       ).rejects.toThrow(EvaluationError);

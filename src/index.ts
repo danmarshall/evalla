@@ -21,6 +21,12 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
     if (input.name.startsWith('$')) {
       throw new ValidationError(`Variable names cannot start with $: ${input.name} ($ is reserved for system namespaces)`);
     }
+    if (input.name.startsWith('__')) {
+      throw new ValidationError(`Variable names cannot start with __: ${input.name} (__ prefix is reserved for security reasons)`);
+    }
+    if (/^\d/.test(input.name)) {
+      throw new ValidationError(`Variable names cannot start with a number: ${input.name}`);
+    }
     if (input.name.includes('.')) {
       throw new ValidationError(`Variable names cannot contain dots: ${input.name} (dots are only for property access in expressions)`);
     }

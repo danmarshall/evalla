@@ -30,6 +30,22 @@ describe('Input Validation', () => {
     ).rejects.toThrow(ValidationError);
   });
 
+  test('variable names cannot start with __', async () => {
+    await expect(
+      evalla([
+        { name: '__myvar', expr: '1' }
+      ])
+    ).rejects.toThrow(ValidationError);
+  });
+
+  test('variable names cannot start with numbers', async () => {
+    await expect(
+      evalla([
+        { name: '9myvar', expr: '1' }
+      ])
+    ).rejects.toThrow(ValidationError);
+  });
+
   test('variable names cannot contain dots', async () => {
     await expect(
       evalla([

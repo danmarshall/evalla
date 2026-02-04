@@ -2,6 +2,11 @@
   "name": "evalla",
   "version": "0.1.0",
   "description": "Safe math evaluator with variables, dependencies, and precision",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danmarshall/evalla.git"
+  },
+  "homepage": "https://github.com/danmarshall/evalla",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

@@ -419,13 +419,6 @@ cd packages/playground
 npm run dev
 ```
 
-# Test
-npm test
-
-# Watch mode
-npm run test:watch
-```
-
 For detailed API documentation and examples, see the [evalla package README](packages/evalla/README.md).
 
 ## License

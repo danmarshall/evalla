@@ -388,13 +388,6 @@ npm run build
 npm test
 ```
 
-# Test
-npm test
-
-# Watch mode
-npm run test:watch
-```
-
 For detailed API documentation and examples, see the sections above.
 
 ## License

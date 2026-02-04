@@ -215,6 +215,36 @@ describe('checkSyntax - Expression Syntax Validation', () => {
       expect(result.error).toBeDefined();
     });
 
+    test('assignment operator (single equals)', () => {
+      const result = checkSyntax('a = 5');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    test('assignment with addition', () => {
+      const result = checkSyntax('a = b + 1');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    test('semicolon at end', () => {
+      const result = checkSyntax('1 + 2;');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    test('semicolon between expressions', () => {
+      const result = checkSyntax('1; 2');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    test('semicolon in middle of expression', () => {
+      const result = checkSyntax('a + b; c + d');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
     test('incomplete ternary', () => {
       const result = checkSyntax('a ? b');
       expect(result.valid).toBe(false);

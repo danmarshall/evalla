@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
-import { createNamespaces } from './namespaces';
-import { evaluateAST } from './ast-evaluator';
-import { EvallaError } from './errors';
+import { createNamespaces } from './namespaces.js';
+import { evaluateAST } from './ast-evaluator.js';
+import { EvallaError } from './errors.js';
 
 // Safe expression evaluator - no arbitrary code execution
 // Accepts a pre-parsed AST for efficiency (no double parsing)

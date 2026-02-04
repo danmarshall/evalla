@@ -3,7 +3,7 @@
  * Run with: node dist/example.js
  */
 
-import { evalla } from './index';
+import { evalla } from './index.js';
 
 async function main() {
   console.log('=== Evalla Examples ===\n');

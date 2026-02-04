@@ -7,27 +7,22 @@
     "url": "https://github.com/danmarshall/evalla.git"
   },
   "homepage": "https://github.com/danmarshall/evalla",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/cjs/index.d.ts",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
-      "types": "./dist/cjs/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "prebuild": "npm run prebuild:cjs && npm run prebuild:esm",
-    "prebuild:cjs": "peggy --output src/parser.js --format commonjs src/grammar.pegjs",
-    "prebuild:esm": "peggy --output src/parser.mjs --format es src/grammar.pegjs",
-    "build": "npm run build:cjs && npm run build:esm",
-    "build:cjs": "tsc -p tsconfig.cjs.json && cpx src/parser.js dist/cjs",
-    "build:esm": "tsc -p tsconfig.esm.json && cpx src/parser.mjs dist/esm && node scripts/fix-esm-imports.js",
-    "test": "jest"
+    "prebuild": "peggy --output src/parser.js --format es src/grammar.pegjs",
+    "build": "tsc && cpx src/parser.js dist",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "keywords": [
     "formula",

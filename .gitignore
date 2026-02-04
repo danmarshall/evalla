@@ -50,7 +50,6 @@ web_modules/
 # Generated parser from Peggy
 src/parser.js
 packages/evalla/src/parser.js
-packages/evalla/src/parser.mjs
 
 # Optional npm cache directory
 .npm

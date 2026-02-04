@@ -134,6 +134,8 @@ console.log(result.values.scaledX.toString()); // "10"
 
 ### Namespaces
 
+Variables may not begin with $, this is reserved for namespaces for built-in functions and constants.
+
 #### $math Namespace
 
 Mathematical constants and functions:

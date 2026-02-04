@@ -13,13 +13,18 @@
     "test": "jest"
   },
   "keywords": [
-    "math",
+    "formula",
+    "expression",
+    "parser",
     "evaluator",
+    "dependency-graph",
+    "math",
+    "eval",
     "safe",
     "decimal",
     "precision"
   ],
-  "author": "",
+  "author": "Dan Marshall",
   "license": "MIT",
   "dependencies": {
     "decimal.js": "^10.4.3"

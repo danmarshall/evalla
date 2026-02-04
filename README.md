@@ -198,7 +198,11 @@ try {
 }
 ```
 
-### Keywords as Variable Names
+### Variable naming
+
+Variables may not begin with a number, double underscore(__), or $ (see namespaces above).
+
+#### Keywords as Variable Names
 
 Unlike JavaScript, algebra-like variable names can include JavaScript keywords:
 

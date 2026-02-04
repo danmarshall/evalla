@@ -88,17 +88,31 @@ console.log(result.order); // ['a', 'b', 'c', 'd']
 console.log(result.values.d.toString()); // "90"
 ```
 
-### Dot-Traversal
+### Dot-Traversal with Object Literals
+
+Variable names must be simple identifiers (no dots), but expressions can use object literals and dot-notation:
 
 ```typescript
 const result = await evalla([
-  { name: 'point.x', expr: '10' },
-  { name: 'point.y', expr: '20' },
-  { name: 'offset.x', expr: '5' },
-  { name: 'result.x', expr: 'point.x + offset.x' }
+  { name: 'point', expr: '{x: 10, y: 20}' },
+  { name: 'offset', expr: '{x: 5, y: 10}' },
+  { name: 'resultX', expr: 'point.x + offset.x' },
+  { name: 'resultY', expr: 'point.y + offset.y' }
 ]);
 
-console.log(result.values['result.x'].toString()); // "15"
+console.log(result.values.resultX.toString()); // "15"
+console.log(result.values.resultY.toString()); // "25"
+```
+
+### Nested Property Access
+
+```typescript
+const result = await evalla([
+  { name: 'data', expr: '{pos: {x: 5, y: 10}, scale: 2}' },
+  { name: 'scaledX', expr: 'data.pos.x * data.scale' }
+]);
+
+console.log(result.values.scaledX.toString()); // "10"
 ```
 
 ### Namespaces

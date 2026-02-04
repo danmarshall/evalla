@@ -27,18 +27,16 @@ async function main() {
   console.log(`   Evaluation order: ${ex2.order.join(' -> ')}`);
   console.log(`   Results: a=${ex2.values.a}, b=${ex2.values.b}, c=${ex2.values.c}, d=${ex2.values.d}\n`);
 
-  // Example 3: Dot-traversal
-  console.log('3. Dot-Traversal:');
+  // Example 3: Object literals and property access
+  console.log('3. Object Literals & Property Access:');
   const ex3 = await evalla([
-    { name: 'point.x', expr: '10' },
-    { name: 'point.y', expr: '20' },
-    { name: 'offset.x', expr: '5' },
-    { name: 'offset.y', expr: '3' },
-    { name: 'result.x', expr: 'point.x + offset.x' },
-    { name: 'result.y', expr: 'point.y + offset.y' }
+    { name: 'point', expr: '{x: 10, y: 20}' },
+    { name: 'offset', expr: '{x: 5, y: 3}' },
+    { name: 'resultX', expr: 'point.x + offset.x' },
+    { name: 'resultY', expr: 'point.y + offset.y' }
   ]);
   console.log(`   point + offset = result`);
-  console.log(`   (${ex3.values['point.x']}, ${ex3.values['point.y']}) + (${ex3.values['offset.x']}, ${ex3.values['offset.y']}) = (${ex3.values['result.x']}, ${ex3.values['result.y']})\n`);
+  console.log(`   (${ex3.values.resultX}, ${ex3.values.resultY})\n`);
 
   // Example 4: $math namespace
   console.log('4. Math Namespace:');
@@ -84,20 +82,18 @@ async function main() {
     console.log(`   Error: ${err.message}\n`);
   }
 
-  // Example 8: Complex real-world scenario
-  console.log('8. Real-World: Box Dimensions & Volume:');
+  // Example 8: Complex real-world scenario with nested objects
+  console.log('8. Real-World: Box with Nested Dimensions:');
   const ex8 = await evalla([
-    { name: 'box.widthInches', expr: '10' },
-    { name: 'box.heightInches', expr: '8' },
-    { name: 'box.depthInches', expr: '6' },
-    { name: 'box.widthMM', expr: '$unit.inchToMm(box.widthInches)' },
-    { name: 'box.heightMM', expr: '$unit.inchToMm(box.heightInches)' },
-    { name: 'box.depthMM', expr: '$unit.inchToMm(box.depthInches)' },
-    { name: 'box.volumeMM3', expr: 'box.widthMM * box.heightMM * box.depthMM' },
-    { name: 'box.volumeInches3', expr: 'box.widthInches * box.heightInches * box.depthInches' }
+    { name: 'box', expr: '{dimensions: {width: 10, height: 8, depth: 6}, unit: "inches"}' },
+    { name: 'widthMM', expr: '$unit.inchToMm(box.dimensions.width)' },
+    { name: 'heightMM', expr: '$unit.inchToMm(box.dimensions.height)' },
+    { name: 'depthMM', expr: '$unit.inchToMm(box.dimensions.depth)' },
+    { name: 'volumeMM3', expr: 'widthMM * heightMM * depthMM' },
+    { name: 'volumeInches3', expr: 'box.dimensions.width * box.dimensions.height * box.dimensions.depth' }
   ]);
-  console.log(`   Box dimensions: ${ex8.values['box.widthInches']}" × ${ex8.values['box.heightInches']}" × ${ex8.values['box.depthInches']}"`);
-  console.log(`   Volume: ${ex8.values['box.volumeInches3']} in³ or ${ex8.values['box.volumeMM3'].toFixed(0)} mm³`);
+  console.log(`   Box dimensions: ${ex8.values.volumeInches3} in³`);
+  console.log(`   Volume: ${ex8.values.volumeMM3.toFixed(0)} mm³`);
 }
 
 main().catch(console.error);

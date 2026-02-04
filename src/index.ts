@@ -110,3 +110,4 @@ export {
   ValidationError, 
   EvaluationError 
 } from './errors';
+export { checkSyntax, SyntaxCheckResult } from './syntax-checker';

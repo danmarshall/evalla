@@ -2,16 +2,20 @@
 
 Safe math evaluator with variables, dependencies, and precision.
 
-**Minimal TypeScript library that SAFELY evaluates strings of math expressions with variable references.**
+```typescript
+import { evalla } from 'evalla';
 
-## Philosophy
+const result = await evalla([
+  { name: 'a', expr: 'c + 5' },          // depends on c
+  { name: 'b', expr: 'a * 2' },          // depends on a
+  { name: 'c', expr: '1 + 1' }           // base constant
+]);
 
-- **Minimal**: Bare minimum dependencies and code
-- **Modular**: Separated concerns (parser, evaluator, namespaces, toposort)
-- **DRY**: No code duplication
-- **Testable**: Small, focused functions with clear interfaces
-- **Safe & Secure**: No arbitrary code execution, whitelist-only approach
-- **Efficient**: Parse once, use for both dependency extraction and evaluation
+console.log(result.values.a.toString()); // "7"
+console.log(result.values.b.toString()); // "14"
+console.log(result.values.c.toString()); // "2"
+console.log(result.order);               // ['c', 'a', 'b']
+```
 
 ## Features
 
@@ -21,43 +25,12 @@ Safe math evaluator with variables, dependencies, and precision.
 - ✅ **Topological Ordering**: Evaluates in correct dependency order (DAG)
 - ✅ **Circular Detection**: Throws error on circular dependencies
 - ✅ **Safe Evaluation**: Parses with `acorn`, evaluates AST (no `eval()` or `Function()`)
-- ✅ **Namespaces**: Built-in `$math`, `$unit`, and `$angle` functions
+- ✅ [**Namespaces**](#namespaces): Built-in `$math`, `$unit`, and `$angle` functions
 
 ## Installation
 
 ```bash
 npm install evalla
-```
-
-## Usage
-
-```typescript
-import { evalla } from 'evalla';
-
-const result = await evalla([
-  { name: 'width', expr: '100' },
-  { name: 'height', expr: '50' },
-  { name: 'area', expr: 'width * height' }
-]);
-
-console.log(result.values.area.toString()); // "5000"
-console.log(result.order); // ['width', 'height', 'area']
-```
-
-### Using Direct Values
-
-Instead of stringifying objects, you can pass them directly using the `value` property:
-
-```typescript
-const result = await evalla([
-  { name: 'point', value: { x: 10, y: 20 } },
-  { name: 'offset', value: { x: 5, y: 10 } },
-  { name: 'resultX', expr: 'point.x + offset.x' },
-  { name: 'resultY', expr: 'point.y + offset.y' }
-]);
-
-console.log(result.values.resultX.toString()); // "15"
-console.log(result.values.resultY.toString()); // "30"
 ```
 
 ### Input Format
@@ -70,7 +43,7 @@ interface ExpressionInput {
 }
 ```
 
-You must provide either `expr` or `value` (or both). The `value` property allows you to pass objects directly without stringifying them into expressions.
+You must provide either `expr` or `value` per item. The `value` property allows you to pass objects directly without stringifying them into expressions.
 
 **Using expressions:**
 ```typescript
@@ -249,6 +222,15 @@ Evaluates an array of math expressions with dependencies.
 - Input validation errors
 - Circular dependency errors
 - Expression evaluation errors
+
+## Philosophy
+
+- **Minimal**: Bare minimum dependencies and code
+- **Modular**: Separated concerns (parser, evaluator, namespaces, toposort)
+- **DRY**: No code duplication
+- **Testable**: Small, focused functions with clear interfaces
+- **Safe & Secure**: No arbitrary code execution, whitelist-only approach
+- **Efficient**: Parse once, use for both dependency extraction and evaluation
 
 ## Development
 

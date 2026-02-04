@@ -338,12 +338,17 @@ try {
 } catch (error) {
   if (error instanceof EvaluationError) {
     console.error('Evaluation failed:', error.message);
+    // Error message includes which variable and line/column details:
+    // "Failed to parse expression for "b": Parse error at line 1, column 4: ..."
   }
   // Handle other error types (ValidationError, CircularDependencyError, etc.)
 }
 ```
 
-**Note:** `checkSyntax()` only validates expression syntax. It does not check variable names, detect circular dependencies, or validate that referenced variables exist. Use `evalla()` for complete validation and evaluation.
+**Note:** 
+- `checkSyntax()` only validates expression syntax. It does not check variable names, detect circular dependencies, or validate that referenced variables exist.
+- `evalla()` provides the same syntax error details (line, column, message) as `checkSyntax()` and identifies which variable has the error.
+- Use `checkSyntax()` for pre-flight validation (e.g., real-time feedback as user types). Use `evalla()` for complete validation and evaluation.
 
 ## Philosophy
 

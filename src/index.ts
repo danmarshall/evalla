@@ -126,6 +126,7 @@ export {
   SecurityError, 
   CircularDependencyError, 
   ValidationError, 
-  EvaluationError 
+  EvaluationError,
+  ParseError
 } from './errors';
 export { checkSyntax, SyntaxCheckResult } from './syntax-checker';

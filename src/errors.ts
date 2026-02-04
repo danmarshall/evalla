@@ -47,7 +47,17 @@ export class ValidationError extends EvallaError {
 export class EvaluationError extends EvallaError {
   /** The variable name where evaluation failed */
   public readonly variableName?: string;
-  /** The expression that failed */
+
+  constructor(message: string, variableName?: string) {
+    super(message);
+    this.name = 'EvaluationError';
+    this.variableName = variableName;
+    Object.setPrototypeOf(this, EvaluationError.prototype);
+  }
+}
+
+export class ParseError extends EvaluationError {
+  /** The expression that failed to parse */
   public readonly expression?: string;
   /** Line number where error occurred (1-indexed) */
   public readonly line?: number;
@@ -63,12 +73,11 @@ export class EvaluationError extends EvallaError {
       column?: number;
     }
   ) {
-    super(message);
-    this.name = 'EvaluationError';
-    this.variableName = details?.variableName;
+    super(message, details?.variableName);
+    this.name = 'ParseError';
     this.expression = details?.expression;
     this.line = details?.line;
     this.column = details?.column;
-    Object.setPrototypeOf(this, EvaluationError.prototype);
+    Object.setPrototypeOf(this, ParseError.prototype);
   }
 }

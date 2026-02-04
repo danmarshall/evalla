@@ -253,23 +253,32 @@ Evaluates an array of math expressions with dependencies.
 
 **Throws:**
 - `ValidationError` - Invalid input (missing name, duplicate names, invalid variable names)
+  - Properties: `variableName`
 - `CircularDependencyError` - Circular dependencies detected
+  - Properties: `cycle` (array of variable names in the cycle)
 - `EvaluationError` - Expression parsing or evaluation errors
+  - Properties: `variableName`, `expression`, `line`, `column`
 - `SecurityError` - Attempt to access blocked properties (prototype, __proto__, constructor, __*)
+  - Properties: `property`
+
+All errors include structured details for programmatic access - no need to parse error messages!
 
 **Error Handling:**
 ```typescript
-import { evalla, SecurityError, CircularDependencyError, ValidationError } from 'evalla';
+import { evalla, SecurityError, CircularDependencyError, ValidationError, EvaluationError } from 'evalla';
 
 try {
   const result = await evalla(inputs);
 } catch (error) {
-  if (error instanceof SecurityError) {
-    console.error('Security violation:', error.message);
+  if (error instanceof EvaluationError) {
+    console.error(`Parse error in "${error.variableName}" at ${error.line}:${error.column}`);
+    console.error(`Expression: ${error.expression}`);
+  } else if (error instanceof SecurityError) {
+    console.error(`Security violation: attempted to access "${error.property}"`);
   } else if (error instanceof CircularDependencyError) {
-    console.error('Circular dependency:', error.message);
+    console.error(`Circular dependency: ${error.cycle.join(' -> ')}`);
   } else if (error instanceof ValidationError) {
-    console.error('Invalid input:', error.message);
+    console.error(`Invalid variable: "${error.variableName}"`);
   }
 }
 ```

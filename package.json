@@ -22,10 +22,13 @@
     "expression",
     "parser",
     "evaluator",
+    "dag",
     "dependency-graph",
     "math",
+    "parametric",
     "eval",
     "safe",
+    "safe-eval",
     "decimal",
     "precision"
   ],

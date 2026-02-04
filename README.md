@@ -202,11 +202,23 @@ try {
 **Safe by design:**
 - ❌ No access to `eval()`, `Function()`, or other dangerous globals
 - ❌ No access to `process`, `require`, or Node.js internals
+- ❌ No access to dangerous properties: `prototype`, `__proto__`, `constructor`, or any property starting with `__`
 - ✅ Only whitelisted functions in namespaces
 - ✅ Uses AST parsing (acorn) + safe evaluation
 - ✅ Variable names cannot start with `$` (reserved for system)
 - ✅ Sandboxed scope with `Object.create(null)`
 - ✅ No prototype pollution
+
+**Blocked property access examples:**
+```typescript
+// These will throw SecurityError
+await evalla([{ name: 'bad', expr: 'obj.prototype' }]);
+await evalla([{ name: 'bad', expr: 'obj.__proto__' }]);
+await evalla([{ name: 'bad', expr: 'obj.constructor' }]);
+await evalla([{ name: 'bad', expr: 'obj.__defineGetter__' }]);
+```
+
+Properties starting with `__` are blocked because they typically provide access to JavaScript internals that could be exploited for prototype pollution or other security vulnerabilities.
 
 ## API
 
@@ -221,9 +233,27 @@ Evaluates an array of math expressions with dependencies.
 - Promise resolving to `{ values, order }`
 
 **Throws:**
-- Input validation errors
-- Circular dependency errors
-- Expression evaluation errors
+- `ValidationError` - Invalid input (missing name, duplicate names, invalid variable names)
+- `CircularDependencyError` - Circular dependencies detected
+- `EvaluationError` - Expression parsing or evaluation errors
+- `SecurityError` - Attempt to access blocked properties (prototype, __proto__, constructor, __*)
+
+**Error Handling:**
+```typescript
+import { evalla, SecurityError, CircularDependencyError, ValidationError } from 'evalla';
+
+try {
+  const result = await evalla(inputs);
+} catch (error) {
+  if (error instanceof SecurityError) {
+    console.error('Security violation:', error.message);
+  } else if (error instanceof CircularDependencyError) {
+    console.error('Circular dependency:', error.message);
+  } else if (error instanceof ValidationError) {
+    console.error('Invalid input:', error.message);
+  }
+}
+```
 
 ## Philosophy
 

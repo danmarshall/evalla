@@ -415,6 +415,7 @@ npm run build
 npm test
 
 # Playground (packages/playground)
+# Note: The playground depends on evalla, so build it first
 cd packages/playground
 npm run dev
 ```

@@ -31,8 +31,7 @@ jobs:
 
           export default defineConfig({
             output: 'static',
-            site: 'https://danmarshall.github.io',
-            base: '/evalla',
+            site: 'https://danmarshall.github.io/evalla',
             build: {
               inlineStylesheets: 'auto'
             }

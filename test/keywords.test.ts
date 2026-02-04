@@ -60,14 +60,18 @@ describe('Keywords as Variable Names', () => {
     expect(result.values.default.toNumber()).toBeCloseTo(45.14159, 3);
   });
 
-  test('reserved literals (true, false, null) still reserved', async () => {
-    // Note: true, false, null are still reserved as they are literals
-    // They cannot be used as identifiers but can be used as values
-    const result = await evalla([
-      { name: 'test', expr: 'true' }
+  test('reserved literals (true, false, null) are primarily for values', async () => {
+    // true, false, null are reserved as literals in expressions
+    // However, they can technically be used as variable names (though not recommended)
+    const result1 = await evalla([
+      { name: 'x', expr: 'true' }  // true as a literal value
     ]);
+    expect(result1.order).toContain('x');
     
-    // Boolean/null results appear in order but not in values (they're not Decimal)
-    expect(result.order).toContain('test');
+    // Can even use as variable name (though discouraged in practice)
+    const result2 = await evalla([
+      { name: 'true', expr: '10' }
+    ]);
+    expect(result2.values.true.toString()).toBe('10');
   });
 });

@@ -46,6 +46,10 @@ jobs:
         if: github.event.action != 'closed'
         run: npm run build
 
+      - name: Add .nojekyll file
+        if: github.event.action != 'closed'
+        run: touch packages/playground/dist/.nojekyll
+
       - name: Deploy PR Preview
         uses: rossjrw/pr-preview-action@v1
         with:

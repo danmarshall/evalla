@@ -1,4 +1,4 @@
-import { evalla } from '../src/index';
+import { evalla, SecurityError } from '../src/index';
 
 describe('Security Hardening', () => {
   describe('Dangerous property access', () => {
@@ -8,7 +8,7 @@ describe('Security Hardening', () => {
           { name: 'obj', value: { x: 10 } },
           { name: 'bad', expr: 'obj.prototype' }
         ])
-      ).rejects.toThrow(/Access to property "prototype" is not allowed/);
+      ).rejects.toThrow(SecurityError);
     });
 
     test('should block __proto__ access', async () => {
@@ -17,7 +17,7 @@ describe('Security Hardening', () => {
           { name: 'obj', value: { x: 10 } },
           { name: 'bad', expr: 'obj.__proto__' }
         ])
-      ).rejects.toThrow(/Access to property "__proto__" is not allowed/);
+      ).rejects.toThrow(SecurityError);
     });
 
     test('should block constructor access', async () => {
@@ -26,7 +26,7 @@ describe('Security Hardening', () => {
           { name: 'obj', value: { x: 10 } },
           { name: 'bad', expr: 'obj.constructor' }
         ])
-      ).rejects.toThrow(/Access to property "constructor" is not allowed/);
+      ).rejects.toThrow(SecurityError);
     });
 
     test('should block properties starting with __', async () => {
@@ -35,7 +35,7 @@ describe('Security Hardening', () => {
           { name: 'obj', value: { x: 10 } },
           { name: 'bad', expr: 'obj.__defineGetter__' }
         ])
-      ).rejects.toThrow(/Access to property "__defineGetter__" is not allowed/);
+      ).rejects.toThrow(SecurityError);
     });
 
     test('should allow safe property access', async () => {

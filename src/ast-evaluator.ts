@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js';
+import { SecurityError, EvaluationError } from './errors';
 
 // Dangerous properties that should never be accessible
 const DANGEROUS_PROPERTIES = new Set([
@@ -33,14 +34,14 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       
     case 'Identifier':
       if (!(node.name in context)) {
-        throw new Error(`Undefined variable: ${node.name}`);
+        throw new EvaluationError(`Undefined variable: ${node.name}`);
       }
       return context[node.name];
       
     case 'MemberExpression':
       const object = await evaluateAST(node.object, context);
       if (object === null || object === undefined) {
-        throw new Error(`Cannot access property of ${object}`);
+        throw new EvaluationError(`Cannot access property of ${object}`);
       }
       
       let propertyName: string;
@@ -53,7 +54,7 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       
       // Security check: block dangerous property access
       if (!isSafeProperty(propertyName)) {
-        throw new Error(`Access to property "${propertyName}" is not allowed for security reasons`);
+        throw new SecurityError(`Access to property "${propertyName}" is not allowed for security reasons`);
       }
       
       return object[propertyName];
@@ -88,7 +89,7 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
         args.push(await evaluateAST(arg, context));
       }
       if (typeof callee !== 'function') {
-        throw new Error('Callee is not a function');
+        throw new EvaluationError('Callee is not a function');
       }
       // Get the correct 'this' context for method calls
       let thisArg = null;
@@ -110,7 +111,7 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       } else if (node.operator === '??') {
         return leftLog != null ? leftLog : await evaluateAST(node.right, context);
       }
-      throw new Error(`Unsupported logical operator: ${node.operator}`);
+      throw new EvaluationError(`Unsupported logical operator: ${node.operator}`);
       
     case 'ArrayExpression':
       const array = [];
@@ -120,7 +121,7 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       return array;
       
     default:
-      throw new Error(`Unsupported node type: ${node.type}`);
+      throw new EvaluationError(`Unsupported node type: ${node.type}`);
   }
 };
 
@@ -165,7 +166,7 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
       }
       return operator === '!==' ? left !== right : left != right;
     default:
-      throw new Error(`Unsupported binary operator: ${operator}`);
+      throw new EvaluationError(`Unsupported binary operator: ${operator}`);
   }
 };
 
@@ -185,6 +186,6 @@ const evaluateUnaryOp = (operator: string, argument: any): any => {
     case '!':
       return !argument;
     default:
-      throw new Error(`Unsupported unary operator: ${operator}`);
+      throw new EvaluationError(`Unsupported unary operator: ${operator}`);
   }
 };

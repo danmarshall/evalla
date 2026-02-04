@@ -1,4 +1,4 @@
-import { evalla } from '../src/index';
+import { evalla, CircularDependencyError } from '../src/index';
 
 describe('Variable Dependencies', () => {
   test('variable dependencies', async () => {
@@ -32,7 +32,7 @@ describe('Variable Dependencies', () => {
         { name: 'a', expr: 'b + 1' },
         { name: 'b', expr: 'a + 1' }
       ])
-    ).rejects.toThrow(/Circular dependency detected/);
+    ).rejects.toThrow(CircularDependencyError);
   });
 
   test('self-reference detection', async () => {
@@ -40,6 +40,6 @@ describe('Variable Dependencies', () => {
       evalla([
         { name: 'a', expr: 'a + 1' }
       ])
-    ).rejects.toThrow(/Circular dependency detected/);
+    ).rejects.toThrow(CircularDependencyError);
   });
 });

@@ -1,6 +1,7 @@
 import { parse } from 'acorn';
 import { ExpressionInput } from './types';
 import { extractVariablesFromAST } from './ast-variables';
+import { CircularDependencyError, EvaluationError } from './errors';
 
 // Parse an expression and return the AST
 // Handles object literal wrapping
@@ -13,12 +14,12 @@ export const parseExpression = (expr: string): any => {
   
   // Extract the expression from the Program node
   if (program.type !== 'Program' || !program.body || program.body.length === 0) {
-    throw new Error('Invalid expression');
+    throw new EvaluationError('Invalid expression');
   }
   
   const statement = program.body[0];
   if (statement.type !== 'ExpressionStatement') {
-    throw new Error('Expression must be a single expression statement');
+    throw new EvaluationError('Expression must be a single expression statement');
   }
   
   return statement.expression;
@@ -47,7 +48,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
         const ast = parseExpression(input.expr);
         asts.set(input.name, ast);
       } catch (error) {
-        throw new Error(`Failed to parse expression for "${input.name}": ${error instanceof Error ? error.message : String(error)}`);
+        throw new EvaluationError(`Failed to parse expression for "${input.name}": ${error instanceof Error ? error.message : String(error)}`);
       }
     }
   }
@@ -62,7 +63,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
     
     const ast = asts.get(input.name);
     if (!ast) {
-      throw new Error(`No AST found for: ${input.name}`);
+      throw new EvaluationError(`No AST found for: ${input.name}`);
     }
     
     const deps = extractDependencies(ast);
@@ -81,7 +82,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
     if (visiting.has(name)) {
       // Circular dependency detected
       const cycle = [...path, name];
-      throw new Error(`Circular dependency detected: ${cycle.join(' -> ')}`);
+      throw new CircularDependencyError(`Circular dependency detected: ${cycle.join(' -> ')}`);
     }
     
     visiting.add(name);

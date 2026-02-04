@@ -1,16 +1,16 @@
-import { evalla } from '../src/index';
+import { evalla, ValidationError } from '../src/index';
 
 describe('Input Validation', () => {
   test('non-array input', async () => {
     await expect(
       evalla({} as any)
-    ).rejects.toThrow(/Input must be an array/);
+    ).rejects.toThrow(ValidationError);
   });
 
   test('missing name', async () => {
     await expect(
       evalla([{ name: '', expr: '1' }])
-    ).rejects.toThrow(/non-empty string "name"/);
+    ).rejects.toThrow(ValidationError);
   });
 
   test('duplicate names', async () => {
@@ -19,7 +19,7 @@ describe('Input Validation', () => {
         { name: 'a', expr: '1' },
         { name: 'a', expr: '2' }
       ])
-    ).rejects.toThrow(/Duplicate name: a/);
+    ).rejects.toThrow(ValidationError);
   });
 
   test('variable names cannot start with $', async () => {
@@ -27,7 +27,7 @@ describe('Input Validation', () => {
       evalla([
         { name: '$myvar', expr: '1' }
       ])
-    ).rejects.toThrow(/Variable names cannot start with \$/);
+    ).rejects.toThrow(ValidationError);
   });
 
   test('variable names cannot contain dots', async () => {
@@ -35,7 +35,7 @@ describe('Input Validation', () => {
       evalla([
         { name: 'point.x', expr: '10' }
       ])
-    ).rejects.toThrow(/Variable names cannot contain dots/);
+    ).rejects.toThrow(ValidationError);
   });
 
   test('must provide either expr or value', async () => {
@@ -43,6 +43,6 @@ describe('Input Validation', () => {
       evalla([
         { name: 'test' }
       ])
-    ).rejects.toThrow(/must have either "expr" or "value"/);
+    ).rejects.toThrow(ValidationError);
   });
 });

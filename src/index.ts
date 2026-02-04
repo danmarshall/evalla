@@ -2,32 +2,33 @@ import Decimal from 'decimal.js';
 import { ExpressionInput, EvaluationResult } from './types';
 import { topologicalSort } from './toposort';
 import { evaluateExpression } from './evaluator';
+import { ValidationError } from './errors';
 
 // Main evalla function - minimal, modular, DRY, testable, safe, secure
 export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResult> => {
   // Input validation - security first
   if (!Array.isArray(inputs)) {
-    throw new Error('Input must be an array');
+    throw new ValidationError('Input must be an array');
   }
   
   for (const input of inputs) {
     if (!input || typeof input !== 'object') {
-      throw new Error('Each input must be an object');
+      throw new ValidationError('Each input must be an object');
     }
     if (typeof input.name !== 'string' || !input.name) {
-      throw new Error('Each input must have a non-empty string "name"');
+      throw new ValidationError('Each input must have a non-empty string "name"');
     }
     if (input.name.startsWith('$')) {
-      throw new Error(`Variable names cannot start with $: ${input.name} ($ is reserved for system namespaces)`);
+      throw new ValidationError(`Variable names cannot start with $: ${input.name} ($ is reserved for system namespaces)`);
     }
     if (input.name.includes('.')) {
-      throw new Error(`Variable names cannot contain dots: ${input.name} (dots are only for property access in expressions)`);
+      throw new ValidationError(`Variable names cannot contain dots: ${input.name} (dots are only for property access in expressions)`);
     }
     if (!input.expr && input.value === undefined) {
-      throw new Error(`Each input must have either "expr" or "value": ${input.name}`);
+      throw new ValidationError(`Each input must have either "expr" or "value": ${input.name}`);
     }
     if (input.expr !== undefined && typeof input.expr !== 'string') {
-      throw new Error(`"expr" must be a string if provided: ${input.name}`);
+      throw new ValidationError(`"expr" must be a string if provided: ${input.name}`);
     }
   }
   
@@ -35,7 +36,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
   const nameSet = new Set<string>();
   for (const input of inputs) {
     if (nameSet.has(input.name)) {
-      throw new Error(`Duplicate name: ${input.name}`);
+      throw new ValidationError(`Duplicate name: ${input.name}`);
     }
     nameSet.add(input.name);
   }
@@ -96,3 +97,10 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
 // Export types and utilities for external use
 export { ExpressionInput, EvaluationResult } from './types';
 export { Decimal };
+export { 
+  EvallaError, 
+  SecurityError, 
+  CircularDependencyError, 
+  ValidationError, 
+  EvaluationError 
+} from './errors';

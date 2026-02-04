@@ -1,7 +1,7 @@
 import * as parser from './parser.js';
-import { ExpressionInput } from './types';
-import { extractVariablesFromAST } from './ast-variables';
-import { CircularDependencyError, EvaluationError, ParseError } from './errors';
+import { ExpressionInput } from './types.js';
+import { extractVariablesFromAST } from './ast-variables.js';
+import { CircularDependencyError, EvaluationError, ParseError } from './errors.js';
 
 // Parse an expression and return the AST
 // Uses Peggy parser which allows keywords as identifiers

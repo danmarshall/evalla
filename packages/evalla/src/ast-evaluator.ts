@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import { SecurityError, EvaluationError } from './errors';
+import { SecurityError, EvaluationError } from './errors.js';
 
 // Dangerous properties that should never be accessible
 const DANGEROUS_PROPERTIES = new Set([

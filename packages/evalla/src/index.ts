@@ -1,8 +1,8 @@
 import Decimal from 'decimal.js';
-import { ExpressionInput, EvaluationResult } from './types';
-import { topologicalSort } from './toposort';
-import { evaluateExpression } from './evaluator';
-import { ValidationError } from './errors';
+import { ExpressionInput, EvaluationResult } from './types.js';
+import { topologicalSort } from './toposort.js';
+import { evaluateExpression } from './evaluator.js';
+import { ValidationError } from './errors.js';
 
 // Main evalla function - minimal, modular, DRY, testable, safe, secure
 export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResult> => {
@@ -119,7 +119,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
 };
 
 // Export types and utilities for external use
-export { ExpressionInput, EvaluationResult } from './types';
+export { ExpressionInput, EvaluationResult } from './types.js';
 export { Decimal };
 export { 
   EvallaError, 
@@ -128,5 +128,5 @@ export {
   ValidationError, 
   EvaluationError,
   ParseError
-} from './errors';
-export { checkSyntax, SyntaxCheckResult } from './syntax-checker';
+} from './errors.js';
+export { checkSyntax, SyntaxCheckResult } from './syntax-checker.js';

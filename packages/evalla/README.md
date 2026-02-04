@@ -2,17 +2,6 @@
 
 Safe math evaluator with variables, dependencies, and precision.
 
-## 🎮 Try the Playground
-
-Visit the interactive playground to experiment with evalla in your browser! See the [playground README](packages/playground/README.md) for details.
-
-## 📦 Packages
-
-This is a monorepo containing:
-
-- **[evalla](packages/evalla/)** - Core math evaluator library
-- **[playground](packages/playground/)** - Interactive Astro-based playground
-
 ```typescript
 import { evalla } from 'evalla';
 
@@ -388,38 +377,18 @@ try {
 
 ## Development
 
-### Monorepo Structure
-
-This repository uses npm workspaces. All packages are located in the `packages/` directory.
-
 ```bash
-# Install dependencies for all packages
+# Install dependencies
 npm install
 
-# Build all packages
+# Build
 npm run build
 
-# Run tests for all packages
-npm run test
-
-# Run the playground in development mode
-npm run dev:playground
-```
-
-### Working on Individual Packages
-
-```bash
-# Core library (packages/evalla)
-cd packages/evalla
-npm run build
+# Test
 npm test
-
-# Playground (packages/playground)
-cd packages/playground
-npm run dev
 ```
 
-For detailed API documentation and examples, see the [evalla package README](packages/evalla/README.md).
+For detailed API documentation and examples, see the sections above.
 
 ## License
 

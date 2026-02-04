@@ -1,0 +1,40 @@
+---
+name: PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: github.event.action != 'closed'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: github.event.action != 'closed'
+        run: npm ci
+
+      - name: Build packages
+        if: github.event.action != 'closed'
+        run: npm run build
+
+      - name: Deploy PR Preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./packages/playground/dist
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          deploy-repository: danmarshall/evalla
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,25 @@
 import Decimal from 'decimal.js';
 
+// Dangerous properties that should never be accessible
+const DANGEROUS_PROPERTIES = new Set([
+  'prototype',
+  '__proto__',
+  'constructor',
+]);
+
+// Check if a property name is safe to access
+const isSafeProperty = (propertyName: string): boolean => {
+  // Block dangerous properties
+  if (DANGEROUS_PROPERTIES.has(propertyName)) {
+    return false;
+  }
+  // Block any property starting with __
+  if (propertyName.startsWith('__')) {
+    return false;
+  }
+  return true;
+};
+
 // Custom AST evaluator that uses Decimal for all numeric operations
 // Security: Only evaluates whitelisted node types, no arbitrary code execution
 export const evaluateAST = async (node: any, context: Record<string, any>): Promise<any> => {
@@ -22,12 +42,21 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       if (object === null || object === undefined) {
         throw new Error(`Cannot access property of ${object}`);
       }
+      
+      let propertyName: string;
       if (node.computed) {
         const property = await evaluateAST(node.property, context);
-        return object[property];
+        propertyName = String(property);
       } else {
-        return object[node.property.name];
+        propertyName = node.property.name;
       }
+      
+      // Security check: block dangerous property access
+      if (!isSafeProperty(propertyName)) {
+        throw new Error(`Access to property "${propertyName}" is not allowed for security reasons`);
+      }
+      
+      return object[propertyName];
       
     case 'ObjectExpression':
       const obj: any = {};

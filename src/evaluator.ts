@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js';
 import { createNamespaces } from './namespaces';
 import { evaluateAST } from './ast-evaluator';
+import { EvallaError } from './errors';
 
 // Safe expression evaluator - no arbitrary code execution
 // Accepts a pre-parsed AST for efficiency (no double parsing)
@@ -38,6 +39,11 @@ export const evaluateExpression = async (
       return result;
     }
   } catch (error) {
+    // Re-throw our custom error types directly
+    if (error instanceof EvallaError) {
+      throw error;
+    }
+    // Wrap other errors
     throw new Error(`Failed to evaluate expression: ${error instanceof Error ? error.message : String(error)}`);
   }
 };

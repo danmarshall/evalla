@@ -4,11 +4,12 @@
   "description": "Safe math evaluator with variables, dependencies, and precision",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
-    "test": "node --test dist/*.test.js",
-    "test:watch": "node --test --watch dist/*.test.js",
-    "pretest": "npm run build"
+    "test": "jest"
   },
   "keywords": [
     "math",
@@ -24,7 +25,10 @@
     "decimal.js": "^10.4.3"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.11.5",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.3.3"
   }
 }

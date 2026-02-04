@@ -1,5 +1,3 @@
-import { strict as assert } from 'assert';
-import { test } from 'node:test';
 import { evalla, Decimal } from '../src/index';
 
 test('basic arithmetic expressions', async () => {
@@ -9,8 +7,8 @@ test('basic arithmetic expressions', async () => {
     { name: 'c', expr: 'a + b' }
   ]);
   
-  assert.equal(result.values.c.toString(), '30');
-  assert.deepEqual(result.order, ['a', 'b', 'c']);
+  expect(result.values.c.toString()).toBe('30');
+  expect(result.order).toEqual(['a', 'b', 'c']);
 });
 
 test('decimal precision', async () => {
@@ -18,7 +16,7 @@ test('decimal precision', async () => {
     { name: 'x', expr: '0.1 + 0.2' }
   ]);
   
-  assert.equal(result.values.x.toString(), '0.3');
+  expect(result.values.x.toString()).toBe('0.3');
 });
 
 test('variable dependencies', async () => {
@@ -28,7 +26,7 @@ test('variable dependencies', async () => {
     { name: 'area', expr: 'width * height' }
   ]);
   
-  assert.equal(result.values.area.toString(), '5000');
+  expect(result.values.area.toString()).toBe('5000');
 });
 
 test('complex dependency chain', async () => {
@@ -39,30 +37,28 @@ test('complex dependency chain', async () => {
     { name: 'a', expr: '5' }
   ]);
   
-  assert.equal(result.values.a.toString(), '5');
-  assert.equal(result.values.b.toString(), '15');
-  assert.equal(result.values.c.toString(), '45');
-  assert.equal(result.values.d.toString(), '90');
-  assert.deepEqual(result.order, ['a', 'b', 'c', 'd']);
+  expect(result.values.a.toString()).toBe('5');
+  expect(result.values.b.toString()).toBe('15');
+  expect(result.values.c.toString()).toBe('45');
+  expect(result.values.d.toString()).toBe('90');
+  expect(result.order).toEqual(['a', 'b', 'c', 'd']);
 });
 
 test('circular dependency detection', async () => {
-  await assert.rejects(
-    async () => await evalla([
+  await expect(
+    evalla([
       { name: 'a', expr: 'b + 1' },
       { name: 'b', expr: 'a + 1' }
-    ]),
-    /Circular dependency detected/
-  );
+    ])
+  ).rejects.toThrow(/Circular dependency detected/);
 });
 
 test('self-reference detection', async () => {
-  await assert.rejects(
-    async () => await evalla([
+  await expect(
+    evalla([
       { name: 'a', expr: 'a + 1' }
-    ]),
-    /Circular dependency detected/
-  );
+    ])
+  ).rejects.toThrow(/Circular dependency detected/);
 });
 
 test('$math namespace - constants', async () => {
@@ -71,8 +67,8 @@ test('$math namespace - constants', async () => {
     { name: 'sqrt2', expr: '$math.SQRT2' }
   ]);
   
-  assert.ok(Math.abs(result.values.pi.toNumber() - Math.PI) < 0.000001);
-  assert.ok(Math.abs(result.values.sqrt2.toNumber() - Math.SQRT2) < 0.000001);
+  expect(Math.abs(result.values.pi.toNumber() - Math.PI)).toBeLessThan(0.000001);
+  expect(Math.abs(result.values.sqrt2.toNumber() - Math.SQRT2)).toBeLessThan(0.000001);
 });
 
 test('$math namespace - functions', async () => {
@@ -84,11 +80,11 @@ test('$math namespace - functions', async () => {
     { name: 'roundVal', expr: '$math.round(4.5)' }
   ]);
   
-  assert.equal(result.values.absVal.toString(), '42');
-  assert.equal(result.values.sqrtVal.toString(), '4');
-  assert.equal(result.values.floorVal.toString(), '4');
-  assert.equal(result.values.ceilVal.toString(), '5');
-  assert.equal(result.values.roundVal.toString(), '5');
+  expect(result.values.absVal.toString()).toBe('42');
+  expect(result.values.sqrtVal.toString()).toBe('4');
+  expect(result.values.floorVal.toString()).toBe('4');
+  expect(result.values.ceilVal.toString()).toBe('5');
+  expect(result.values.roundVal.toString()).toBe('5');
 });
 
 test('$math.min and $math.max', async () => {
@@ -97,8 +93,8 @@ test('$math.min and $math.max', async () => {
     { name: 'maxVal', expr: '$math.max(10, 5, 20, 3)' }
   ]);
   
-  assert.equal(result.values.minVal.toString(), '3');
-  assert.equal(result.values.maxVal.toString(), '20');
+  expect(result.values.minVal.toString()).toBe('3');
+  expect(result.values.maxVal.toString()).toBe('20');
 });
 
 test('$unit namespace - conversions', async () => {
@@ -107,8 +103,8 @@ test('$unit namespace - conversions', async () => {
     { name: 'mm', expr: '$unit.inchToMm(1)' }
   ]);
   
-  assert.equal(result.values.inches.toString(), '1');
-  assert.equal(result.values.mm.toString(), '25.4');
+  expect(result.values.inches.toString()).toBe('1');
+  expect(result.values.mm.toString()).toBe('25.4');
 });
 
 test('$angle namespace - conversions', async () => {
@@ -117,59 +113,53 @@ test('$angle namespace - conversions', async () => {
     { name: 'degrees', expr: '$angle.toDeg($math.PI)' }
   ]);
   
-  assert.ok(Math.abs(result.values.radians.toNumber() - Math.PI) < 0.000001);
-  assert.ok(Math.abs(result.values.degrees.toNumber() - 180) < 0.000001);
+  expect(Math.abs(result.values.radians.toNumber() - Math.PI)).toBeLessThan(0.000001);
+  expect(Math.abs(result.values.degrees.toNumber() - 180)).toBeLessThan(0.000001);
 });
 
 test('input validation - non-array', async () => {
-  await assert.rejects(
-    async () => await evalla({} as any),
-    /Input must be an array/
-  );
+  await expect(
+    evalla({} as any)
+  ).rejects.toThrow(/Input must be an array/);
 });
 
 test('input validation - missing name', async () => {
-  await assert.rejects(
-    async () => await evalla([{ name: '', expr: '1' }]),
-    /non-empty string "name"/
-  );
+  await expect(
+    evalla([{ name: '', expr: '1' }])
+  ).rejects.toThrow(/non-empty string "name"/);
 });
 
 test('input validation - duplicate names', async () => {
-  await assert.rejects(
-    async () => await evalla([
+  await expect(
+    evalla([
       { name: 'a', expr: '1' },
       { name: 'a', expr: '2' }
-    ]),
-    /Duplicate name: a/
-  );
+    ])
+  ).rejects.toThrow(/Duplicate name: a/);
 });
 
 test('input validation - variable names cannot start with $', async () => {
-  await assert.rejects(
-    async () => await evalla([
+  await expect(
+    evalla([
       { name: '$myvar', expr: '1' }
-    ]),
-    /Variable names cannot start with \$/
-  );
+    ])
+  ).rejects.toThrow(/Variable names cannot start with \$/);
 });
 
 test('input validation - variable names cannot contain dots', async () => {
-  await assert.rejects(
-    async () => await evalla([
+  await expect(
+    evalla([
       { name: 'point.x', expr: '10' }
-    ]),
-    /Variable names cannot contain dots/
-  );
+    ])
+  ).rejects.toThrow(/Variable names cannot contain dots/);
 });
 
 test('input validation - must provide either expr or value', async () => {
-  await assert.rejects(
-    async () => await evalla([
+  await expect(
+    evalla([
       { name: 'test' }
-    ]),
-    /must have either "expr" or "value"/
-  );
+    ])
+  ).rejects.toThrow(/must have either "expr" or "value"/);
 });
 
 test('value property - direct object value', async () => {
@@ -178,7 +168,7 @@ test('value property - direct object value', async () => {
     { name: 'sum', expr: 'point.x + point.y' }
   ]);
   
-  assert.equal(result.values.sum.toString(), '30');
+  expect(result.values.sum.toString()).toBe('30');
 });
 
 test('value property - direct number value', async () => {
@@ -188,7 +178,7 @@ test('value property - direct number value', async () => {
     { name: 'c', expr: 'a + b' }
   ]);
   
-  assert.equal(result.values.c.toString(), '30');
+  expect(result.values.c.toString()).toBe('30');
 });
 
 test('value property - mixed with expr', async () => {
@@ -198,7 +188,7 @@ test('value property - mixed with expr', async () => {
     { name: 'area', expr: 'width * height' }
   ]);
   
-  assert.equal(result.values.area.toString(), '5000');
+  expect(result.values.area.toString()).toBe('5000');
 });
 
 test('value property - complex object without stringification', async () => {
@@ -216,14 +206,14 @@ test('value property - complex object without stringification', async () => {
     { name: 'scaledHeight', expr: 'box.dimensions.height * box.scale' }
   ]);
   
-  assert.equal(result.values.scaledWidth.toString(), '200');
-  assert.equal(result.values.scaledHeight.toString(), '100');
+  expect(result.values.scaledWidth.toString()).toBe('200');
+  expect(result.values.scaledHeight.toString()).toBe('100');
 });
 
 test('empty input', async () => {
   const result = await evalla([]);
-  assert.equal(Object.keys(result.values).length, 0);
-  assert.deepEqual(result.order, []);
+  expect(Object.keys(result.values).length).toBe(0);
+  expect(result.order).toEqual([]);
 });
 
 test('expressions with multiple operators', async () => {
@@ -231,7 +221,7 @@ test('expressions with multiple operators', async () => {
     { name: 'result', expr: '(10 + 5) * 2 - 3' }
   ]);
   
-  assert.equal(result.values.result.toString(), '27');
+  expect(result.values.result.toString()).toBe('27');
 });
 
 test('mathematical expression with namespaces and variables', async () => {
@@ -244,6 +234,6 @@ test('mathematical expression with namespaces and variables', async () => {
   const expectedCirc = 2 * Math.PI * 10;
   const expectedArea = Math.PI * 100;
   
-  assert.ok(Math.abs(result.values.circumference.toNumber() - expectedCirc) < 0.000001);
-  assert.ok(Math.abs(result.values.area.toNumber() - expectedArea) < 0.000001);
+  expect(Math.abs(result.values.circumference.toNumber() - expectedCirc)).toBeLessThan(0.000001);
+  expect(Math.abs(result.values.area.toNumber() - expectedArea)).toBeLessThan(0.000001);
 });

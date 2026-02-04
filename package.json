@@ -11,6 +11,9 @@
     "test": "npm run test --workspaces",
     "dev:playground": "npm run dev --workspace=packages/playground"
   },
+  "overrides": {
+    "lodash": "^4.17.23"
+  },
   "author": "Dan Marshall",
   "license": "MIT"
 }

@@ -26,9 +26,18 @@ jobs:
         if: github.event.action != 'closed'
         run: npm ci
 
-      - name: Build packages
+      - name: Sync README from packages/evalla to root
         if: github.event.action != 'closed'
-        run: npm run build
+        run: npm run sync-readme
+
+      - name: Build evalla package
+        if: github.event.action != 'closed'
+        run: npm run build:evalla
+
+      - name: Build playground for PR preview (without make-relative-paths)
+        if: github.event.action != 'closed'
+        working-directory: ./packages/playground
+        run: astro check && astro build
 
       - name: Deploy PR Preview
         uses: rossjrw/pr-preview-action@v1

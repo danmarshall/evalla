@@ -41,15 +41,12 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
   }
   
   // Determine evaluation order using topological sort (handles DAG + cycle detection)
-  const order = topologicalSort(inputs);
+  // This also parses all expressions once and returns the ASTs
+  const { order, asts } = topologicalSort(inputs);
   
-  // Create lookup for expressions and values
-  const exprMap = new Map<string, string>();
+  // Create lookup for values
   const valueMap = new Map<string, any>();
   for (const input of inputs) {
-    if (input.expr !== undefined) {
-      exprMap.set(input.name, input.expr);
-    }
     if (input.value !== undefined) {
       valueMap.set(input.name, input.value);
     }
@@ -66,12 +63,12 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
     if (valueMap.has(name)) {
       result = valueMap.get(name);
     } else {
-      // Otherwise, evaluate the expression
-      const expr = exprMap.get(name);
-      if (!expr) {
+      // Otherwise, evaluate the expression using the pre-parsed AST
+      const ast = asts.get(name);
+      if (!ast) {
         throw new Error(`No expression or value found for: ${name}`);
       }
-      result = await evaluateExpression(expr, context);
+      result = await evaluateExpression(ast, context);
     }
     
     // Store result - if it's a Decimal, that's our value

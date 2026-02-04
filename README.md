@@ -11,6 +11,7 @@ Safe math evaluator with variables, dependencies, and precision.
 - **DRY**: No code duplication
 - **Testable**: Small, focused functions with clear interfaces
 - **Safe & Secure**: No arbitrary code execution, whitelist-only approach
+- **Efficient**: Parse once, use for both dependency extraction and evaluation
 
 ## Features
 

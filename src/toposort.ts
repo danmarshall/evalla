@@ -1,36 +1,58 @@
+import { parse } from 'acorn';
 import { ExpressionInput } from './types';
+import { extractVariablesFromAST } from './ast-variables';
 
-// Extract variable references from an expression
-// Security: only extracts identifiers, no code execution
-export const extractDependencies = (expr: string): string[] => {
-  const deps = new Set<string>();
-  // Match identifiers including dot-notation (e.g., point.x, offset.y)
-  // But exclude namespace prefixes ($math, $unit, $angle)
-  const identifierRegex = /\b(?!\$)[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*/g;
-  const matches = expr.match(identifierRegex) || [];
+// Parse an expression and return the AST
+// Handles object literal wrapping
+export const parseExpression = (expr: string): any => {
+  // Wrap expression in parens if it starts with { to handle object literals
+  const exprToParse = expr.trim().startsWith('{') ? `(${expr})` : expr;
   
-  for (const match of matches) {
-    // For dotted paths like "base.x", extract just the root variable "base"
-    // This is the actual variable dependency, not the property access
-    const root = match.split('.')[0];
-    deps.add(root);
+  // Parse expression to AST using acorn
+  const program: any = parse(exprToParse, { ecmaVersion: 2020 });
+  
+  // Extract the expression from the Program node
+  if (program.type !== 'Program' || !program.body || program.body.length === 0) {
+    throw new Error('Invalid expression');
   }
   
-  return Array.from(deps);
+  const statement = program.body[0];
+  if (statement.type !== 'ExpressionStatement') {
+    throw new Error('Expression must be a single expression statement');
+  }
+  
+  return statement.expression;
+};
+
+// Extract variable dependencies from an expression AST
+const extractDependencies = (ast: any): string[] => {
+  return extractVariablesFromAST(ast);
 };
 
 // Topological sort with cycle detection
 // Returns ordered list of names or throws on circular dependency
-export const topologicalSort = (inputs: ExpressionInput[]): string[] => {
+// Also returns parsed ASTs for efficiency (parse once, use for both deps and eval)
+export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; asts: Map<string, any> } => {
   const graph = new Map<string, string[]>();
   const names = new Set<string>();
+  const asts = new Map<string, any>();
   
-  // First, collect all variable names
+  // First, collect all variable names and parse expressions
   for (const input of inputs) {
     names.add(input.name);
+    
+    // Parse expression if it exists
+    if (input.expr) {
+      try {
+        const ast = parseExpression(input.expr);
+        asts.set(input.name, ast);
+      } catch (error) {
+        throw new Error(`Failed to parse expression for "${input.name}": ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
   }
   
-  // Then build dependency graph
+  // Then build dependency graph using parsed ASTs
   for (const input of inputs) {
     // If no expr, there are no dependencies from expressions
     if (!input.expr) {
@@ -38,7 +60,12 @@ export const topologicalSort = (inputs: ExpressionInput[]): string[] => {
       continue;
     }
     
-    const deps = extractDependencies(input.expr);
+    const ast = asts.get(input.name);
+    if (!ast) {
+      throw new Error(`No AST found for: ${input.name}`);
+    }
+    
+    const deps = extractDependencies(ast);
     // Filter to only include dependencies that are in our input set
     const validDeps = deps.filter(d => names.has(d));
     graph.set(input.name, validDeps);
@@ -76,5 +103,5 @@ export const topologicalSort = (inputs: ExpressionInput[]): string[] => {
     visit(name);
   }
   
-  return order;
+  return { order, asts };
 };

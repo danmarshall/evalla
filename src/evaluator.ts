@@ -1,32 +1,14 @@
-import { parse } from 'acorn';
 import Decimal from 'decimal.js';
 import { createNamespaces } from './namespaces';
 import { evaluateAST } from './ast-evaluator';
 
 // Safe expression evaluator - no arbitrary code execution
+// Accepts a pre-parsed AST for efficiency (no double parsing)
 export const evaluateExpression = async (
-  expr: string,
+  ast: any,
   context: Record<string, any>
 ): Promise<any> => {
   try {
-    // Wrap expression in parens if it starts with { to handle object literals
-    const exprToParse = expr.trim().startsWith('{') ? `(${expr})` : expr;
-    
-    // Parse expression to AST using acorn - safe, no execution
-    const program: any = parse(exprToParse, { ecmaVersion: 2020 });
-    
-    // Extract the expression from the Program node
-    if (program.type !== 'Program' || !program.body || program.body.length === 0) {
-      throw new Error('Invalid expression');
-    }
-    
-    const statement = program.body[0];
-    if (statement.type !== 'ExpressionStatement') {
-      throw new Error('Expression must be a single expression statement');
-    }
-    
-    const ast = statement.expression;
-    
     // Create safe evaluation scope with namespaces
     const namespaces = createNamespaces();
     const safeScope = Object.create(null);
@@ -56,6 +38,6 @@ export const evaluateExpression = async (
       return result;
     }
   } catch (error) {
-    throw new Error(`Failed to evaluate expression "${expr}": ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Failed to evaluate expression: ${error instanceof Error ? error.message : String(error)}`);
   }
 };

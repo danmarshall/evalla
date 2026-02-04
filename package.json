@@ -4,6 +4,9 @@
   "description": "Safe math evaluator with variables, dependencies, and precision",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "tsx --test test/*.test.ts"

@@ -36,7 +36,6 @@ function syncReadme() {
   const lines = evallaReadme.split('\n');
   const filteredLines = [];
   let skipSection = false;
-  let foundFirstCodeBlock = false;
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];

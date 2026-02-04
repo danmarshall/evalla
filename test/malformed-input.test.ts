@@ -120,20 +120,28 @@ describe('Malformed Expression Handling', () => {
     });
   });
 
-  describe('Valid but unsupported constructs', () => {
-    test('triple equals is supported for strict equality', async () => {
-      // Triple equals (===) is supported for strict equality comparison
+  describe('Supported edge cases', () => {
+    test('triple equals (===) is supported for strict equality', async () => {
+      // Triple equals is supported for strict equality comparison
       const result = await evalla([
         { name: 'a', expr: '5' },
         { name: 'b', expr: '5' },
         { name: 'test', expr: 'a === b' }
       ]);
-      // Result is a boolean true, stored in order but not in values (not a Decimal)
+      // Boolean results appear in order but not in values (they're not Decimal)
       expect(result.order).toContain('test');
-      // For boolean results, they don't appear in values since they're not Decimal
-      // This is expected behavior - only numeric results are in values
     });
 
+    test('semicolons in expressions - evaluates first expression only', async () => {
+      // Semicolons create an expression sequence, but we only use the first expression
+      // This is intentional - acorn parses '1; 2' but we extract just the first expression
+      const result = await evalla([{ name: 'test', expr: '1; 2' }]);
+      // Should successfully evaluate to 1 (the first expression before semicolon)
+      expect(result.values.test.toString()).toBe('1');
+    });
+  });
+
+  describe('Unsupported constructs', () => {
     test('await keyword not allowed', async () => {
       await expect(
         evalla([{ name: 'test', expr: 'await foo' }])
@@ -192,14 +200,6 @@ describe('Malformed Expression Handling', () => {
       await expect(
         evalla([{ name: 'test', expr: 'let x = 1' }])
       ).rejects.toThrow(EvaluationError);
-    });
-
-    test('semicolons in expressions - evaluates first expression only', async () => {
-      // Semicolons create an expression sequence, but we only use the first expression
-      // This is intentional - acorn parses '1; 2' but we extract just the first expression
-      const result = await evalla([{ name: 'test', expr: '1; 2' }]);
-      // Should successfully evaluate to 1 (the first expression before semicolon)
-      expect(result.values.test.toString()).toBe('1');
     });
   });
 });

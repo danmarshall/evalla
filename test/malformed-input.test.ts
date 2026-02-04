@@ -214,12 +214,12 @@ describe('Malformed Expression Handling', () => {
       expect(result.order).toContain('test');
     });
 
-    test('semicolons in expressions - evaluates first expression only', async () => {
-      // Semicolons create an expression sequence, but we only use the first expression
-      // This is intentional - acorn parses '1; 2' but we extract just the first expression
-      const result = await evalla([{ name: 'test', expr: '1; 2' }]);
-      // Should successfully evaluate to 1 (the first expression before semicolon)
-      expect(result.values.test.toString()).toBe('1');
+    test('semicolons in expressions - not supported', async () => {
+      // Semicolons are not supported in expressions with Peggy parser
+      // This is intentional - mathematical expressions don't use semicolons
+      await expect(
+        evalla([{ name: 'test', expr: '1; 2' }])
+      ).rejects.toThrow();
     });
   });
 

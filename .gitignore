@@ -47,6 +47,10 @@ web_modules/
 # TypeScript cache
 *.tsbuildinfo
 
+# Generated parser from Peggy
+src/parser.js
+src/parser.d.ts
+
 # Optional npm cache directory
 .npm
 

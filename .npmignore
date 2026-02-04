@@ -1,0 +1,6 @@
+# Exclude test files from npm package
+test/
+src/
+tsconfig.json
+.gitignore
+.npmignore

@@ -1,28 +1,21 @@
-import { parse } from 'acorn';
+import * as parser from './parser.js';
 import { ExpressionInput } from './types';
 import { extractVariablesFromAST } from './ast-variables';
 import { CircularDependencyError, EvaluationError } from './errors';
 
 // Parse an expression and return the AST
-// Handles object literal wrapping
+// Uses Peggy parser which allows keywords as identifiers
 export const parseExpression = (expr: string): any => {
-  // Wrap expression in parens if it starts with { to handle object literals
-  const exprToParse = expr.trim().startsWith('{') ? `(${expr})` : expr;
-  
-  // Parse expression to AST using acorn
-  const program: any = parse(exprToParse, { ecmaVersion: 2020 });
-  
-  // Extract the expression from the Program node
-  if (program.type !== 'Program' || !program.body || program.body.length === 0) {
-    throw new EvaluationError('Invalid expression');
+  try {
+    return parser.parse(expr.trim());
+  } catch (error: any) {
+    // Handle Peggy syntax errors
+    if (error.location) {
+      const { line, column } = error.location.start;
+      throw new EvaluationError(`Parse error at line ${line}, column ${column}: ${error.message}`);
+    }
+    throw new EvaluationError(`Parse error: ${error.message}`);
   }
-  
-  const statement = program.body[0];
-  if (statement.type !== 'ExpressionStatement') {
-    throw new EvaluationError('Expression must be a single expression statement');
-  }
-  
-  return statement.expression;
 };
 
 // Extract variable dependencies from an expression AST

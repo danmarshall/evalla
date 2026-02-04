@@ -24,7 +24,8 @@ console.log(result.order);               // ['c', 'a', 'b']
 - ✅ **Dot-Traversal**: Reference nested properties (e.g., `point.x`, `offset.y`)
 - ✅ **Topological Ordering**: Evaluates in correct dependency order (DAG)
 - ✅ **Circular Detection**: Throws error on circular dependencies
-- ✅ **Safe Evaluation**: Parses with `acorn`, evaluates AST (no `eval()` or `Function()`)
+- ✅ **Safe Evaluation**: Parses with Peggy parser, evaluates AST (no `eval()` or `Function()`)
+- ✅ **Keywords as Variables**: Unlike JavaScript, keywords like `return`, `if`, etc. can be used as variable names
 - ✅ [**Namespaces**](#namespaces): Built-in `$math`, `$unit`, and `$angle` functions
 
 ## Installation
@@ -197,6 +198,20 @@ try {
 }
 ```
 
+### Keywords as Variable Names
+
+Unlike JavaScript, algebra-like variable names can include JavaScript keywords:
+
+```typescript
+const result = await evalla([
+  { name: 'return', expr: '10' },
+  { name: 'if', expr: '20' },
+  { name: 'for', expr: 'return + if' }
+]);
+
+console.log(result.values.for.toString()); // "30"
+```
+
 ## Security
 
 **Safe by design:**
@@ -204,7 +219,7 @@ try {
 - ❌ No access to `process`, `require`, or Node.js internals
 - ❌ No access to dangerous properties: `prototype`, `__proto__`, `constructor`, or any property starting with `__`
 - ✅ Only whitelisted functions in namespaces
-- ✅ Uses AST parsing (acorn) + safe evaluation
+- ✅ Uses AST parsing (Peggy) + safe evaluation
 - ✅ Variable names cannot start with `$` (reserved for system)
 - ✅ Sandboxed scope with `Object.create(null)`
 - ✅ No prototype pollution

@@ -26,22 +26,6 @@ jobs:
         if: github.event.action != 'closed'
         run: npm ci
 
-      - name: Update Astro config for PR preview
-        if: github.event.action != 'closed'
-        run: |
-          cat > packages/playground/astro.config.mjs << EOF
-          import { defineConfig } from 'astro/config';
-
-          export default defineConfig({
-            output: 'static',
-            site: 'https://danmarshall.github.io',
-            base: '/evalla/pr-preview/pr-${{ github.event.pull_request.number }}',
-            build: {
-              inlineStylesheets: 'auto'
-            }
-          });
-          EOF
-
       - name: Build packages
         if: github.event.action != 'closed'
         run: npm run build

@@ -4,6 +4,6 @@
     "outDir": "./dist-test",
     "rootDir": "."
   },
-  "include": ["test/**/*"],
+  "include": ["test/**/*", "src/**/*"],
   "exclude": ["node_modules"]
 }

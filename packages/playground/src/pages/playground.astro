@@ -1,0 +1,433 @@
+---
+const title = "Evalla Playground";
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 1.2rem;
+    }
+
+    .playground {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section h2 {
+      color: #667eea;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .expression-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .expression-item {
+      display: grid;
+      grid-template-columns: 150px 1fr 100px;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 2px solid #e9ecef;
+    }
+
+    .expression-item.error {
+      border-color: #dc3545;
+      background: #fff5f5;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #dee2e6;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-family: 'Courier New', monospace;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .expression-item.error input {
+      border-color: #dc3545;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background: #5568d3;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button.add-btn {
+      background: #28a745;
+    }
+
+    button.add-btn:hover {
+      background: #218838;
+    }
+
+    button.remove-btn {
+      background: #dc3545;
+      padding: 0.5rem 1rem;
+    }
+
+    button.remove-btn:hover {
+      background: #c82333;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .result-section {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .result-section h3 {
+      color: #667eea;
+      margin-bottom: 1rem;
+    }
+
+    .result-values {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .result-item {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 1rem;
+      padding: 0.75rem;
+      background: white;
+      border-radius: 6px;
+      border-left: 4px solid #28a745;
+    }
+
+    .result-name {
+      font-weight: 600;
+      color: #495057;
+      font-family: 'Courier New', monospace;
+    }
+
+    .result-value {
+      color: #28a745;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+    }
+
+    .error-message {
+      background: #fff5f5;
+      color: #dc3545;
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 4px solid #dc3545;
+      margin-top: 1rem;
+      font-family: 'Courier New', monospace;
+    }
+
+    .info-box {
+      background: #e7f3ff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .info-box h3 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-box ul {
+      margin-left: 1.5rem;
+    }
+
+    .info-box li {
+      margin-bottom: 0.25rem;
+    }
+
+    .nav-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: background 0.2s;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    code {
+      background: rgba(0,0,0,0.05);
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .evaluation-order {
+      color: #6c757d;
+      font-style: italic;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .expression-item {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="nav-link">← Back to Documentation</a>
+    <h1>✨ Evalla Playground</h1>
+    <p class="subtitle">Safe math evaluator with variables, dependencies, and precision</p>
+
+    <div class="playground">
+      <div class="section">
+        <h2>📝 Expressions</h2>
+        <p style="margin-bottom: 1rem; color: #6c757d;">
+          Define variables with math expressions. They can reference each other and will be evaluated in the correct order automatically.
+        </p>
+        <div id="expressions" class="expression-list"></div>
+        <div class="button-group">
+          <button id="add-expression" class="add-btn">➕ Add Expression</button>
+          <button id="evaluate">🚀 Evaluate</button>
+          <button id="load-example">📚 Load Example</button>
+        </div>
+      </div>
+
+      <div id="result-container"></div>
+    </div>
+
+    <div class="playground info-box">
+      <h3>💡 Quick Tips</h3>
+      <ul>
+        <li>Variables can reference other variables (e.g., <code>b = a * 2</code>)</li>
+        <li>Use decimal precision math (e.g., <code>0.1 + 0.2</code> = 0.3 exactly!)</li>
+        <li>Access nested properties with dots (e.g., <code>point.x</code>)</li>
+        <li>Use <code>$math</code> functions: <code>$math.sqrt(16)</code>, <code>$math.PI</code>, etc.</li>
+        <li>Convert units: <code>$unit.mmToInch(25.4)</code></li>
+        <li>Convert angles: <code>$angle.toRad(180)</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    import { evalla } from 'evalla';
+
+    let expressions = [
+      { name: 'a', expr: '10' },
+      { name: 'b', expr: 'a * 2' },
+      { name: 'c', expr: 'a + b' }
+    ];
+
+    function render() {
+      const container = document.getElementById('expressions');
+      if (!container) return;
+      
+      container.innerHTML = '';
+
+      expressions.forEach((expr, index) => {
+        const item = document.createElement('div');
+        item.className = 'expression-item';
+        item.innerHTML = `
+          <input type="text" placeholder="Variable name" value="${expr.name}" data-index="${index}" data-field="name">
+          <input type="text" placeholder="Expression (e.g., a + b)" value="${expr.expr}" data-index="${index}" data-field="expr">
+          <button class="remove-btn" data-index="${index}">🗑️ Remove</button>
+        `;
+        container.appendChild(item);
+      });
+
+      // Add event listeners
+      container.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const target = e.target as HTMLInputElement;
+          if (!target) return;
+          const index = parseInt(target.dataset.index || '0');
+          const field = target.dataset.field as 'name' | 'expr';
+          if (field) {
+            expressions[index][field] = target.value;
+          }
+        });
+      });
+
+      container.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const target = e.target as HTMLButtonElement;
+          if (!target) return;
+          const index = parseInt(target.dataset.index || '0');
+          expressions.splice(index, 1);
+          render();
+        });
+      });
+    }
+
+    const addBtn = document.getElementById('add-expression');
+    if (addBtn) {
+      addBtn.addEventListener('click', () => {
+        expressions.push({ name: '', expr: '' });
+        render();
+      });
+    }
+
+    const loadExampleBtn = document.getElementById('load-example');
+    if (loadExampleBtn) {
+      loadExampleBtn.addEventListener('click', () => {
+        expressions = [
+          { name: 'radius', expr: '5' },
+          { name: 'pi', expr: '$math.PI' },
+          { name: 'circumference', expr: '2 * pi * radius' },
+          { name: 'area', expr: 'pi * radius * radius' },
+          { name: 'point', expr: '{x: 10, y: 20}' },
+          { name: 'scaledX', expr: 'point.x * 2' }
+        ];
+        render();
+      });
+    }
+
+    const evaluateBtn = document.getElementById('evaluate');
+    if (evaluateBtn) {
+      evaluateBtn.addEventListener('click', async () => {
+        const resultContainer = document.getElementById('result-container');
+        if (!resultContainer) return;
+        
+        try {
+          // Filter out empty expressions
+          const validExpressions = expressions.filter(e => e.name.trim() && e.expr.trim());
+          
+          if (validExpressions.length === 0) {
+            resultContainer.innerHTML = '<div class="error-message">⚠️ Please add at least one expression</div>';
+            return;
+          }
+
+          const result = await evalla(validExpressions);
+
+          let html = '<div class="result-section"><h3>✅ Results</h3><div class="result-values">';
+          
+          for (const [name, value] of Object.entries(result.values)) {
+            html += `
+              <div class="result-item">
+                <div class="result-name">${name}</div>
+                <div class="result-value">${value.toString()}</div>
+              </div>
+            `;
+          }
+
+          html += '</div>';
+          html += `<div class="evaluation-order">📊 Evaluation order: ${result.order.join(' → ')}</div>`;
+          html += '</div>';
+
+          resultContainer.innerHTML = html;
+
+          // Remove error styling
+          document.querySelectorAll('.expression-item').forEach(item => {
+            item.classList.remove('error');
+          });
+
+        } catch (error) {
+          const err = error as Error & { variableName?: string };
+          let errorMessage = `<div class="error-message">❌ ${err.message}</div>`;
+          
+          // Highlight the problematic expression if available
+          if (err.variableName) {
+            const index = expressions.findIndex(e => e.name === err.variableName);
+            if (index !== -1) {
+              const items = document.querySelectorAll('.expression-item');
+              if (items[index]) {
+                items[index].classList.add('error');
+              }
+            }
+          }
+
+          resultContainer.innerHTML = errorMessage;
+        }
+      });
+    }
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>

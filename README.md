@@ -388,39 +388,18 @@ try {
 
 ## Development
 
-### Monorepo Structure
-
-This repository uses npm workspaces. All packages are located in the `packages/` directory.
-
 ```bash
-# Install dependencies for all packages
+# Install dependencies
 npm install
 
-# Build all packages
+# Build
 npm run build
 
-# Run tests for all packages
-npm run test
-
-# Run the playground in development mode
-npm run dev:playground
-```
-
-### Working on Individual Packages
-
-```bash
-# Core library (packages/evalla)
-cd packages/evalla
-npm run build
+# Test
 npm test
-
-# Playground (packages/playground)
-# Note: The playground depends on evalla, so build it first
-cd packages/playground
-npm run dev
 ```
 
-For detailed API documentation and examples, see the [evalla package README](packages/evalla/README.md).
+For detailed API documentation and examples, see the sections above.
 
 ## License
 

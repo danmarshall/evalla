@@ -2,6 +2,12 @@
 
 Safe math evaluator with variables, dependencies, and precision.
 
+## 🎮 Try it Live
+
+**[Launch Interactive Playground →](https://danmarshall.github.io/evalla/)**
+
+Experience evalla directly in your browser with the interactive playground!
+
 ```typescript
 import { evalla } from 'evalla';
 

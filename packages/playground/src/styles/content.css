@@ -4,7 +4,7 @@
 }
 
 .content h2 {
-  color: #2563eb;
+  color: #0f766e;
   font-size: 1.875rem;
   margin-top: 2.5rem;
   margin-bottom: 1rem;
@@ -50,7 +50,7 @@
   border-radius: 0.25rem;
   font-family: ui-monospace, monospace;
   font-size: 0.9em;
-  color: #db2777;
+  color: #0f766e;
 }
 
 .content pre {
@@ -76,14 +76,14 @@
 }
 
 .content a {
-  color: #2563eb;
+  color: #0f766e;
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s;
 }
 
 .content a:hover {
-  border-bottom-color: #2563eb;
+  border-bottom-color: #0f766e;
 }
 
 .content strong {

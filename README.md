@@ -2,7 +2,7 @@
 
 Safe math evaluator with variables, dependencies, and precision.
 
-[Live Demo](https://danmarshall.github.io/evalla/)
+[Live Demo](https://danmarshall.github.io/evalla/playground)
 
 ```typescript
 import { evalla } from 'evalla';

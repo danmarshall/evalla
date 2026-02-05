@@ -8,7 +8,6 @@ const { currentPage = 'home' } = Astro.props;
       <a href={currentPage === 'home' ? '#' : '../'} class="font-borel text-2xl sm:text-3xl font-bold text-blue-600 hover:text-blue-700 transition-colors no-underline">
         evalla
       </a>
-      <span class="hidden sm:inline text-gray-600 text-sm">Safe math evaluator</span>
     </div>
     <nav class="flex items-baseline gap-2 sm:gap-3">
       {currentPage === 'playground' && (

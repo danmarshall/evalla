@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
 import { createNamespaces } from './namespaces.js';
 import { evaluateAST } from './ast-evaluator.js';
-import { EvallaError } from './errors.js';
+import { EvallaError, SecurityError } from './errors.js';
 
 // Safe expression evaluator - no arbitrary code execution
 // Accepts a pre-parsed AST for efficiency (no double parsing)
@@ -26,6 +26,14 @@ export const evaluateExpression = async (
     
     // Evaluate AST with custom evaluator that uses Decimal for precision
     const result = await evaluateAST(ast, safeScope);
+    
+    // Security check: block function aliasing
+    // Functions from namespaces must be called, not assigned to variables
+    if (typeof result === 'function') {
+      throw new SecurityError(
+        'Cannot alias functions - functions must be called with parentheses'
+      );
+    }
     
     // Convert numeric results to Decimal for precision
     if (result instanceof Decimal) {

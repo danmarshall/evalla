@@ -19,7 +19,16 @@ function makeRelative(htmlPath) {
   // /_astro/file.js -> _astro/file.js (for root) or ../_astro/file.js (for subdirs)
   content = content.replace(/(href|src|component-url|renderer-url)=(["'])\/(?!\/)/g, `$1=$2${prefix}`);
   
+  // Handle paths in style tags and inline CSS (for @import, url(), etc.)
+  // Matches: url(/_astro/...) or url("/_astro/...") or url('/_astro/...')
+  content = content.replace(/url\((["']?)\/(?!\/)/g, `url($1${prefix}`);
+  
+  // Handle paths in script tags for dynamic imports
+  // Matches: import('/_astro/...') or import("/_astro/...")
+  content = content.replace(/import\((["'])\/(?!\/)/g, `import($1${prefix}`);
+  
   fs.writeFileSync(htmlPath, content, 'utf8');
+  console.log(`Processed: ${path.relative(distDir, htmlPath)} (depth: ${depth}, prefix: "${prefix}")`);
 }
 
 function processDir(dir) {
@@ -38,8 +47,9 @@ function processDir(dir) {
 }
 
 if (fs.existsSync(distDir)) {
+  console.log('Converting absolute paths to relative paths...');
   processDir(distDir);
-  console.log('Converted absolute paths to relative paths');
+  console.log('✓ Conversion complete');
 } else {
   console.log('No dist directory found');
 }

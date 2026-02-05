@@ -120,7 +120,7 @@ export default function PlaygroundApp() {
                   />
                   <button
                     onClick={() => removeExpression(index)}
-                    className="px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+                    className="w-24 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
                   >
                     <Trash2 size={16} />
                     <span>Remove</span>
@@ -160,13 +160,15 @@ export default function PlaygroundApp() {
               </div>
             ))}
           </div>
-          <button
-            onClick={addExpression}
-            className="mt-3 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
-          >
-            <Plus size={18} />
-            <span>Add</span>
-          </button>
+          <div className="flex justify-end mt-3">
+            <button
+              onClick={addExpression}
+              className="w-24 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+            >
+              <Plus size={16} />
+              <span>Add</span>
+            </button>
+          </div>
 
         </div>
       </div>

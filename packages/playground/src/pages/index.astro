@@ -30,34 +30,28 @@ import ReadmeContent from '../components/ReadmeContent.astro';
       padding: 3rem;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
     }
 
-    .header {
-      text-align: center;
-      margin-bottom: 3rem;
-      padding-bottom: 2rem;
-      border-bottom: 2px solid #667eea;
-    }
-
-    .nav {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      margin-bottom: 2rem;
-    }
-
-    .nav a {
+    .playground-btn {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
       padding: 0.75rem 1.5rem;
       background: #667eea;
       color: white;
       text-decoration: none;
       border-radius: 6px;
       font-weight: 600;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      z-index: 1000;
     }
 
-    .nav a:hover {
+    .playground-btn:hover {
       background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
     }
 
     .content h1 {
@@ -147,6 +141,14 @@ import ReadmeContent from '../components/ReadmeContent.astro';
         padding: 1.5rem;
       }
 
+      .playground-btn {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+      }
+
       .content h1 {
         font-size: 2rem;
       }
@@ -158,13 +160,9 @@ import ReadmeContent from '../components/ReadmeContent.astro';
   </style>
 </head>
 <body>
+  <a href="./playground" class="playground-btn">🎮 Try Playground</a>
+  
   <div class="container">
-    <div class="header">
-      <div class="nav">
-        <a href="./playground">🎮 Try Playground</a>
-      </div>
-    </div>
-    
     <ReadmeContent />
   </div>
 </body>

@@ -2,12 +2,13 @@
 
 ## Executive Summary
 
-This document analyzes the design decisions around boolean and ternary operator support in evalla, considering the library's philosophy that "this is not JavaScript" and its focus as a decimal math evaluator.
+This document analyzes the design decisions around boolean and ternary operator support in evalla, considering the library's philosophy: **"Algebra, not code"** - evalla is a mathematical expression evaluator, not a programming language.
 
 **UPDATE**: Based on maintainer feedback, the following design constraints are established:
 - ✅ **Ternary operators are valued** - but only with Decimal outputs (already works)
 - ❌ **String literals should be removed** - They're a bug (except in JSON property names)
-- 🤔 **Boolean literals discussion needed** - Could be replaced with system namespace (`$true`, `$false`) or keywords as variables (`true` as algebraic name)
+- 🤔 **Philosophy shift: "Algebra, not code"** - This fundamentally changes how we think about equality operators
+- 🤔 **Single equals (`=`) for algebraic equality?** - In algebra, equals is `=`, not `==` or `===`
 
 ## Current State
 
@@ -109,6 +110,97 @@ If standalone comparisons (relational AND equality) are blocked:
 ```
 
 This keeps evalla focused as a **decimal calculator**, not a boolean expression evaluator.
+
+## Philosophy Evolution: "Algebra, Not Code"
+
+### New Insight from Maintainer
+
+**"Algebra, not code"** - This fundamentally reframes how we should think about evalla's operators.
+
+evalla is a **mathematical expression evaluator**, not a programming language. This has profound implications for operator design.
+
+### The Equals Sign Question
+
+**In mathematics/algebra:**
+```
+x = 5           (x equals 5)
+a = b           (a equals b)  
+2 + 2 = 4       (two plus two equals four)
+```
+The equals sign `=` represents **equality**, not assignment. Variables aren't "assigned" - they're defined by their expressions.
+
+**In programming (JavaScript):**
+```javascript
+x = 5           // Assignment (not equality!)
+x == 5          // Loose equality comparison
+x === 5         // Strict equality comparison
+```
+
+**Current state in evalla:**
+- `=` is **REJECTED** (parser treats it as assignment)
+- `==` is **SUPPORTED** (loose equality - programming concept)
+- `===` is **SUPPORTED** (strict equality - programming concept)
+
+### Proposal: Single Equals for Algebraic Equality
+
+**The maintainer's perspective:**
+- `=` (single) - **Natural algebraic equality** - Should be primary? ✅
+- `==` (double) - Supported **only for programmer community** ⚠️
+- `===` (triple) - **No need in algebra** - Programming concept, may be unnecessary ❌
+
+**Rationale:**
+1. **True to algebra** - In mathematics, equality is `=`, not `==`
+2. **Natural for users** - Non-programmers expect `=` for "equals"
+3. **No assignment needed** - Variables are defined via `{ name, expr }`, not `x = 5`
+4. **Simpler mental model** - One equals sign, one meaning (equality)
+5. **"Algebra, not code"** - Aligns with design philosophy
+
+**Example with single equals:**
+```typescript
+// Would work if = is equality:
+{ name: 'bonus', expr: 'score = 100 ? 50 : 0' }     // Natural algebra
+{ name: 'match', expr: 'value = target ? 100 : 0' } // Intuitive
+{ name: 'check', expr: 'x = y ? x * 2 : x + y' }    // Mathematical
+
+// Current (double equals):
+{ name: 'bonus', expr: 'score == 100 ? 50 : 0' }    // Programming style
+```
+
+### Comparison: Programming vs Algebra
+
+| Feature | Programming (JS) | Algebra (Math) | Current evalla | Proposed evalla |
+|---------|------------------|----------------|----------------|-----------------|
+| **Equality** | `==`, `===` | `=` | `==`, `===` | `=` (primary) |
+| **Assignment** | `=` | N/A | Rejected | Rejected |
+| **Loose vs Strict** | `==` vs `===` | N/A (one equality) | Both supported | Not needed? |
+| **Variables** | Reserved keywords | Any symbol | Any symbol ✅ | Any symbol ✅ |
+| **Philosophy** | Code execution | Expression evaluation | Mixed | **Algebra, not code** |
+
+### Implementation Considerations
+
+**If switching to single equals (`=`):**
+
+**Option A: Replace `==` with `=`**
+- Remove `==` and `===` from grammar
+- Add `=` as equality operator
+- **Breaking change** for any existing code using `==`
+
+**Option B: Support all three (`=`, `==`, `===`)**
+- Add `=` as primary equality operator
+- Keep `==` and `===` for programmer community
+- More forgiving, but potentially confusing
+
+**Option C: Keep current (`==`, `===`), discuss philosophy**
+- Document the "algebra, not code" philosophy
+- Acknowledge that `==` is a programming convention
+- Consider future migration path
+
+### Questions for Decision
+
+1. **Should `=` be the primary/only equality operator?** (algebraic approach)
+2. **Should `==` be kept for programmer community?** (pragmatic approach)
+3. **Is `===` (strict equality) needed in an algebraic context?** (probably not)
+4. **How to handle migration** if changing from `==` to `=`?
 
 ## Maintainer's Preferred Direction
 
@@ -410,12 +502,16 @@ const result = await evalla([
 | **Ternary operators** | ✅ Working | ✅ Liked (Decimal output) | Keep as-is |
 | **Comparisons in ternary** | ✅ Working | ✅ **Love this!** | Keep as-is |
 | **Standalone comparisons** | ⚠️ Returns undefined | ❌ Should be blocked | **FIX: Throw error** |
+| **Single equals (`=`)** | ❌ Rejected | 🤔 **Algebraic equality?** | **DISCUSS: Should be primary?** |
+| **Double equals (`==`)** | ✅ Supported | ⚠️ For programmers only? | **DISCUSS: Keep for compatibility?** |
+| **Triple equals (`===`)** | ✅ Supported | ❌ Not needed in algebra? | **DISCUSS: Remove?** |
 | **Logical operators in ternary** | ✅ Working | ✅ OK (in ternary only) | Keep for ternary |
 | **Standalone logical ops** | ⚠️ Returns undefined | ❌ Should be blocked | **FIX: Throw error** |
 | **Boolean literals** | ⚠️ Reserved | 🤔 TBD: Reserved vs algebraic | Decide Option 1-3 |
 | **String literals** | 🐛 Bug | ❌ Should not be supported | **FIX: Remove** |
 | **Boolean in output** | ❌ Not supported | ❌ Don't want | Don't change |
 | **String in output** | ❌ Not supported | ❌ Don't want | Don't change |
+| **Philosophy** | Mixed | 💡 **"Algebra, not code"** | **Document & implement** |
 
 ## Recommended Next Steps
 
@@ -466,43 +562,60 @@ if (typeof result === 'boolean') {
 
 ## Conclusion
 
-**For this PR:** The analysis is complete. The maintainer's position is clear:
+**For this PR:** The analysis is complete with new philosophical insight: **"Algebra, not code"**
+
+### Maintainer's Position
 - ✅ **Love the combination:** Comparison operators (`>`, `<`, etc.) with ternary operators
 - ✅ Keep ternary operators (Decimal output only) - Already works perfectly
 - ✅ Keep comparison operators **in ternary context** - Already works perfectly
 - ❌ **Block standalone comparisons** - `a > b` alone should throw error (needs fix)
 - ❌ Don't expose boolean/string values in results
 - 🐛 String literals are a bug (separate issue to fix)
-- 🤔 Boolean literal keywords need design decision (Option 1-3 above)
+- 💡 **New philosophy: "Algebra, not code"** - Fundamentally changes operator thinking
+- 🤔 **Equals sign discussion:** Should `=` be algebraic equality instead of `==`/`===`?
 
-**The current design is excellent for the maintainer's use case, with one fix needed:**
-- Comparisons + ternary operators work beautifully together ✅
-- Decimal-only output keeps things simple and focused ✅
-- Type safety is maintained ✅
-- **Need to block standalone comparisons** ⚠️ (should throw error, not return undefined)
+### The "Algebra, Not Code" Shift
 
-**No code changes needed in this PR** - This is purely an analysis document.
+This philosophical insight has major implications:
+
+**Equality operators - Open question:**
+1. **Single equals (`=`)** - Natural algebraic equality? Should be primary?
+2. **Double equals (`==`)** - Supported only for programmer community?
+3. **Triple equals (`===`)** - Not needed in algebraic context?
+
+**In mathematics:** `x = 5` means "x equals 5" (equality), not assignment.
+**In evalla:** Variables are defined via `{ name, expr }`, so `=` could mean equality.
+
+**This is a design discussion point** - Should evalla embrace algebraic `=` for equality, or keep programming-style `==`/`===`?
 
 ### What Works Today (Keep It!)
 ```typescript
-// This is exactly what the maintainer wants:
+// Ternary + comparisons work beautifully - exactly what maintainer wants:
 await evalla([
   { name: 'x', expr: '15' },
-  // Comparisons in ternary - perfect! ✅
   { name: 'category', expr: 'x > 20 ? 3 : x > 10 ? 2 : x > 0 ? 1 : 0' },
-  { name: 'clamped', expr: 'x < 0 ? 0 : x > 100 ? 100 : x' },
+  { name: 'bonus', expr: 'score == 100 ? 50 : 0' },  // Currently ==
   { name: 'sign', expr: 'x > 0 ? 1 : x < 0 ? -1 : 0' }
 ]);
 // All results are Decimal values - clean and simple!
 ```
 
-### What Needs Fixing
+**Could become (with algebraic equals):**
 ```typescript
-// This should throw an error (currently returns undefined): ❌
 await evalla([
-  { name: 'check', expr: 'a > b' }  // Should error: "Use comparisons only in ternary"
+  { name: 'bonus', expr: 'score = 100 ? 50 : 0' },   // Algebraic =
+  { name: 'match', expr: 'value = target ? 100 : 0' } // Natural
 ]);
 ```
+
+### What Needs Fixing / Discussing
+
+1. **HIGH PRIORITY:** Block standalone comparisons from returning undefined ⚠️
+2. **DISCUSSION:** Should `=` be algebraic equality? 🤔
+3. **DISCUSSION:** Should `===` be removed (not needed in algebra)? 🤔
+4. **DISCUSSION:** Should `==` be kept only for programmer compatibility? 🤔
+5. **Future:** Remove string literal bug 🐛
+6. **Future:** Decide on boolean literal keywords 🤔
 
 #### 1. **Enables Validation and Flags** ✅
 ```typescript

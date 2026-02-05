@@ -327,19 +327,25 @@ const result = await evalla([
   { name: 'gt', expr: 'x > 5 ? 100 : 50' },
   { name: 'gte', expr: 'x >= 10 ? 100 : 50' },
   
-  // Equality operators: ==, ===, !=, !==
-  { name: 'eq', expr: 'x == y ? 100 : 50' },
-  { name: 'strictEq', expr: 'x === y ? 100 : 50' },
+  // Equality operators: == (double equals), === (triple equals)
+  { name: 'eq', expr: 'x == y ? 100 : 50' },        // Double equals (loose)
+  { name: 'strictEq', expr: 'x === y ? 100 : 50' },  // Triple equals (strict)
   { name: 'neq', expr: 'x != 5 ? 100 : 50' },
   { name: 'strictNeq', expr: 'x !== 5 ? 100 : 50' }
 ]);
 ```
 
+**Note on equals syntax:**
+- `=` (single equals) - NOT supported (assignment operator - correctly rejected)
+- `==` (double equals) - Loose equality comparison ✅
+- `===` (triple equals) - Strict equality comparison ✅
+
 ### Maintainer Position
 ✅ **Ternary operators are liked** - Especially with comparisons
 ✅ **All comparison operators supported** - Both relational and equality
   - Relational: `>`, `<`, `>=`, `<=`
-  - Equality: `==`, `===`, `!=`, `!==`
+  - Equality: `==` (double), `===` (triple), `!=`, `!==`
+  - NOT supported: `=` (single - assignment, correctly rejected)
 ✅ **Decimal outputs** - Keep returning only Decimal values (already the case)
 
 **This is the sweet spot:** All comparison operators (including equals) evaluate internally to booleans, ternary operators use those booleans, and the result is a clean Decimal value in the output.
@@ -365,9 +371,14 @@ const result = await evalla([
 // Absolute value
 { name: 'abs', expr: 'x < 0 ? -x : x' }
 
-// EQUALITY OPERATORS (==, ===, !=, !==)
-// Exact match
+// EQUALITY OPERATORS (== double equals, === triple equals)
+// Note: = (single equals) is NOT supported (assignment operator)
+
+// Exact match with double equals
 { name: 'bonus', expr: 'score == 100 ? 50 : 0' }
+
+// Strict equality with triple equals
+{ name: 'match', expr: 'value === target ? 100 : 0' }
 
 // Not equal
 { name: 'penalty', expr: 'status != 1 ? 10 : 0' }
@@ -385,7 +396,8 @@ const result = await evalla([
 
 **All comparison operators work beautifully with ternary:**
 - **Relational**: `>`, `<`, `>=`, `<=` - for ranges, min/max, conditionals
-- **Equality**: `==`, `===`, `!=`, `!==` - for exact matches, switches
+- **Equality**: `==` (double), `===` (triple), `!=`, `!==` - for exact matches, switches
+- **NOT supported**: `=` (single equals) - This is assignment, correctly rejected by parser
 - All evaluate to boolean internally → ternary uses boolean → returns **Decimal**
 - No boolean/string types exposed - clean, simple, focused on math
 

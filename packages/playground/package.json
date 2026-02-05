@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build && node scripts/make-relative-paths.cjs",
+    "build": "npm run sync-readme --prefix ../.. && astro check && astro build && node scripts/make-relative-paths.cjs",
     "preview": "astro preview",
     "astro": "astro",
     "test": "echo \"No tests for playground\""

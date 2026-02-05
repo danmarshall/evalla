@@ -26,10 +26,6 @@ jobs:
         if: github.event.action != 'closed'
         run: npm ci
 
-      - name: Sync README from packages/evalla to root
-        if: github.event.action != 'closed'
-        run: npm run sync-readme
-
       - name: Build evalla package
         if: github.event.action != 'closed'
         run: npm run build:evalla

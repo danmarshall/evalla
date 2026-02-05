@@ -156,6 +156,7 @@ Playground
 <li>❌ No access to <code>eval()</code>, <code>Function()</code>, or other dangerous globals</li>
 <li>❌ No access to <code>process</code>, <code>require</code>, or Node.js internals</li>
 <li>❌ No access to dangerous properties: <code>prototype</code>, <code>__proto__</code>, <code>constructor</code>, or any property starting with <code>__</code></li>
+<li>❌ No function aliasing - namespace functions must be called, not assigned to variables</li>
 <li>✅ Only whitelisted functions in namespaces</li>
 <li>✅ Uses AST parsing (Peggy) + safe evaluation</li>
 <li>✅ Variable names cannot start with <code>$</code> (reserved for system)</li>
@@ -168,6 +169,12 @@ Playground
 <span class="line"><span style="color:#D73A49">await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'bad'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'obj.__proto__'</span><span style="color:#24292E"> }]);</span></span>
 <span class="line"><span style="color:#D73A49">await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'bad'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'obj.constructor'</span><span style="color:#24292E"> }]);</span></span>
 <span class="line"><span style="color:#D73A49">await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'bad'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'obj.__defineGetter__'</span><span style="color:#24292E"> }]);</span></span></code></pre>
+<p><strong>Blocked function aliasing examples:</strong></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#6A737D">// These will throw SecurityError - functions must be called with ()</span></span>
+<span class="line"><span style="color:#D73A49">await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'myabs'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'$math.abs'</span><span style="color:#24292E"> }]);</span></span>
+<span class="line"><span style="color:#D73A49">await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'mysqrt'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'$math.sqrt'</span><span style="color:#24292E"> }]);</span></span>
+<span class="line"><span style="color:#6A737D">// Correct usage - call the function:</span></span>
+<span class="line"><span style="color:#D73A49">await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'result'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'$math.abs(-5)'</span><span style="color:#24292E"> }]); </span><span style="color:#6A737D">// ✅ Works</span></span></code></pre>
 <p>Properties starting with <code>__</code> are blocked because they typically provide access to JavaScript internals that could be exploited for prototype pollution or other security vulnerabilities.</p>
 <h2 id="api">API</h2>
 <h3 id="evallainputs-expressioninput-promiseevaluationresult"><code>evalla(inputs: ExpressionInput[]): Promise&#x3C;EvaluationResult></code></h3>

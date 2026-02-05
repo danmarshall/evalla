@@ -24,21 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Update Astro config for main deployment
-        run: |
-          cat > packages/playground/astro.config.mjs << EOF
-          import { defineConfig } from 'astro/config';
-
-          export default defineConfig({
-            output: 'static',
-            site: 'https://danmarshall.github.io/evalla',
-            build: {
-              inlineStylesheets: 'auto'
-            }
-          });
-          EOF
-
       - name: Build packages
+        env:
+          BASE_PATH: /evalla/
         run: npm run build
 
       - name: Deploy to GitHub Pages

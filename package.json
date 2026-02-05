@@ -19,6 +19,7 @@
   "author": "Dan Marshall",
   "license": "MIT",
   "dependencies": {
+    "highlight.js": "^11.11.1",
     "marked": "^17.0.1"
   }
 }

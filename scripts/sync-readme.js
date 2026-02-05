@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const { marked } = require('marked');
+const hljs = require('highlight.js');
 
 const ROOT_DIR = path.join(__dirname, '..');
 const EVALLA_README = path.join(ROOT_DIR, 'packages/evalla/README.md');
@@ -38,6 +39,20 @@ function filterReadmeForWeb(readmeContent) {
 
 async function generateAstroComponent(readmeContent) {
   console.log('📝 Generating Astro component with pre-rendered HTML...');
+  
+  // Configure marked to use highlight.js
+  marked.setOptions({
+    highlight: function(code, lang) {
+      if (lang && hljs.getLanguage(lang)) {
+        try {
+          return hljs.highlight(code, { language: lang }).value;
+        } catch (err) {
+          console.error(`Error highlighting ${lang}:`, err.message);
+        }
+      }
+      return hljs.highlightAuto(code).value;
+    }
+  });
   
   // Filter out GitHub-only sections
   const filteredContent = filterReadmeForWeb(readmeContent);

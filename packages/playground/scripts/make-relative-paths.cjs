@@ -8,12 +8,17 @@ const distDir = path.join(__dirname, '..', 'dist');
 function makeRelative(htmlPath) {
   let content = fs.readFileSync(htmlPath, 'utf8');
   
+  // Calculate relative path depth based on how deep the HTML file is
+  const relativePath = path.relative(distDir, path.dirname(htmlPath));
+  const depth = relativePath ? relativePath.split(path.sep).length : 0;
+  const prefix = depth > 0 ? '../'.repeat(depth) : '';
+  
   // Replace absolute paths starting with / to relative paths
   // Handles both single and double quotes
   // Avoids protocol-relative URLs (//)
-  // /_astro/file.js -> _astro/file.js
-  // /test.css -> test.css
-  content = content.replace(/(href|src)=(["'])\/(?!\/)/g, '$1=$2');
+  // /_astro/file.js -> _astro/file.js (for root) or ../_astro/file.js (for subdirs)
+  // /test.css -> test.css (for root) or ../test.css (for subdirs)
+  content = content.replace(/(href|src)=(["'])\/(?!\/)/g, `$1=$2${prefix}`);
   
   fs.writeFileSync(htmlPath, content, 'utf8');
 }

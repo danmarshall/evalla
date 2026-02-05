@@ -223,6 +223,7 @@ console.log(result.values.for.toString()); // "30"
 - ❌ No access to `eval()`, `Function()`, or other dangerous globals
 - ❌ No access to `process`, `require`, or Node.js internals
 - ❌ No access to dangerous properties: `prototype`, `__proto__`, `constructor`, or any property starting with `__`
+- ❌ No function aliasing - namespace functions must be called, not assigned to variables
 - ✅ Only whitelisted functions in namespaces
 - ✅ Uses AST parsing (Peggy) + safe evaluation
 - ✅ Variable names cannot start with `$` (reserved for system)
@@ -236,6 +237,15 @@ await evalla([{ name: 'bad', expr: 'obj.prototype' }]);
 await evalla([{ name: 'bad', expr: 'obj.__proto__' }]);
 await evalla([{ name: 'bad', expr: 'obj.constructor' }]);
 await evalla([{ name: 'bad', expr: 'obj.__defineGetter__' }]);
+```
+
+**Blocked function aliasing examples:**
+```typescript
+// These will throw SecurityError - functions must be called with ()
+await evalla([{ name: 'myabs', expr: '$math.abs' }]);
+await evalla([{ name: 'mysqrt', expr: '$math.sqrt' }]);
+// Correct usage - call the function:
+await evalla([{ name: 'result', expr: '$math.abs(-5)' }]); // ✅ Works
 ```
 
 Properties starting with `__` are blocked because they typically provide access to JavaScript internals that could be exploited for prototype pollution or other security vulnerabilities.

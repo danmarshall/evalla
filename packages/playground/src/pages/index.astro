@@ -15,8 +15,42 @@ try {
   readmeContent = '# README not found';
 }
 
+// Remove the "Try the Playground" and "Packages" sections for the web page
+// These are only for the GitHub README
+const lines = readmeContent.split('\n');
+const filteredLines = [];
+let skipSection = false;
+
+for (let i = 0; i < lines.length; i++) {
+  const line = lines[i];
+  
+  // Check if we're at the "Try the Playground" or "Packages" sections
+  if (line.startsWith('## 🎮 Try the Playground') || line.startsWith('## 📦 Packages')) {
+    skipSection = true;
+    continue;
+  }
+  
+  // Check if we've reached the next section
+  if (skipSection) {
+    if (line.startsWith('## ') && !line.startsWith('## 🎮') && !line.startsWith('## 📦')) {
+      // Reached next section
+      skipSection = false;
+      filteredLines.push(line);
+    } else if (line.startsWith('```')) {
+      // Reached a code block (likely after the sections)
+      skipSection = false;
+      filteredLines.push(line);
+    }
+    continue;
+  }
+  
+  filteredLines.push(line);
+}
+
+const filteredReadme = filteredLines.join('\n');
+
 // Convert markdown to HTML
-const htmlContent = await marked(readmeContent);
+const htmlContent = await marked(filteredReadme);
 ---
 
 <!DOCTYPE html>

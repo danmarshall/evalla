@@ -183,5 +183,35 @@ export const examples: Record<string, Example> = {
       { name: 'nested', expr: '$math.sqrt($math.sqrt($math.sqrt(n)))' },
       { name: 'combo', expr: '$math.max(sqrt, log, $math.min(power, nested))' }
     ]
+  },
+  orderIndependent1: {
+    name: 'Order independence - Basic',
+    expressions: [
+      { name: 'result', expr: 'a + b + c' },
+      { name: 'c', expr: '30' },
+      { name: 'a', expr: '10' },
+      { name: 'b', expr: '20' }
+    ]
+  },
+  orderIndependent2: {
+    name: 'Order independence - Complex',
+    expressions: [
+      { name: 'final', expr: 'step3 * 2' },
+      { name: 'step1', expr: 'base + 5' },
+      { name: 'step3', expr: 'step2 + step1' },
+      { name: 'base', expr: '10' },
+      { name: 'step2', expr: 'base * 2' }
+    ]
+  },
+  orderIndependent3: {
+    name: 'Order independence - Mixed',
+    expressions: [
+      { name: 'total', expr: 'subtotal + tax' },
+      { name: 'subtotal', expr: 'price * quantity' },
+      { name: 'quantity', expr: '5' },
+      { name: 'tax', expr: 'subtotal * taxRate' },
+      { name: 'price', expr: '19.99' },
+      { name: 'taxRate', expr: '0.08' }
+    ]
   }
 };

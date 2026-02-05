@@ -81,50 +81,88 @@ export default function PlaygroundApp() {
           Define variables with math expressions. They can reference each other and will be evaluated in the correct order automatically.
         </p>
 
-        <div className="space-y-2 mb-4">
-          {expressions.map((expr, index) => (
-            <div
-              key={index}
-              className={`flex flex-col sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 items-stretch sm:items-center p-2 sm:p-3 rounded ${errorIndex === index
-                ? 'bg-red-50'
-                : 'bg-gray-50'
-                }`}
-            >
-              <input
-                type="text"
-                placeholder="Variable name"
-                value={expr.name}
-                onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'
-                  }`}
-              />
-              <input
-                type="text"
-                placeholder="Expression (e.g., a + b)"
-                value={expr.expr}
-                onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'
-                  }`}
-              />
-              <button
-                onClick={() => removeExpression(index)}
-                className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+        <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
+          {/* Desktop header */}
+          <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 mb-2 text-sm font-medium text-gray-600">
+            <div>Name</div>
+            <div>Expression</div>
+            <div className="w-[90px]"></div>
+          </div>
+          <div className="space-y-4 sm:space-y-2">
+            {expressions.map((expr, index) => (
+              <div
+                key={index}
+                className={`${errorIndex === index ? 'bg-red-50 -mx-2 px-2 py-1 rounded' : ''}`}
               >
-                <Trash2 size={16} />
-                <span className="hidden sm:inline">Remove</span>
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
+                {/* Desktop layout */}
+                <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 items-center">
+                  <input
+                    type="text"
+                    placeholder="e.g. radius"
+                    value={expr.name}
+                    onChange={(e) => updateExpression(index, 'name', e.target.value)}
+                    className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'}`}
+                  />
+                  <input
+                    type="text"
+                    placeholder="e.g. a + b"
+                    value={expr.expr}
+                    onChange={(e) => updateExpression(index, 'expr', e.target.value)}
+                    className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'}`}
+                  />
+                  <button
+                    onClick={() => removeExpression(index)}
+                    className="px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+                  >
+                    <Trash2 size={16} />
+                    <span>Remove</span>
+                  </button>
+                </div>
+                {/* Mobile layout */}
+                <div className="sm:hidden flex gap-2">
+                  <div className="flex-1 space-y-1">
+                    <div className="flex gap-2 items-center">
+                      <label className="text-xs font-medium text-gray-600 w-12">Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. radius"
+                        value={expr.name}
+                        onChange={(e) => updateExpression(index, 'name', e.target.value)}
+                        className={`flex-1 px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'}`}
+                      />
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <label className="text-xs font-medium text-gray-600 w-12">Expr</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. a + b"
+                        value={expr.expr}
+                        onChange={(e) => updateExpression(index, 'expr', e.target.value)}
+                        className={`flex-1 px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'}`}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeExpression(index)}
+                    className="p-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors self-center"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
           <button
             onClick={addExpression}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
+            className="mt-3 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
           >
             <Plus size={18} />
             <span>Add</span>
           </button>
+
+        </div>
+
+        <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
           <button
             onClick={evaluate}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"

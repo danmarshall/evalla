@@ -3,6 +3,7 @@ import ReadmeContent from '../components/ReadmeContent.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/content.css';
+import { ViewTransitions } from 'astro:transitions';
 
 const title = "evalla - Safe math evaluator";
 const description = "Safe math evaluator with variables, dependencies, and precision";
@@ -21,7 +22,7 @@ const description = "Safe math evaluator with variables, dependencies, and preci
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Borel&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <ViewTransitions />
   <style>
     body {
       background-color: #f3f4f6;

@@ -2,6 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PlaygroundApp from '../components/PlaygroundApp';
+import { ViewTransitions } from 'astro:transitions';
 
 const title = "Evalla Playground";
 ---
@@ -15,6 +16,7 @@ const title = "Evalla Playground";
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Borel&display=swap" rel="stylesheet">
+  <ViewTransitions />
   <style>
     body {
       background-color: #f3f4f6;
@@ -28,7 +30,7 @@ const title = "Evalla Playground";
     <Header currentPage="playground" />
     
     <main class="flex-1 overflow-y-auto max-h-[calc(100vh-12rem)]">
-      <PlaygroundApp client:load />
+      <PlaygroundApp client:load transition:persist />
     </main>
 
     <Footer />

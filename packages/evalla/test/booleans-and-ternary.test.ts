@@ -229,6 +229,49 @@ describe('Ternary Operator (Conditional Expression)', () => {
     
     expect(result.values.result.toString()).toBe('10');
   });
+
+  test('logical comparator with ternary - user example', async () => {
+    // Test exact user example: a > 3 ? -1 : 1
+    const result1 = await evalla([
+      { name: 'a', expr: '5' },
+      { name: 'result', expr: 'a > 3 ? -1 : 1' }
+    ]);
+    expect(result1.values.result.toString()).toBe('-1');
+
+    const result2 = await evalla([
+      { name: 'a', expr: '2' },
+      { name: 'result', expr: 'a > 3 ? -1 : 1' }
+    ]);
+    expect(result2.values.result.toString()).toBe('1');
+  });
+
+  test('sign function with comparators', async () => {
+    // Implements sign(x) = x > 0 ? 1 : x < 0 ? -1 : 0
+    const testCases = [
+      { x: '10', expected: '1' },
+      { x: '-5', expected: '-1' },
+      { x: '0', expected: '0' }
+    ];
+
+    for (const tc of testCases) {
+      const result = await evalla([
+        { name: 'x', expr: tc.x },
+        { name: 'sign', expr: 'x > 0 ? 1 : x < 0 ? -1 : 0' }
+      ]);
+      expect(result.values.sign.toString()).toBe(tc.expected);
+    }
+  });
+
+  test('range checking with comparators and logical operators', async () => {
+    const result = await evalla([
+      { name: 'x', expr: '15' },
+      { name: 'inRange', expr: 'x >= 10 && x <= 30 ? true : false' },
+      { name: 'outOfRange', expr: 'x < 0 || x > 100 ? true : false' }
+    ]);
+    
+    expect(result.values.inRange).toBe(true);
+    expect(result.values.outOfRange).toBe(false);
+  });
 });
 
 describe('Combined Boolean and Ternary Operations', () => {

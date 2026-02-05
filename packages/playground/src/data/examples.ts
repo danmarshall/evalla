@@ -243,6 +243,16 @@ export const examples: Record<string, Example> = {
       { name: 'finalPrice', expr: 'price * (1 - discount)' }
     ]
   },
+  comparatorTernary: {
+    name: 'Comparisons with ternary',
+    expressions: [
+      { name: 'a', expr: '5' },
+      { name: 'direction', expr: 'a > 3 ? -1 : 1' },
+      { name: 'x', expr: '10' },
+      { name: 'sign', expr: 'x > 0 ? 1 : x < 0 ? -1 : 0' },
+      { name: 'inRange', expr: 'x >= 10 && x <= 30 ? true : false' }
+    ]
+  },
   logicalOperators: {
     name: 'Logical operators',
     expressions: [

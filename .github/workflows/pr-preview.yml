@@ -30,10 +30,12 @@ jobs:
         if: github.event.action != 'closed'
         run: npm run build:evalla
 
-      - name: Build playground for PR preview (with make-relative-paths for assets)
+      - name: Build playground for PR preview
         if: github.event.action != 'closed'
         working-directory: ./packages/playground
-        run: npx astro check && npx astro build && node scripts/make-relative-paths.cjs
+        env:
+          BASE_PATH: /pr-preview/pr-${{ github.event.pull_request.number }}
+        run: npx astro check && npx astro build
 
       - name: Deploy PR Preview
         uses: rossjrw/pr-preview-action@v1

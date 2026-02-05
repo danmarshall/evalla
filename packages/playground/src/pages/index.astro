@@ -1,5 +1,9 @@
 ---
 import ReadmeContent from '../components/ReadmeContent.astro';
+import Header from '../components/Header.astro';
+
+const title = "evalla - Safe math evaluator";
+const description = "Safe math evaluator with variables, dependencies, and precision";
 ---
 
 <!DOCTYPE html>
@@ -7,78 +11,46 @@ import ReadmeContent from '../components/ReadmeContent.astro';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>evalla - Safe math evaluator</title>
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Borel&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      background: #f8f9fa;
-      padding: 2rem;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: white;
-      padding: 3rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      position: relative;
-    }
-
-    .playground-btn {
-      position: fixed;
-      top: 2rem;
-      right: 2rem;
-      padding: 0.75rem 1.5rem;
-      background: #667eea;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: 600;
-      transition: background 0.2s, transform 0.1s;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-      z-index: 1000;
-    }
-
-    .playground-btn:hover {
-      background: #5568d3;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-    }
-
     .content h1 {
-      color: #667eea;
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
+      display: none;
     }
 
     .content h2 {
-      color: #667eea;
-      font-size: 1.8rem;
+      color: #2563eb;
+      font-size: 1.875rem;
       margin-top: 2.5rem;
       margin-bottom: 1rem;
-      border-bottom: 2px solid #e9ecef;
+      border-bottom: 2px solid #e5e7eb;
       padding-bottom: 0.5rem;
     }
 
     .content h3 {
-      color: #495057;
-      font-size: 1.4rem;
+      color: #374151;
+      font-size: 1.5rem;
       margin-top: 2rem;
       margin-bottom: 0.75rem;
     }
 
+    .content h4 {
+      color: #4b5563;
+      font-size: 1.25rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
     .content p {
       margin-bottom: 1rem;
-      line-height: 1.8;
+      line-height: 1.75;
+      color: #374151;
     }
 
     .content ul, .content ol {
@@ -88,23 +60,24 @@ import ReadmeContent from '../components/ReadmeContent.astro';
 
     .content li {
       margin-bottom: 0.5rem;
-      line-height: 1.6;
+      line-height: 1.75;
+      color: #374151;
     }
 
     .content code {
-      background: #f8f9fa;
+      background: #f3f4f6;
       padding: 0.2rem 0.4rem;
-      border-radius: 3px;
-      font-family: 'Courier New', monospace;
+      border-radius: 0.25rem;
+      font-family: ui-monospace, monospace;
       font-size: 0.9em;
-      color: #e83e8c;
+      color: #db2777;
     }
 
     .content pre {
-      background: #2d2d2d;
-      color: #f8f8f2;
+      background: #1f2937;
+      color: #f9fafb;
       padding: 1.5rem;
-      border-radius: 6px;
+      border-radius: 0.5rem;
       overflow-x: auto;
       margin: 1.5rem 0;
     }
@@ -112,57 +85,34 @@ import ReadmeContent from '../components/ReadmeContent.astro';
     .content pre code {
       background: none;
       padding: 0;
-      color: #f8f8f2;
-      font-size: 0.9rem;
+      color: #f9fafb;
+      font-size: 0.875rem;
     }
 
     .content a {
-      color: #667eea;
+      color: #2563eb;
       text-decoration: none;
       border-bottom: 1px solid transparent;
       transition: border-color 0.2s;
     }
 
     .content a:hover {
-      border-bottom-color: #667eea;
+      border-bottom-color: #2563eb;
     }
 
     .content strong {
-      color: #495057;
+      color: #1f2937;
       font-weight: 600;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        padding: 1rem;
-      }
-
-      .container {
-        padding: 1.5rem;
-      }
-
-      .playground-btn {
-        top: 1rem;
-        right: 1rem;
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-      }
-
-      .content h1 {
-        font-size: 2rem;
-      }
-
-      .content h2 {
-        font-size: 1.5rem;
-      }
     }
   </style>
 </head>
-<body>
-  <a href="./playground" class="playground-btn">🎮 Try Playground</a>
+<body class="bg-gray-50 min-h-screen">
+  <Header currentPage="home" />
   
-  <div class="container">
-    <ReadmeContent />
-  </div>
+  <main class="container mx-auto px-6 py-8 max-w-5xl">
+    <div class="bg-white rounded-xl shadow-lg p-8">
+      <ReadmeContent />
+    </div>
+  </main>
 </body>
 </html>

@@ -74,8 +74,8 @@ export default function PlaygroundApp() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
-      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-6">
+    <div className="px-4 sm:px-6 md:px-8 py-6">
+      <div className="mb-6">
         <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3">Expressions</h2>
         <p className="text-gray-600 text-sm sm:text-base mb-4">
           Define variables with math expressions. They can reference each other and will be evaluated in the correct order automatically.
@@ -152,7 +152,7 @@ export default function PlaygroundApp() {
       )}
 
       {result && (
-        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-6">
+        <div className="mb-6">
           <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">Results</h3>
           <div className="space-y-2">
             {Object.entries(result.values).map(([name, value]: [string, any]) => (

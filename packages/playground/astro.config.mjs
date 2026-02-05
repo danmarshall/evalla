@@ -7,5 +7,11 @@ export default defineConfig({
   integrations: [react(), tailwind()],
   build: {
     inlineStylesheets: 'auto'
+  },
+  markdown: {
+    shikiConfig: {
+      theme: 'github-light',
+      wrap: true
+    }
   }
 });

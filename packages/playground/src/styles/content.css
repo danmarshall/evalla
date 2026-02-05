@@ -54,8 +54,7 @@
 }
 
 .content pre {
-  background: #f8f9fa;
-  color: #1f2937;
+  background: #f6f8fa;
   padding: 1.5rem;
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
@@ -71,9 +70,19 @@
   line-height: 1.5;
 }
 
+/* Shiki syntax highlighting uses inline styles, these are fallbacks */
 .content pre code.hljs {
   background: none;
   padding: 0;
+}
+
+.content .astro-code {
+  background: #f6f8fa !important;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
 }
 
 .content a {

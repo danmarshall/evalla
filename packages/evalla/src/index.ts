@@ -78,7 +78,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
   }
   
   // Evaluate in topological order
-  const values: Record<string, Decimal | boolean | string | null | any> = Object.create(null);
+  const values: Record<string, Decimal> = Object.create(null);
   const context: Record<string, any> = Object.create(null);
   
   for (const name of order) {
@@ -96,24 +96,22 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
       result = await evaluateExpression(ast, context);
     }
     
-    // Store result in both values and context
-    // Order matters: check primitive types before numeric conversion
-    // Decimal values are always included
+    // Store result - if it's a Decimal, that's our value
+    // If it's something else (object, array), store it in context but not in values
     if (result instanceof Decimal) {
       values[name] = result;
       context[name] = result;
-    } else if (typeof result === 'boolean' || typeof result === 'string' || result === null) {
-      // Primitive values (boolean, string, null) are included in output
-      values[name] = result;
-      context[name] = result;
-    } else if (typeof result === 'number') {
-      // Convert plain numbers to Decimal for precision
-      values[name] = new Decimal(result);
-      context[name] = new Decimal(result);
     } else {
-      // Complex types (objects, arrays) are stored in context only
-      // This allows intermediate object values for dot-access but not in output values
+      // Non-Decimal result (object, array, etc.) - store in context only
       context[name] = result;
+      // For output, we need a Decimal - this should not happen if design is correct
+      // but let's handle it gracefully
+      if (typeof result === 'number') {
+        values[name] = new Decimal(result);
+      } else {
+        // Objects/arrays are stored in context for dot-access but not in output values
+        // This allows intermediate object values that aren't final results
+      }
     }
   }
   

@@ -7,6 +7,6 @@ export interface ExpressionInput {
 }
 
 export interface EvaluationResult {
-  values: Record<string, Decimal | boolean | string | null | any>;
+  values: Record<string, Decimal>;
   order: string[];
 }

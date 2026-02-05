@@ -22,7 +22,6 @@ console.log(result.order);               // ['c', 'a', 'b']
 ## Features
 
 - ✅ **Decimal Precision**: Uses [decimal.js](https://mikemcl.github.io/decimal.js/) internally for accurate arithmetic
-- ✅ **Boolean & Ternary Operators**: Full support for booleans (`true`/`false`), comparison operators, logical operators (`&&`, `||`, `!`), and ternary operator (`? :`)
 - ✅ **Variable References**: Support dependencies between expressions
 - ✅ **Dot-Traversal**: Reference nested properties (e.g., `point.x`, `offset.y`)
 - ✅ **Topological Ordering**: Evaluates in correct dependency order (DAG)
@@ -77,17 +76,10 @@ const result = await evalla([
 
 ```typescript
 interface EvaluationResult {
-  values: Record<string, Decimal | boolean | string | null | any>;  // Computed values
-  order: string[];                                                    // Evaluation order (topologically sorted)
+  values: Record<string, Decimal>;  // Computed values as Decimal objects
+  order: string[];                  // Evaluation order (topologically sorted)
 }
 ```
-
-**Value types in output:**
-- Numeric values are returned as `Decimal` objects for precision
-- Boolean values from comparisons, logical operations, or literals are returned as `boolean`
-- String values are returned as `string`
-- `null` values are returned as `null`
-- Complex types (objects, arrays) are available in expressions via dot-notation but not included in the output values
 
 ## Examples
 
@@ -141,84 +133,6 @@ const result = await evalla([
 ]);
 
 console.log(result.values.scaledX.toString()); // "10"
-```
-
-### Boolean Values and Comparisons
-
-Evalla supports boolean literals, comparison operators, and logical operators:
-
-```typescript
-const result = await evalla([
-  { name: 'x', expr: '10' },
-  { name: 'y', expr: '20' },
-  { name: 'isGreater', expr: 'x > y' },
-  { name: 'isEqual', expr: 'x == 10' },
-  { name: 'isPositive', expr: 'x > 0 && y > 0' },
-  { name: 'hasValue', expr: 'true' }
-]);
-
-console.log(result.values.isGreater); // false
-console.log(result.values.isEqual); // true
-console.log(result.values.isPositive); // true
-console.log(result.values.hasValue); // true
-```
-
-**Supported operators:**
-- Comparison: `<`, `>`, `<=`, `>=`, `==`, `===`, `!=`, `!==`
-- Logical: `&&` (AND), `||` (OR), `!` (NOT), `??` (nullish coalescing)
-- Boolean literals: `true`, `false`, `null`
-
-### Ternary Operator (Conditional Expressions)
-
-Use the ternary operator for conditional logic with comparison operators:
-
-```typescript
-const result = await evalla([
-  { name: 'a', expr: '5' },
-  { name: 'direction', expr: 'a > 3 ? -1 : 1' },  // Comparison with ternary
-  { name: 'x', expr: '10' },
-  { name: 'sign', expr: 'x > 0 ? 1 : x < 0 ? -1 : 0' }  // Nested comparisons
-]);
-
-console.log(result.values.direction.toString()); // "-1"
-console.log(result.values.sign.toString()); // "1"
-```
-
-More complex example:
-
-```typescript
-const result = await evalla([
-  { name: 'score', expr: '85' },
-  { name: 'grade', expr: 'score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : "F"' },
-  { name: 'passed', expr: 'score >= 70' },
-  { name: 'message', expr: 'passed ? "Congratulations!" : "Try again"' }
-]);
-
-console.log(result.values.grade); // "B"
-console.log(result.values.passed); // true
-console.log(result.values.message); // "Congratulations!"
-```
-
-The ternary operator evaluates the condition and returns one of two values:
-```
-condition ? valueIfTrue : valueIfFalse
-```
-
-**Practical example with comparisons and logical operators:**
-```typescript
-const result = await evalla([
-  { name: 'x', expr: '15' },
-  { name: 'inRange', expr: 'x >= 10 && x <= 30 ? "yes" : "no"' },
-  { name: 'price', expr: '100' },
-  { name: 'isMember', expr: 'true' },
-  { name: 'quantity', expr: '5' },
-  { name: 'discount', expr: 'isMember && quantity > 3 ? 0.15 : isMember ? 0.10 : 0' },
-  { name: 'finalPrice', expr: 'price * (1 - discount)' }
-]);
-
-console.log(result.values.inRange); // "yes"
-console.log(result.values.discount.toString()); // "0.15"
-console.log(result.values.finalPrice.toString()); // "85"
 ```
 
 ### Namespaces

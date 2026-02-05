@@ -213,5 +213,45 @@ export const examples: Record<string, Example> = {
       { name: 'price', expr: '19.99' },
       { name: 'taxRate', expr: '0.08' }
     ]
+  },
+  booleanComparisons: {
+    name: 'Boolean comparisons',
+    expressions: [
+      { name: 'x', expr: '10' },
+      { name: 'y', expr: '20' },
+      { name: 'isGreater', expr: 'x > y' },
+      { name: 'isEqual', expr: 'x == 10' },
+      { name: 'isPositive', expr: 'x > 0 && y > 0' }
+    ]
+  },
+  ternaryOperator: {
+    name: 'Ternary operator',
+    expressions: [
+      { name: 'score', expr: '85' },
+      { name: 'grade', expr: 'score >= 90 ? "A" : score >= 80 ? "B" : "C"' },
+      { name: 'passed', expr: 'score >= 70' },
+      { name: 'message', expr: 'passed ? "Pass" : "Fail"' }
+    ]
+  },
+  discountCalculation: {
+    name: 'Discount calculation',
+    expressions: [
+      { name: 'price', expr: '100' },
+      { name: 'isMember', expr: 'true' },
+      { name: 'quantity', expr: '5' },
+      { name: 'discount', expr: 'isMember && quantity > 3 ? 0.15 : isMember ? 0.10 : 0' },
+      { name: 'finalPrice', expr: 'price * (1 - discount)' }
+    ]
+  },
+  logicalOperators: {
+    name: 'Logical operators',
+    expressions: [
+      { name: 't', expr: 'true' },
+      { name: 'f', expr: 'false' },
+      { name: 'and', expr: 't && f' },
+      { name: 'or', expr: 't || f' },
+      { name: 'not', expr: '!t' },
+      { name: 'nullCoalesce', expr: 'null ?? 42' }
+    ]
   }
 };

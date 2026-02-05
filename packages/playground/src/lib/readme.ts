@@ -26,7 +26,7 @@ export function getFilteredReadme(): string {
 
   // Remove GitHub-only sections for the web page
   const lines = readmeContent.split('\n');
-  const filteredLines = [];
+  const filteredLines: string[] = [];
   let skipSection = false;
 
   for (const line of lines) {

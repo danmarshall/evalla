@@ -14,11 +14,10 @@ function makeRelative(htmlPath) {
   const prefix = depth > 0 ? '../'.repeat(depth) : '';
   
   // Replace absolute paths starting with / to relative paths
-  // Handles both single and double quotes
+  // Handles href, src, and Astro's component-url and renderer-url attributes
   // Avoids protocol-relative URLs (//)
   // /_astro/file.js -> _astro/file.js (for root) or ../_astro/file.js (for subdirs)
-  // /test.css -> test.css (for root) or ../test.css (for subdirs)
-  content = content.replace(/(href|src)=(["'])\/(?!\/)/g, `$1=$2${prefix}`);
+  content = content.replace(/(href|src|component-url|renderer-url)=(["'])\/(?!\/)/g, `$1=$2${prefix}`);
   
   fs.writeFileSync(htmlPath, content, 'utf8');
 }

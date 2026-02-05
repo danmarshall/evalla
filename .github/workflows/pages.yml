@@ -28,10 +28,13 @@ jobs:
         run: |
           cat > packages/playground/astro.config.mjs << EOF
           import { defineConfig } from 'astro/config';
+          import react from '@astrojs/react';
+          import tailwind from '@astrojs/tailwind';
 
           export default defineConfig({
             output: 'static',
             site: 'https://danmarshall.github.io/evalla',
+            integrations: [react(), tailwind()],
             build: {
               inlineStylesheets: 'auto'
             }

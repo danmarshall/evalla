@@ -3,6 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { marked } from 'marked';
 
+// Sections to exclude from web page (GitHub-only content)
+const SECTIONS_TO_EXCLUDE = [
+  '## 🎮 Try the Playground',
+  '## 📦 Packages'
+];
+
 // Read the README from the root of the monorepo
 const rootDir = path.join(process.cwd(), '..', '..');
 const readmePath = path.join(rootDir, 'README.md');
@@ -15,15 +21,14 @@ try {
   readmeContent = '# README not found';
 }
 
-// Remove the "Try the Playground" and "Packages" sections for the web page
-// These are only for the GitHub README
+// Remove GitHub-only sections for the web page
 const lines = readmeContent.split('\n');
 const filteredLines = [];
 let skipSection = false;
 
 for (const line of lines) {
-  // Check if we're at the "Try the Playground" or "Packages" sections (exact match)
-  if (line === '## 🎮 Try the Playground' || line === '## 📦 Packages') {
+  // Check if we're at a section to exclude
+  if (SECTIONS_TO_EXCLUDE.includes(line)) {
     skipSection = true;
     continue;
   }

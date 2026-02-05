@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Play } from 'lucide-react';
-
-interface Expression {
-  name: string;
-  expr: string;
-}
+import { examples, type Expression } from '../data/examples';
 
 export default function PlaygroundApp() {
   const [expressions, setExpressions] = useState<Expression[]>([
@@ -30,42 +26,6 @@ export default function PlaygroundApp() {
     setExpressions(expressions.filter((_, i) => i !== index));
   };
 
-  const examples: Record<string, { name: string; expressions: Expression[] }> = {
-    circle: {
-      name: 'Circle calculations',
-      expressions: [
-        { name: 'radius', expr: '5' },
-        { name: 'pi', expr: '$math.PI' },
-        { name: 'circumference', expr: '2 * pi * radius' },
-        { name: 'area', expr: 'pi * radius * radius' }
-      ]
-    },
-    objects: {
-      name: 'Object properties',
-      expressions: [
-        { name: 'point', expr: '{x: 10, y: 20}' },
-        { name: 'scaledX', expr: 'point.x * 2' },
-        { name: 'scaledY', expr: 'point.y * 2' }
-      ]
-    },
-    precision: {
-      name: 'Decimal precision',
-      expressions: [
-        { name: 'a', expr: '0.1' },
-        { name: 'b', expr: '0.2' },
-        { name: 'sum', expr: 'a + b' }
-      ]
-    },
-    trig: {
-      name: 'Trigonometry',
-      expressions: [
-        { name: 'degrees', expr: '45' },
-        { name: 'radians', expr: '$angle.toRad(degrees)' },
-        { name: 'sine', expr: '$math.sin(radians)' },
-        { name: 'cosine', expr: '$math.cos(radians)' }
-      ]
-    }
-  };
 
   const loadExample = (key: string) => {
     const example = examples[key];
@@ -160,7 +120,7 @@ export default function PlaygroundApp() {
                   />
                   <button
                     onClick={() => removeExpression(index)}
-                    className="px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+                    className="w-24 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
                   >
                     <Trash2 size={16} />
                     <span>Remove</span>
@@ -200,13 +160,15 @@ export default function PlaygroundApp() {
               </div>
             ))}
           </div>
-          <button
-            onClick={addExpression}
-            className="mt-3 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
-          >
-            <Plus size={18} />
-            <span>Add</span>
-          </button>
+          <div className="flex justify-end mt-3">
+            <button
+              onClick={addExpression}
+              className="w-24 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+            >
+              <Plus size={16} />
+              <span>Add</span>
+            </button>
+          </div>
 
         </div>
       </div>

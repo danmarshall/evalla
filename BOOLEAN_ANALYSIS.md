@@ -861,3 +861,167 @@ The decision ultimately depends on **what evalla wants to be**:
 - A versatile expression evaluator? → Expose booleans/strings
 
 Both are valid choices with different trade-offs.
+
+## Special Values: $null, Infinity, and NaN
+
+### Question: What is `$null` for in an algebraic context?
+
+**The maintainer's insight:** "I can only imagine it with an object missing values. What is null in algebra?"
+
+#### In Programming Context
+- `null` represents "no value" or "absence of a value"
+- Used for optional properties, missing data, undefined state
+- Example: `{ x: 10, y: null }` - y is explicitly absent
+
+#### In Algebraic Context
+**Null doesn't really exist in pure mathematics/algebra.**
+
+In mathematics:
+- Variables have values (numbers)
+- Expressions evaluate to numbers
+- There's no concept of "no value" - if something doesn't have a value, it's undefined (different concept)
+
+#### When `$null` Might Be Useful in evalla
+
+**Scenario 1: Object property handling**
+```typescript
+// JSON object with optional properties
+{ name: 'config', value: { x: 10, y: null, z: 20 } }
+{ name: 'yValue', expr: 'config.y ?? 0' }  // Nullish coalescing
+```
+
+**Scenario 2: Sentinel values for "no data"**
+```typescript
+{ name: 'optionalValue', expr: 'hasData ? value : $null' }
+{ name: 'result', expr: 'optionalValue ?? defaultValue' }
+```
+
+**Scenario 3: Interoperability with JSON data**
+- evalla accepts `value` property with objects
+- JSON can contain `null` values
+- Need to handle them gracefully
+
+#### Recommendation for `$null`
+
+**Probably NOT needed as a system constant** because:
+1. ✅ **Grammar already supports `null` literal** - Can use `null` in expressions
+2. ✅ **Nullish coalescing (`??`) works** - Already handles null/undefined
+3. ❌ **Not algebraic** - Doesn't map to mathematical concept
+4. ⚠️ **Only useful for object handling** - Limited use case
+
+**Alternative:** Keep `null` as a literal (like JavaScript) for object handling, but don't promote it with `$null` system constant.
+
+### Question: Should evalla support Infinity and NaN?
+
+**The maintainer asks:** "Oh I guess we must also support infinity / NaN ??"
+
+#### Mathematical Context
+
+**Infinity in mathematics:**
+- Represents unbounded growth or limits
+- Not a number, but a concept
+- Used in calculus: `lim(x→∞)`
+- In some contexts: `1/0 = ∞` (in extended real numbers)
+
+**NaN (Not a Number):**
+- Programming concept from IEEE 754 floating point
+- Result of undefined operations: `0/0`, `∞-∞`, `√(-1)` (in real numbers)
+- **Not a pure mathematical concept** - more of an error state
+
+#### Decimal.js Support
+
+Decimal.js (evalla's numeric engine) **DOES support Infinity and NaN**:
+
+```javascript
+new Decimal(Infinity)    // Works: Infinity
+new Decimal(1).div(0)    // Returns: Infinity
+new Decimal(0).div(0)    // Returns: NaN
+new Decimal(NaN)         // Works: NaN
+```
+
+**This means evalla already implicitly supports them!**
+
+#### Current State in evalla
+
+**What happens now:**
+```typescript
+// Division by zero
+{ name: 'inf', expr: '1 / 0' }        // Returns Decimal(Infinity)
+{ name: 'nan', expr: '0 / 0' }        // Returns Decimal(NaN)
+```
+
+Decimal.js handles these cases, so evalla **already supports infinity and NaN** through arithmetic operations.
+
+#### Should We Add `$Infinity` and `$NaN` System Constants?
+
+**Arguments FOR:**
+- ✅ Already supported implicitly through arithmetic
+- ✅ Useful for mathematical limits and bounds
+- ✅ Can use in comparisons: `x > $Infinity ? impossible : possible`
+- ✅ Explicit constants are clearer than `1/0`
+
+**Arguments AGAINST:**
+- ❌ Not truly "algebraic" - more programming/numerical analysis concepts
+- ❌ Can achieve same with arithmetic: `1/0` for infinity
+- ❌ Adds complexity to the "algebra, not code" philosophy
+- ⚠️ Encourages non-algebraic patterns
+
+#### Comparison with `$true`/`$false`
+
+| Constant | Algebraic? | Already works via | Use case strength |
+|----------|-----------|-------------------|-------------------|
+| `$true` | ✅ Boolean flag/constant | N/A | ✅ Strong: Named flags |
+| `$false` | ✅ Boolean flag/constant | N/A | ✅ Strong: Named flags |
+| `$null` | ❌ No math equivalent | `null` literal | ⚠️ Weak: Objects only |
+| `$Infinity` | ⚠️ Math concept, not algebra | `1/0` | ⚠️ Medium: Limits/bounds |
+| `$NaN` | ❌ Error state, not algebra | `0/0` | ❌ Weak: Error handling |
+
+### Recommendations
+
+#### For `$null`
+**Recommendation: NOT needed**
+- Keep `null` as a literal for JSON object compatibility
+- Don't promote with system constant
+- Use case is too narrow (object handling only)
+- Not algebraic
+
+#### For `$Infinity`
+**Recommendation: MAYBE, if needed for mathematical modeling**
+- **PRO:** Legitimate mathematical concept (limits, bounds)
+- **PRO:** Clearer than `1/0` magic number
+- **CON:** Not pure algebra
+- **Decision:** Add if users request it for limit/bound modeling
+
+Example use case:
+```typescript
+{ name: 'maxBound', expr: '$Infinity' }
+{ name: 'result', expr: 'x < maxBound ? x : maxBound' }  // Clamping
+```
+
+#### For `$NaN`
+**Recommendation: NOT needed**
+- Not algebraic - it's an error state
+- Can achieve with `0/0` if really needed
+- Better to avoid operations that produce NaN
+- If you get NaN, something went wrong mathematically
+
+### Summary: Special Values Philosophy
+
+**"Algebra, not code" philosophy applied to special values:**
+
+| Value | Include? | Reason |
+|-------|----------|--------|
+| `$true` | ✅ YES | Boolean constants for conditional logic |
+| `$false` | ✅ YES | Boolean constants for conditional logic |
+| `$null` | ❌ NO | Not algebraic; only for object handling |
+| `$Infinity` | 🤔 MAYBE | Mathematical limits/bounds - consider if requested |
+| `$NaN` | ❌ NO | Error state, not algebraic |
+
+**Core principle:** Include system constants that serve **mathematical/algebraic purposes**, not programming conveniences.
+
+- ✅ **Boolean constants** - Mathematical flags/conditions
+- ⚠️ **Infinity** - Mathematical limits (borderline)
+- ❌ **Null** - Programming concept
+- ❌ **NaN** - Error state
+
+This keeps evalla focused on its identity as a **mathematical expression evaluator**.

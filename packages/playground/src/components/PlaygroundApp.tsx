@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Play, BookOpen } from 'lucide-react';
+import { Plus, Trash2, Play } from 'lucide-react';
 
 interface Expression {
   name: string;
@@ -30,18 +30,51 @@ export default function PlaygroundApp() {
     setExpressions(expressions.filter((_, i) => i !== index));
   };
 
-  const loadExample = () => {
-    setExpressions([
-      { name: 'radius', expr: '5' },
-      { name: 'pi', expr: '$math.PI' },
-      { name: 'circumference', expr: '2 * pi * radius' },
-      { name: 'area', expr: 'pi * radius * radius' },
-      { name: 'point', expr: '{x: 10, y: 20}' },
-      { name: 'scaledX', expr: 'point.x * 2' }
-    ]);
-    setResult(null);
-    setError(null);
-    setErrorIndex(null);
+  const examples: Record<string, { name: string; expressions: Expression[] }> = {
+    circle: {
+      name: 'Circle calculations',
+      expressions: [
+        { name: 'radius', expr: '5' },
+        { name: 'pi', expr: '$math.PI' },
+        { name: 'circumference', expr: '2 * pi * radius' },
+        { name: 'area', expr: 'pi * radius * radius' }
+      ]
+    },
+    objects: {
+      name: 'Object properties',
+      expressions: [
+        { name: 'point', expr: '{x: 10, y: 20}' },
+        { name: 'scaledX', expr: 'point.x * 2' },
+        { name: 'scaledY', expr: 'point.y * 2' }
+      ]
+    },
+    precision: {
+      name: 'Decimal precision',
+      expressions: [
+        { name: 'a', expr: '0.1' },
+        { name: 'b', expr: '0.2' },
+        { name: 'sum', expr: 'a + b' }
+      ]
+    },
+    trig: {
+      name: 'Trigonometry',
+      expressions: [
+        { name: 'degrees', expr: '45' },
+        { name: 'radians', expr: '$angle.toRad(degrees)' },
+        { name: 'sine', expr: '$math.sin(radians)' },
+        { name: 'cosine', expr: '$math.cos(radians)' }
+      ]
+    }
+  };
+
+  const loadExample = (key: string) => {
+    const example = examples[key];
+    if (example) {
+      setExpressions(example.expressions);
+      setResult(null);
+      setError(null);
+      setErrorIndex(null);
+    }
   };
 
   const evaluate = async () => {
@@ -81,6 +114,20 @@ export default function PlaygroundApp() {
         <p className="text-gray-600 text-sm sm:text-base mb-4">
           Define variables with math expressions. They can reference each other and will be evaluated in the correct order automatically.
         </p>
+
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-sm font-medium text-gray-600">Examples</span>
+          <select
+            onChange={(e) => e.target.value && loadExample(e.target.value)}
+            defaultValue=""
+            className="px-3 py-2 text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>Choose an example</option>
+            {Object.entries(examples).map(([key, { name }]) => (
+              <option key={key} value={key}>{name}</option>
+            ))}
+          </select>
+        </div>
 
         <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
           {/* Desktop header */}
@@ -161,16 +208,6 @@ export default function PlaygroundApp() {
             <span>Add</span>
           </button>
 
-        </div>
-
-        <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
-          <button
-            onClick={loadExample}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
-          >
-            <BookOpen size={18} />
-            <span>Example</span>
-          </button>
         </div>
       </div>
 

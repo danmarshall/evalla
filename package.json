@@ -17,5 +17,8 @@
     "lodash": "^4.17.23"
   },
   "author": "Dan Marshall",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "marked": "^17.0.1"
+  }
 }

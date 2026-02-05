@@ -1,12 +1,5 @@
 ---
-import { marked } from 'marked';
-import { getFilteredReadme } from '../lib/readme';
-
-// Get filtered README content (excludes GitHub-specific sections)
-const readmeContent = getFilteredReadme();
-
-// Convert markdown to HTML
-const htmlContent = await marked(readmeContent);
+import ReadmeContent from '../components/ReadmeContent.astro';
 ---
 
 <!DOCTYPE html>
@@ -173,7 +166,7 @@ const htmlContent = await marked(readmeContent);
       </div>
     </div>
     
-    <div class="content" set:html={htmlContent} />
+    <ReadmeContent />
   </div>
 </body>
 </html>

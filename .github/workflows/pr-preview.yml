@@ -34,7 +34,7 @@ jobs:
         if: github.event.action != 'closed'
         working-directory: ./packages/playground
         env:
-          BASE_PATH: /pr-preview/pr-${{ github.event.pull_request.number }}
+          BASE_PATH: /evalla/pr-preview/pr-${{ github.event.pull_request.number }}
         run: npx astro check && npx astro build
 
       - name: Deploy PR Preview

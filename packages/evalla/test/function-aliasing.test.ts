@@ -79,11 +79,14 @@ describe('Function Aliasing Prevention', () => {
   });
 
   test('error message should be descriptive', async () => {
+    await expect(
+      evalla([{ name: 'myabs', expr: '$math.abs' }])
+    ).rejects.toThrow(SecurityError);
+    
+    // Verify specific error message content
     try {
       await evalla([{ name: 'myabs', expr: '$math.abs' }]);
-      fail('Should have thrown SecurityError');
     } catch (error) {
-      expect(error).toBeInstanceOf(SecurityError);
       if (error instanceof SecurityError) {
         expect(error.message).toContain('Cannot alias functions');
         expect(error.message).toContain('parentheses');

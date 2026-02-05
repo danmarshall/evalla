@@ -3,6 +3,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PlaygroundApp from '../components/PlaygroundApp';
 import '../styles/global.css';
+import '../styles/content.css';
 import { ViewTransitions } from 'astro:transitions';
 
 const title = "Evalla Playground";
@@ -22,7 +23,7 @@ const title = "Evalla Playground";
 <body class="min-h-screen bg-white">
   <Header currentPage="playground" />
   
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-6">
+  <main class="max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pb-6">
     <PlaygroundApp client:load transition:persist />
   </main>
 

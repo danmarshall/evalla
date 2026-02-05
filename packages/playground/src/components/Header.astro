@@ -2,7 +2,7 @@
 const { currentPage = 'home' } = Astro.props;
 ---
 
-<header class="px-4 sm:px-8 lg:px-12 pt-6 pb-4">
+<header class="max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 pt-6 pb-4">
   <div class="flex items-baseline justify-between flex-wrap gap-3">
     <div class="flex items-baseline gap-3">
       <a href={currentPage === 'home' ? '#' : '../'} class="font-borel text-2xl sm:text-3xl font-bold text-blue-600 hover:text-blue-700 transition-colors no-underline">
@@ -40,4 +40,5 @@ const { currentPage = 'home' } = Astro.props;
       </a>
     </nav>
   </div>
+  <p class="text-gray-500 text-[0.9375rem]">Safe math evaluator with variables, dependencies, and precision.</p>
 </header>

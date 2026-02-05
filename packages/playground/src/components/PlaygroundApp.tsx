@@ -47,13 +47,13 @@ export default function PlaygroundApp() {
   const evaluate = async () => {
     setError(null);
     setErrorIndex(null);
-    
+
     try {
       // Dynamic import to avoid SSR issues
       const { evalla } = await import('evalla');
-      
+
       const validExpressions = expressions.filter(e => e.name.trim() && e.expr.trim());
-      
+
       if (validExpressions.length === 0) {
         setError('Please add at least one expression');
         return;
@@ -63,7 +63,7 @@ export default function PlaygroundApp() {
       setResult(evalResult);
     } catch (err: any) {
       setError(err.message);
-      
+
       if (err.variableName) {
         const index = expressions.findIndex(e => e.name === err.variableName);
         if (index !== -1) {
@@ -74,40 +74,37 @@ export default function PlaygroundApp() {
   };
 
   return (
-    <div className="px-4 sm:px-6 md:px-8 py-6">
+    <div className='content'>
       <div className="mb-6">
-        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3">Expressions</h2>
+        <h2 style={{ marginTop: '2rem' }}>Playground</h2>
         <p className="text-gray-600 text-sm sm:text-base mb-4">
           Define variables with math expressions. They can reference each other and will be evaluated in the correct order automatically.
         </p>
-        
+
         <div className="space-y-2 mb-4">
           {expressions.map((expr, index) => (
-            <div 
+            <div
               key={index}
-              className={`flex flex-col sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 items-stretch sm:items-center p-2 sm:p-3 rounded ${
-                errorIndex === index 
-                  ? 'bg-red-50' 
-                  : 'bg-gray-50'
-              }`}
+              className={`flex flex-col sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 items-stretch sm:items-center p-2 sm:p-3 rounded ${errorIndex === index
+                ? 'bg-red-50'
+                : 'bg-gray-50'
+                }`}
             >
               <input
                 type="text"
                 placeholder="Variable name"
                 value={expr.name}
                 onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'
-                }`}
+                className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'
+                  }`}
               />
               <input
                 type="text"
                 placeholder="Expression (e.g., a + b)"
                 value={expr.expr}
                 onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'
-                }`}
+                className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'
+                  }`}
               />
               <button
                 onClick={() => removeExpression(index)}

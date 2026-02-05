@@ -2,16 +2,7 @@
 
 Safe math evaluator with variables, dependencies, and precision.
 
-## 🎮 Try the Playground
-
-Visit the interactive playground to experiment with evalla in your browser! See the [playground README](packages/playground/README.md) for details.
-
-## 📦 Packages
-
-This is a monorepo containing:
-
-- **[evalla](packages/evalla/)** - Core math evaluator library
-- **[playground](packages/playground/)** - Interactive Astro-based playground
+[Live Demo](https://danmarshall.github.io/evalla/)
 
 ```typescript
 import { evalla } from 'evalla';

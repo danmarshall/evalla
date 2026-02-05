@@ -57,31 +57,55 @@ Boolean/string values are evaluated but **not included in the output** - they're
 
 ### Current Issue: Standalone Comparisons
 
-**Problem:** Currently, standalone comparisons are allowed but return `undefined`:
+**Problem:** Currently, standalone comparisons (including equality) are allowed but return `undefined`:
 ```typescript
-// Current behavior (WRONG):
-{ name: 'check', expr: 'a > b' }  // Returns undefined, doesn't error
+// Current behavior (ALL WRONG - should error):
+{ name: 'check1', expr: 'a > b' }     // Returns undefined
+{ name: 'check2', expr: 'a == b' }    // Returns undefined
+{ name: 'check3', expr: 'a === b' }   // Returns undefined
+{ name: 'check4', expr: 'a != b' }    // Returns undefined
 
-// Desired behavior:
-{ name: 'check', expr: 'a > b' }  // Should throw an error - not allowed!
+// Desired behavior - ALL should throw errors:
+{ name: 'check1', expr: 'a > b' }     // Should throw an error - not allowed!
+{ name: 'check2', expr: 'a == b' }    // Should throw an error - not allowed!
+{ name: 'check3', expr: 'a === b' }   // Should throw an error - not allowed!
 
-// Correct usage (with ternary):
-{ name: 'result', expr: 'a > b ? 10 : 20' }  // ✅ This is fine
+// Correct usage (with ternary) - ALL FINE:
+{ name: 'result1', expr: 'a > b ? 10 : 20' }   // ✅ OK
+{ name: 'result2', expr: 'a == b ? 10 : 20' }  // ✅ OK
+{ name: 'result3', expr: 'a === b ? 10 : 20' } // ✅ OK
 ```
+
+**Applies to all comparison operators:**
+- Relational: `>`, `<`, `>=`, `<=`
+- Equality: `==`, `===`, `!=`, `!==`
+
+All should only work in ternary context, not as standalone expressions.
 
 ### Implications
 
-If standalone comparisons are blocked:
+If standalone comparisons (relational AND equality) are blocked:
 ```typescript
-// NOT allowed:
-{ name: 'isGreater', expr: 'a > b' }           // ❌ Error
-{ name: 'isEqual', expr: 'x == y' }            // ❌ Error
-{ name: 'check', expr: 'x > 0 && y > 0' }      // ❌ Error
+// NOT allowed - ALL comparison operators:
+{ name: 'gt', expr: 'a > b' }              // ❌ Error
+{ name: 'gte', expr: 'a >= b' }            // ❌ Error
+{ name: 'lt', expr: 'a < b' }              // ❌ Error
+{ name: 'lte', expr: 'a <= b' }            // ❌ Error
+{ name: 'eq', expr: 'x == y' }             // ❌ Error
+{ name: 'strictEq', expr: 'x === y' }      // ❌ Error
+{ name: 'neq', expr: 'x != y' }            // ❌ Error
+{ name: 'strictNeq', expr: 'x !== y' }     // ❌ Error
+{ name: 'check', expr: 'x > 0 && y > 0' }  // ❌ Error (logical result)
 
-// ONLY allowed in ternary context:
-{ name: 'result', expr: 'a > b ? 1 : 0' }      // ✅ OK
-{ name: 'sign', expr: 'x > 0 ? 1 : -1' }       // ✅ OK
-{ name: 'value', expr: 'x > 0 && y > 0 ? 1 : 0' } // ✅ OK
+// ONLY allowed in ternary context - ALL comparison operators:
+{ name: 'result1', expr: 'a > b ? 1 : 0' }       // ✅ OK
+{ name: 'result2', expr: 'a >= b ? 1 : 0' }      // ✅ OK
+{ name: 'result3', expr: 'x == y ? 1 : 0' }      // ✅ OK
+{ name: 'result4', expr: 'x === y ? 1 : 0' }     // ✅ OK
+{ name: 'result5', expr: 'x != y ? 1 : 0' }      // ✅ OK
+{ name: 'sign', expr: 'x > 0 ? 1 : -1' }         // ✅ OK
+{ name: 'bonus', expr: 'score == 100 ? 50 : 0' } // ✅ OK
+{ name: 'value', expr: 'x > 0 && y > 0 ? 1 : 0' } // ✅ OK (logical in ternary)
 ```
 
 This keeps evalla focused as a **decimal calculator**, not a boolean expression evaluator.
@@ -126,15 +150,20 @@ Standalone comparison expressions should **throw an error** during evaluation, n
 
 ### Examples After Fix
 ```typescript
-// These should all throw errors:
+// These should all throw errors (relational AND equality):
 { name: 'x', expr: 'a > b' }                    // ❌ Error
 { name: 'y', expr: 'x == 5' }                   // ❌ Error  
 { name: 'z', expr: 'a > b && c < d' }           // ❌ Error
+{ name: 'w', expr: 'x === y' }                  // ❌ Error
+{ name: 'v', expr: 'a != b' }                   // ❌ Error
 
-// These should work:
-{ name: 'result', expr: 'a > b ? 10 : 20' }     // ✅ OK
-{ name: 'max', expr: 'a > b ? a : b' }          // ✅ OK
-{ name: 'sign', expr: 'x > 0 ? 1 : x < 0 ? -1 : 0' }  // ✅ OK
+// These should work (all comparison types in ternary):
+{ name: 'result', expr: 'a > b ? 10 : 20' }     // ✅ OK (relational)
+{ name: 'max', expr: 'a > b ? a : b' }          // ✅ OK (relational)
+{ name: 'bonus', expr: 'score == 100 ? 50 : 0' } // ✅ OK (equality)
+{ name: 'check', expr: 'x === y ? x : y' }      // ✅ OK (strict equality)
+{ name: 'penalty', expr: 'status != 1 ? 10 : 0' } // ✅ OK (inequality)
+{ name: 'sign', expr: 'x > 0 ? 1 : x < 0 ? -1 : 0' }  // ✅ OK (nested)
 ```
 
 ## Three Options for Boolean Literals
@@ -287,53 +316,78 @@ This is a **separate issue** that needs its own testing and PR.
 ## Ternary Operators with Comparisons: Perfect Match ✅
 
 ### Current Behavior
-Ternary operators work perfectly and return Decimal values:
+Ternary operators work perfectly with all comparison operators and return Decimal values:
 
 ```typescript
 const result = await evalla([
   { name: 'x', expr: '10' },
-  { name: 'result', expr: 'x > 5 ? 100 : 50' }  // Comparison + ternary
+  { name: 'y', expr: '10' },
+  
+  // Relational operators: >, <, >=, <=
+  { name: 'gt', expr: 'x > 5 ? 100 : 50' },
+  { name: 'gte', expr: 'x >= 10 ? 100 : 50' },
+  
+  // Equality operators: ==, ===, !=, !==
+  { name: 'eq', expr: 'x == y ? 100 : 50' },
+  { name: 'strictEq', expr: 'x === y ? 100 : 50' },
+  { name: 'neq', expr: 'x != 5 ? 100 : 50' },
+  { name: 'strictNeq', expr: 'x !== 5 ? 100 : 50' }
 ]);
-
-console.log(result.values.result.toString()); // "100" (Decimal)
 ```
 
 ### Maintainer Position
-✅ **Ternary operators are liked** - Especially with comparisons (greater than, etc.)
-✅ **Comparison operators are liked** - In conjunction with ternary
+✅ **Ternary operators are liked** - Especially with comparisons
+✅ **All comparison operators supported** - Both relational and equality
+  - Relational: `>`, `<`, `>=`, `<=`
+  - Equality: `==`, `===`, `!=`, `!==`
 ✅ **Decimal outputs** - Keep returning only Decimal values (already the case)
 
-**This is the sweet spot:** Comparisons evaluate internally to booleans, ternary operators use those booleans, and the result is a clean Decimal value in the output.
+**This is the sweet spot:** All comparison operators (including equals) evaluate internally to booleans, ternary operators use those booleans, and the result is a clean Decimal value in the output.
 
-### Perfect Use Cases (Comparison + Ternary)
+### Perfect Use Cases (All Comparison Types + Ternary)
 ```typescript
-// Comparison operators with ternary - exactly what the maintainer likes!
+// All comparison operators work with ternary - exactly what the maintainer likes!
 
-// Sign function (using >, <)
+// RELATIONAL OPERATORS (>, <, >=, <=)
+// Sign function
 { name: 'sign', expr: 'x > 0 ? 1 : x < 0 ? -1 : 0' }
 
-// Min/Max (using <, >)
+// Min/Max
 { name: 'min', expr: 'a < b ? a : b' }
 { name: 'max', expr: 'a > b ? a : b' }
 
-// Range clamping (using <, >)
+// Range clamping
 { name: 'clamped', expr: 'x < 0 ? 0 : x > 100 ? 100 : x' }
 
-// Conditional calculations (using >=, <=)
+// Conditional calculations
 { name: 'discount', expr: 'quantity >= 10 ? price * 0.9 : price' }
 
-// Absolute value (using <)
+// Absolute value
 { name: 'abs', expr: 'x < 0 ? -x : x' }
 
-// Grading with multiple comparisons (using >=)
-{ name: 'grade', expr: 'score >= 90 ? 90 : score >= 80 ? 80 : score >= 70 ? 70 : 0' }
+// EQUALITY OPERATORS (==, ===, !=, !==)
+// Exact match
+{ name: 'bonus', expr: 'score == 100 ? 50 : 0' }
+
+// Not equal
+{ name: 'penalty', expr: 'status != 1 ? 10 : 0' }
+
+// Switch-like logic
+{ name: 'value', expr: 'type == 1 ? 100 : type == 2 ? 200 : 300' }
+
+// Validation with ternary
+{ name: 'result', expr: 'x === y ? x * 2 : x + y' }
+
+// COMBINED
+// Grading with equality and relational
+{ name: 'grade', expr: 'score >= 90 ? 90 : score >= 80 ? 80 : score == 70 ? 70 : 0' }
 ```
 
-**This is exactly the design that works well:**
-1. Comparison operators (`>`, `<`, `>=`, `<=`, `==`, `!=`) evaluate to boolean internally
-2. Ternary operator uses that boolean for conditional logic
-3. Result is a **Decimal value** in the output
-4. No boolean/string types exposed - clean, simple, focused on math
+**All comparison operators work beautifully with ternary:**
+- **Relational**: `>`, `<`, `>=`, `<=` - for ranges, min/max, conditionals
+- **Equality**: `==`, `===`, `!=`, `!==` - for exact matches, switches
+- All evaluate to boolean internally → ternary uses boolean → returns **Decimal**
+- No boolean/string types exposed - clean, simple, focused on math
 
 **No changes needed** - Works perfectly with current design.
 

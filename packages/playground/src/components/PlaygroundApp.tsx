@@ -63,6 +63,7 @@ export default function PlaygroundApp() {
       setResult(evalResult);
     } catch (err: any) {
       setError(err.message);
+      setResult(null);
 
       if (err.variableName) {
         const index = expressions.findIndex(e => e.name === err.variableName);
@@ -164,13 +165,6 @@ export default function PlaygroundApp() {
 
         <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
           <button
-            onClick={evaluate}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
-          >
-            <Play size={18} />
-            <span>Evaluate</span>
-          </button>
-          <button
             onClick={loadExample}
             className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
           >
@@ -186,22 +180,53 @@ export default function PlaygroundApp() {
         </div>
       )}
 
-      {result && (
-        <div className="mb-6">
-          <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">Results</h3>
-          <div className="space-y-2">
-            {Object.entries(result.values).map(([name, value]: [string, any]) => (
-              <div key={name} className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 bg-green-50 border-l-4 border-green-500 rounded">
-                <div className="font-semibold text-gray-700 font-mono text-sm sm:text-base min-w-[80px] sm:min-w-[120px]">{name}</div>
-                <div className="text-green-700 font-mono font-semibold text-sm sm:text-base break-all">{value.toString()}</div>
+      <div className="mb-6">
+        <div className="bg-green-50 rounded-lg p-4">
+          <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3">Results</h3>
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={evaluate}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
+            >
+              <Play size={18} />
+              <span>Evaluate</span>
+            </button>
+            {result && (
+              <button
+                onClick={() => setResult(null)}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded font-semibold transition-colors"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          {result ? (
+            <>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-green-200">
+                    <th className="text-left py-2 font-medium text-gray-600">Name</th>
+                    <th className="text-left py-2 font-medium text-gray-600">Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(result.values).map(([name, value]: [string, any]) => (
+                    <tr key={name}>
+                      <td className="py-2 px-2 font-mono text-gray-700">{name}</td>
+                      <td className="py-2 px-2 font-mono text-green-700 font-semibold break-all">{value.toString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="mt-4 text-gray-600 text-xs sm:text-sm italic">
+                Evaluation order: {result.order.join(' → ')}
               </div>
-            ))}
-          </div>
-          <div className="mt-4 text-gray-600 text-xs sm:text-sm italic">
-            Evaluation order: {result.order.join(' → ')}
-          </div>
+            </>
+          ) : (
+            <p className="text-gray-500 text-sm italic">Click Evaluate to see results</p>
+          )}
         </div>
-      )}
+      </div>
 
       <div className="bg-blue-50 border-l-4 border-blue-600 rounded-lg p-4 sm:p-6">
         <h3 className="text-lg sm:text-xl font-semibold text-blue-900 mb-3">Quick Tips</h3>

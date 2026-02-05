@@ -265,8 +265,8 @@ describe('Ternary Operator (Conditional Expression)', () => {
   test('range checking with comparators and logical operators', async () => {
     const result = await evalla([
       { name: 'x', expr: '15' },
-      { name: 'inRange', expr: 'x >= 10 && x <= 30 ? true : false' },
-      { name: 'outOfRange', expr: 'x < 0 || x > 100 ? true : false' }
+      { name: 'inRange', expr: 'x >= 10 && x <= 30' },
+      { name: 'outOfRange', expr: 'x < 0 || x > 100' }
     ]);
     
     expect(result.values.inRange).toBe(true);

@@ -97,6 +97,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
     }
     
     // Store result in both values and context
+    // Order matters: check primitive types before numeric conversion
     // Decimal values are always included
     if (result instanceof Decimal) {
       values[name] = result;
@@ -106,7 +107,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
       values[name] = result;
       context[name] = result;
     } else if (typeof result === 'number') {
-      // Convert numbers to Decimal for precision
+      // Convert plain numbers to Decimal for precision
       values[name] = new Decimal(result);
       context[name] = new Decimal(result);
     } else {

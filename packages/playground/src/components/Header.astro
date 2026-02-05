@@ -2,18 +2,20 @@
 const { currentPage = 'home' } = Astro.props;
 ---
 
-<header class="bg-slate-900 text-white shadow-sm">
+<header class="bg-white border-b border-gray-200">
   <div class="container mx-auto px-4 py-3">
     <div class="flex items-center justify-between flex-wrap gap-3">
       <div class="flex items-baseline gap-3">
-        <h1 class="font-borel text-2xl sm:text-3xl font-bold">evalla</h1>
-        <span class="hidden sm:inline text-slate-400 text-sm">Safe math evaluator</span>
+        <a href={currentPage === 'home' ? '#' : '../'} class="font-borel text-2xl sm:text-3xl font-bold text-blue-600 hover:text-blue-700 transition-colors no-underline">
+          evalla
+        </a>
+        <span class="hidden sm:inline text-gray-600 text-sm">Safe math evaluator</span>
       </div>
       <nav class="flex items-center gap-2 sm:gap-3">
         {currentPage === 'playground' && (
           <a 
             href="../" 
-            class="px-3 py-1.5 text-sm hover:text-teal-400 transition-colors"
+            class="px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 transition-colors"
           >
             Home
           </a>
@@ -21,7 +23,7 @@ const { currentPage = 'home' } = Astro.props;
         {currentPage === 'home' && (
           <a 
             href="./playground" 
-            class="px-3 py-1.5 text-sm bg-teal-600 hover:bg-teal-500 rounded transition-colors"
+            class="px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 transition-colors"
           >
             Playground
           </a>
@@ -30,7 +32,7 @@ const { currentPage = 'home' } = Astro.props;
           href="https://github.com/danmarshall/evalla" 
           target="_blank"
           rel="noopener noreferrer"
-          class="px-3 py-1.5 text-sm hover:text-teal-400 transition-colors flex items-center gap-1.5"
+          class="px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1.5"
           aria-label="GitHub"
         >
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

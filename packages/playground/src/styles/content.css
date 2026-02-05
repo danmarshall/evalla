@@ -4,7 +4,7 @@
 }
 
 .content h2 {
-  color: #0f766e;
+  color: #2563eb;
   font-size: 1.875rem;
   margin-top: 2.5rem;
   margin-bottom: 1rem;
@@ -50,13 +50,14 @@
   border-radius: 0.25rem;
   font-family: ui-monospace, monospace;
   font-size: 0.9em;
-  color: #0f766e;
+  color: #2563eb;
 }
 
 .content pre {
-  background: #282c34;
-  color: #abb2bf;
+  background: #f8f9fa;
+  color: #1f2937;
   padding: 1.5rem;
+  border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
   overflow-x: auto;
   margin: 1.5rem 0;
@@ -76,14 +77,14 @@
 }
 
 .content a {
-  color: #0f766e;
+  color: #2563eb;
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s;
 }
 
 .content a:hover {
-  border-bottom-color: #0f766e;
+  border-bottom-color: #2563eb;
 }
 
 .content strong {

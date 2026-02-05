@@ -96,7 +96,7 @@ export default function PlaygroundApp() {
                 placeholder="Variable name"
                 value={expr.name}
                 onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'
                 }`}
               />
@@ -105,7 +105,7 @@ export default function PlaygroundApp() {
                 placeholder="Expression (e.g., a + b)"
                 value={expr.expr}
                 onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'
                 }`}
               />
@@ -123,21 +123,21 @@ export default function PlaygroundApp() {
         <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
           <button
             onClick={addExpression}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
           >
             <Plus size={18} />
             <span>Add</span>
           </button>
           <button
             onClick={evaluate}
-            className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
           >
             <Play size={18} />
             <span>Evaluate</span>
           </button>
           <button
             onClick={loadExample}
-            className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
           >
             <BookOpen size={18} />
             <span>Example</span>
@@ -168,15 +168,15 @@ export default function PlaygroundApp() {
         </div>
       )}
 
-      <div className="bg-teal-50 border-l-4 border-teal-600 rounded-lg p-4 sm:p-6">
-        <h3 className="text-lg sm:text-xl font-semibold text-teal-900 mb-3">Quick Tips</h3>
+      <div className="bg-blue-50 border-l-4 border-blue-600 rounded-lg p-4 sm:p-6">
+        <h3 className="text-lg sm:text-xl font-semibold text-blue-900 mb-3">Quick Tips</h3>
         <ul className="space-y-1.5 text-gray-700 text-sm sm:text-base">
-          <li>• Variables can reference other variables (e.g., <code className="bg-teal-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">b = a * 2</code>)</li>
-          <li>• Use decimal precision math (e.g., <code className="bg-teal-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">0.1 + 0.2</code> = 0.3 exactly!)</li>
-          <li>• Access nested properties with dots (e.g., <code className="bg-teal-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">point.x</code>)</li>
-          <li>• Use <code className="bg-teal-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">$math</code> functions: <code className="bg-teal-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">$math.sqrt(16)</code>, <code className="bg-teal-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">$math.PI</code>, etc.</li>
-          <li>• Convert units: <code className="bg-teal-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">$unit.mmToInch(25.4)</code></li>
-          <li>• Convert angles: <code className="bg-teal-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">$angle.toRad(180)</code></li>
+          <li>• Variables can reference other variables (e.g., <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">b = a * 2</code>)</li>
+          <li>• Use decimal precision math (e.g., <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">0.1 + 0.2</code> = 0.3 exactly!)</li>
+          <li>• Access nested properties with dots (e.g., <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">point.x</code>)</li>
+          <li>• Use <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">$math</code> functions: <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">$math.sqrt(16)</code>, <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">$math.PI</code>, etc.</li>
+          <li>• Convert units: <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">$unit.mmToInch(25.4)</code></li>
+          <li>• Convert angles: <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs sm:text-sm">$angle.toRad(180)</code></li>
         </ul>
       </div>
     </div>

@@ -1,33 +1,33 @@
 # Implementation Plan: Remove Object Literals from Grammar
 
 **Date:** 2026-02-06  
+**Updated:** 2026-02-06 (Keep arrays per maintainer feedback)  
 **Based on:** OBJECT_SUPPORT_ANALYSIS.md (Option 3)  
-**Maintainer Feedback:** Remove object parsing, add type checking, enable array bracket access
+**Maintainer Feedback:** Remove object parsing, add type checking, keep arrays
 
 ## Objectives
 
 1. **Remove object literal syntax** from grammar (no more `{x: 10}` in expressions)
-2. **Add strong type checking** to prevent comparing with strings
-3. **Confirm array bracket access** is working properly
-4. **Maintain backward compatibility** for `value` property ingestion
+2. **Keep array literal syntax** (maintainer decision: arrays are useful for mathematical operations)
+3. **Add strong type checking** to prevent comparing with strings/objects
+4. **Confirm array bracket access** is working properly (already implemented)
+5. **Maintain backward compatibility** for `value` property ingestion
 
 ## Current State Analysis
 
 ### Already Working ✅
 - **Array bracket access:** Grammar line 111 already supports `array[0]` syntax
+- **Array literals:** `[1, 2, 3]` in expressions work
 - **Value property ingestion:** Objects can be passed via `value` property
 - **Property access:** Dot notation `point.x` works for objects in context
 
 ### To Remove ❌
 - **Object literal syntax in expressions:** `{x: 10, y: 20}` in `expr` field
-- **Array literal syntax in expressions:** `[1, 2, 3]` in `expr` field (for consistency)
 
-### Rationale for Array Removal
-- Arrays without objects are less problematic, but for consistency:
-  - If we don't allow creating objects, we shouldn't allow creating arrays
-  - Arrays can contain objects: `[{x: 1}, {x: 2}]` - contradiction
-  - Users can pass arrays via `value` property if needed
-  - Array access `arr[0]` still works for arrays passed via `value`
+### To Keep ✅
+- **Array literal syntax:** `[1, 2, 3]` in expressions (maintainer decision)
+- Arrays are useful for mathematical operations (min, max, statistical functions)
+- Arrays can still contain numeric values only (objects blocked by type checking)
 
 ## Implementation Steps
 
@@ -35,7 +35,7 @@
 
 **File:** `packages/evalla/src/grammar.pegjs`
 
-#### 1.1 Remove ObjectLiteral and ArrayLiteral from PrimaryExpression
+#### 1.1 Remove ObjectLiteral from PrimaryExpression (Keep ArrayLiteral)
 
 **Current (lines 138-143):**
 ```pegjs
@@ -51,9 +51,12 @@ PrimaryExpression
 ```pegjs
 PrimaryExpression
   = Literal
+  / ArrayLiteral
   / Identifier
   / "(" _ expr:Expression _ ")" { return expr; }
 ```
+
+**Note:** Keep `ArrayLiteral` - arrays are useful for mathematical operations.
 
 #### 1.2 Remove ObjectLiteral definition (lines 211-242)
 
@@ -63,11 +66,9 @@ Delete entire section:
 - `Property` rule
 - `PropertyKey` rule
 
-#### 1.3 Remove ArrayLiteral definition (lines 197-209)
+#### 1.3 Keep ArrayLiteral definition (lines 197-209)
 
-Delete entire section:
-- `ArrayLiteral` rule
-- `ElementList` rule
+**No changes** - arrays remain supported for mathematical operations.
 
 #### 1.4 Remove StringLiteral definition (lines 167-195)
 
@@ -217,20 +218,13 @@ case 'ObjectExpression':
   return obj;
 ```
 
-### 4. Remove ArrayExpression Handling (ast-evaluator.ts)
+### 4. Keep ArrayExpression Handling (ast-evaluator.ts)
 
 **File:** `packages/evalla/src/ast-evaluator.ts`
 
-**Remove case 'ArrayExpression' (lines 120-125):**
-```typescript
-// DELETE THIS ENTIRE CASE
-case 'ArrayExpression':
-  const array = [];
-  for (const element of node.elements) {
-    array.push(await evaluateAST(element, context));
-  }
-  return array;
-```
+**No changes** - `ArrayExpression` case remains to support array literals `[1, 2, 3]`.
+
+Arrays are useful for mathematical operations and will be validated by type checking to ensure they contain only valid mathematical values.
 
 ### 5. Update Tests
 
@@ -248,10 +242,17 @@ case 'ArrayExpression':
 - `object with namespace functions` → `object with namespace functions via value`
 - `object dependencies in topological order` → `object dependencies via value`
 
-**Remove this test (arrays with objects):**
-- `array of objects with property access` (can't create arrays in expressions anymore)
+**Update to keep arrays but remove objects:**
+- `array of objects with property access` → Split into:
+  - Array passed via `value` with objects in it (keep)
+  - Array literals with numeric values (update to keep: `[1, 2, 3, 4, 5]`)
 
-**Add new test:**
+**Update to keep arrays:**
+- Update test that previously removed arrays with objects:
+  - Keep: `array of objects with property access` but pass array via `value` property
+
+**Add new tests:**
+- `array literals with numeric values` - Test `[1, 2, 3, 4, 5]` works in expressions
 - `array access via value property` - Pass array via `value`, access with `arr[0]`
 
 #### 5.2 Update syntax-checker.test.ts
@@ -273,9 +274,9 @@ test('object literals not allowed in expressions', () => {
   expect(checkSyntax('{x: 10, y: 20}').valid).toBe(false);
 });
 
-test('array literals not allowed in expressions', () => {
-  expect(checkSyntax('[1, 2, 3]').valid).toBe(false);
-  expect(checkSyntax('[{x: 1}]').valid).toBe(false);
+test('array literals ARE allowed in expressions', () => {
+  expect(checkSyntax('[1, 2, 3]').valid).toBe(true);
+  expect(checkSyntax('[10, 20, 30, 40]').valid).toBe(true);
 });
 
 test('array bracket access still allowed', () => {
@@ -342,27 +343,26 @@ describe('Type checking in operations', () => {
 });
 ```
 
-### 6. Update Playground Examples
+### 6. Update Playground Examples and UI
 
 **File:** `packages/playground/src/data/examples.ts`
 
-**Update these examples to use `value` property:**
+**Update examples that used object literals:**
 
 ```typescript
 objects: {
   name: 'Object properties',
   expressions: [
-    // OLD: { name: 'point', expr: '{x: 10, y: 20}' },
-    // Can't show in playground - needs programmatic value property
-    // Remove this example entirely
+    // Remove this example - will need new UI for value property
+    // See section 6.1 below for UI implementation
   ]
 },
 
 nestedObjects: {
   name: 'Deep nested objects',
   expressions: [
-    // OLD: { name: 'config', expr: '{display: {width: 1920, height: 1080}, scale: 2}' },
-    // Remove this example entirely - can't demonstrate in playground
+    // Remove this example - will need new UI for value property
+    // See section 6.1 below for UI implementation
   ]
 },
 
@@ -370,19 +370,37 @@ mathMinMax: {
   name: '$math - Min/Max',
   expressions: [
     // OLD: { name: 'values', expr: '{a: 42, b: 17, c: 99, d: 8}' },
-    // NEW: Use separate variables
-    { name: 'a', expr: '42' },
-    { name: 'b', expr: '17' },
-    { name: 'c', expr: '99' },
-    { name: 'd', expr: '8' },
-    { name: 'minVal', expr: '$math.min(a, b, c, d)' },
-    { name: 'maxVal', expr: '$math.max(a, b, c, d)' },
+    // NEW: Use array literal (arrays are still supported!)
+    { name: 'values', expr: '[42, 17, 99, 8]' },
+    { name: 'minVal', expr: '$math.min(values[0], values[1], values[2], values[3])' },
+    { name: 'maxVal', expr: '$math.max(values[0], values[1], values[2], values[3])' },
     { name: 'range', expr: 'maxVal - minVal' }
   ]
 }
 ```
 
-**Note:** Remove examples that cannot be represented without object literals in the playground UI.
+**Note:** Arrays can still be created in expressions, so array examples continue to work.
+
+#### 6.1 Playground UI Enhancement (Future Work)
+
+**Maintainer's proposal:** Each expression row should support two input modes:
+1. **Expression mode:** Textbox for mathematical expressions (current)
+2. **Value mode:** Textarea for JSON object/array values (new)
+
+**Implementation approach:**
+- Mode cannot be changed after row creation
+- Separate "Add Expression" and "Add Value" buttons
+- Value mode shows textarea that accepts JSON
+- Expression mode shows textbox (current behavior)
+
+**Files to modify:**
+- `packages/playground/src/components/PlaygroundApp.tsx`
+- Add `mode: 'expr' | 'value'` to expression state
+- Conditional rendering based on mode
+- JSON validation for value mode
+- Two add buttons in UI
+
+**This UI work is out of scope for the current grammar changes** but documented here for future implementation.
 
 ### 7. Update Documentation
 
@@ -394,26 +412,28 @@ mathMinMax: {
 ```markdown
 ### Input Format
 
-The `value` property allows you to pass structured data (objects, arrays) directly:
+The `value` property allows you to pass structured data (objects) directly. Arrays can also be created in expressions or passed via `value`.
 
 **Using expressions:**
 ```typescript
 const result = await evalla([
   { name: 'width', expr: '100' },
-  { name: 'height', expr: '50' }
+  { name: 'height', expr: '50' },
+  { name: 'data', expr: '[1, 2, 3, 4, 5]' }  // Arrays work in expressions!
 ]);
 ```
 
 **Using direct values (objects and arrays):**
 ```typescript
 const result = await evalla([
-  { name: 'point', value: { x: 10, y: 20 } },
-  { name: 'data', value: [1, 2, 3, 4, 5] }
+  { name: 'point', value: { x: 10, y: 20 } },  // Objects via value
+  { name: 'data', value: [1, 2, 3, 4, 5] }     // Arrays via value
 ]);
 ```
 
-**Note:** Objects and arrays cannot be created within expressions. 
-Use the `value` property to pass structured data, then access 
+**Note:** Objects cannot be created within expressions. 
+Arrays CAN be created in expressions: `[1, 2, 3]`. 
+Use the `value` property to pass objects, then access 
 properties with dot notation or brackets in expressions.
 ```
 
@@ -422,11 +442,11 @@ properties with dot notation or brackets in expressions.
 ```markdown
 ## Working with Structured Data
 
-evalla focuses on mathematical expressions, so objects and arrays 
-cannot be created within expressions. However, you can pass them 
-via the `value` property and access their properties/elements.
+evalla focuses on mathematical expressions. Objects must be passed via 
+the `value` property, but arrays can be created in expressions or passed 
+via `value`.
 
-### Object Property Access
+### Object Property Access (via value property)
 
 ```typescript
 const result = await evalla([
@@ -437,11 +457,14 @@ const result = await evalla([
 console.log(result.values.distance.toString()); // "22.360679..."
 ```
 
-### Array Element Access
+### Array Element Access (expression or value)
+
+Arrays can be created directly in expressions or passed via `value`:
 
 ```typescript
+// Create array in expression
 const result = await evalla([
-  { name: 'data', value: [10, 20, 30, 40, 50] },
+  { name: 'data', expr: '[10, 20, 30, 40, 50]' },
   { name: 'first', expr: 'data[0]' },
   { name: 'third', expr: 'data[2]' },
   { name: 'sum', expr: 'data[0] + data[1] + data[2]' }
@@ -449,6 +472,14 @@ const result = await evalla([
 
 console.log(result.values.first.toString());  // "10"
 console.log(result.values.sum.toString());    // "60"
+```
+
+Or pass via value property:
+```typescript
+const result = await evalla([
+  { name: 'data', value: [10, 20, 30, 40, 50] },
+  { name: 'average', expr: '(data[0] + data[1] + data[2] + data[3] + data[4]) / 5' }
+]);
 ```
 
 ### Nested Structures
@@ -476,14 +507,16 @@ evalla follows an "Algebra, not code" philosophy. Expressions should
 be mathematical operations, not data structure construction. This keeps 
 evalla focused on its core purpose: safe, precise mathematical evaluation.
 
-**Structured data input:** Use `value` property  
+**Objects:** Use `value` property (not algebraic)  
+**Arrays:** Use `expr` for literals `[1, 2, 3]` or `value` property (algebraic for vectors/lists)  
 **Mathematical operations:** Use `expr` field  
 **Result:** Clean separation of concerns
 ```
 
 #### 7.3 Update Examples Section
 
-Remove examples that show object/array creation in expressions.
+Update examples that show object creation - use `value` property instead.
+Arrays can still be shown: `[1, 2, 3, 4, 5]`.
 
 #### 7.4 Sync Documentation
 
@@ -523,16 +556,17 @@ npm test -- syntax-checker.test.ts
 ```markdown
 # Breaking Changes in v2.0.0
 
-## Removed: Object and Array Literals in Expressions
+## Removed: Object Literals in Expressions (Arrays Still Supported!)
 
 **What changed:**
 - Object literals (`{x: 10, y: 20}`) can no longer be used in expressions
-- Array literals (`[1, 2, 3]`) can no longer be used in expressions
+- Array literals (`[1, 2, 3]`) STILL WORK in expressions (kept per maintainer decision)
 
 **Why:**
 - Maintains "Algebra, not code" philosophy
-- Prevents feature creep into programming language territory
-- Clear separation: expressions = math, value property = data
+- Objects are data structures, not algebraic values
+- Arrays are algebraic (vectors, lists) and useful for mathematical operations
+- Clear separation: expressions = math (including arrays), value property = external data
 
 **Migration:**
 
@@ -548,17 +582,15 @@ npm test -- syntax-checker.test.ts
 { name: 'sum', expr: 'point.x + point.y' }
 ```
 
-### Arrays
+### Arrays (No Changes Required!)
 ```typescript
-// Before (v1.x)
+// Still works in v2.x - arrays are kept!
 { name: 'data', expr: '[1, 2, 3, 4, 5]' }
-
-// After (v2.x) - Use value property
-{ name: 'data', value: [1, 2, 3, 4, 5] }
-
-// Element access still works the same
 { name: 'first', expr: 'data[0]' }
 { name: 'sum', expr: 'data[0] + data[1] + data[2]' }
+
+// Can also use value property if preferred
+{ name: 'data', value: [1, 2, 3, 4, 5] }
 ```
 
 ## Added: Strong Type Checking
@@ -567,6 +599,7 @@ npm test -- syntax-checker.test.ts
 - Arithmetic operations (+, -, *, /, %, **) now reject strings and objects
 - Comparison operations (<, >, <=, >=) now reject strings and objects
 - Unary operations (+, -) now reject strings and objects
+- Arrays are allowed in operations where they make sense
 
 **Why:**
 - Prevents confusing runtime behavior
@@ -581,8 +614,8 @@ npm test -- syntax-checker.test.ts
 ## Summary of Changes
 
 ### Files to Modify
-1. `packages/evalla/src/grammar.pegjs` - Remove ObjectLiteral, ArrayLiteral, StringLiteral
-2. `packages/evalla/src/ast-evaluator.ts` - Add type checking, remove ObjectExpression/ArrayExpression
+1. `packages/evalla/src/grammar.pegjs` - Remove ObjectLiteral, StringLiteral (keep ArrayLiteral)
+2. `packages/evalla/src/ast-evaluator.ts` - Add type checking, remove ObjectExpression (keep ArrayExpression)
 3. `packages/evalla/test/object-literals.test.ts` → `value-property-objects.test.ts` - Rewrite tests
 4. `packages/evalla/test/syntax-checker.test.ts` - Update tests
 5. `packages/evalla/test/type-checking.test.ts` - New test file
@@ -601,18 +634,12 @@ npm test -- syntax-checker.test.ts
 
 ## Timeline
 
-1. **Review this plan** with maintainer
+1. **Review updated plan** with maintainer (awaiting approval)
 2. **Implement changes** in order (grammar → evaluator → tests → examples → docs)
 3. **Test thoroughly** after each major change
 4. **Update version** to 2.0.0 in package.json
-5. **Publish** with breaking changes notice
-
-## Open Questions
-
-1. **Version bump:** Should we bump to 2.0.0 immediately or wait for more changes?
-2. **Playground examples:** Should we keep examples that can't be shown without programmatic `value` property, or remove them?
-3. **Array literals:** Should we allow simple numeric arrays `[1, 2, 3]` but block objects in arrays?
-4. **Documentation location:** Should BREAKING_CHANGES_v2.md be in root or in packages/evalla/?
+5. **Playground UI enhancement** - decide if now or later
+6. **Publish** with breaking changes notice
 
 ## Risk Assessment
 
@@ -626,7 +653,7 @@ npm test -- syntax-checker.test.ts
 - Documentation needs comprehensive rewrite
 
 **High Risk:**
-- Users with object/array literals in expressions will break
+- Users with object literals in expressions will break (arrays continue to work)
 - Need clear migration guide and version bump
 
 **Mitigation:**
@@ -634,3 +661,27 @@ npm test -- syntax-checker.test.ts
 - Clear error messages
 - Detailed migration guide
 - Semantic versioning (2.0.0)
+
+## Resolved Questions
+
+### 1. Arrays - Keep or Remove? ✅ RESOLVED
+**Answer:** Keep arrays (maintainer decision)
+- Arrays are useful for mathematical operations
+- Algebraic concept (vectors, lists)
+- Examples: `[1, 2, 3]`, `$math.min(...array elements)`
+
+### 2. Playground Examples - Keep or Remove? ✅ RESOLVED  
+**Answer:** Keep, but need UI enhancement
+- Current UI only supports expression textboxes
+- Future enhancement: Add textarea for JSON values
+- Each row has either expression textbox OR value textarea
+- Mode cannot be swapped after creation
+- Separate "Add Expression" and "Add Value" buttons
+- Object examples will be restored once UI is implemented
+
+### 3. Any Other Open Questions?
+**Please review and confirm:**
+- Type checking approach (reject strings/objects in arithmetic/comparisons)
+- Breaking change acceptable for v2.0.0
+- Timeline for implementation
+- Playground UI enhancement: implement now or later?

@@ -18,12 +18,14 @@ export const examples: Record<string, Example> = {
       { name: 'area', expr: 'pi * radius * radius' }
     ]
   },
-  objects: {
-    name: 'Object properties',
+  arrayLiterals: {
+    name: 'Array literals',
     expressions: [
-      { name: 'point', expr: '{x: 10, y: 20}' },
-      { name: 'scaledX', expr: 'point.x * 2' },
-      { name: 'scaledY', expr: 'point.y * 2' }
+      { name: 'data', expr: '[10, 20, 30, 40, 50]' },
+      { name: 'first', expr: 'data[0]' },
+      { name: 'last', expr: 'data[4]' },
+      { name: 'sum', expr: 'data[0] + data[1] + data[2] + data[3] + data[4]' },
+      { name: 'average', expr: 'sum / 5' }
     ]
   },
   precision: {
@@ -76,11 +78,11 @@ export const examples: Record<string, Example> = {
     ]
   },
   mathMinMax: {
-    name: '$math - Min/Max',
+    name: '$math - Min/Max with arrays',
     expressions: [
-      { name: 'values', expr: '{a: 42, b: 17, c: 99, d: 8}' },
-      { name: 'minVal', expr: '$math.min(values.a, values.b, values.c, values.d)' },
-      { name: 'maxVal', expr: '$math.max(values.a, values.b, values.c, values.d)' },
+      { name: 'values', expr: '[42, 17, 99, 8]' },
+      { name: 'minVal', expr: '$math.min(values[0], values[1], values[2], values[3])' },
+      { name: 'maxVal', expr: '$math.max(values[0], values[1], values[2], values[3])' },
       { name: 'range', expr: 'maxVal - minVal' }
     ]
   },
@@ -148,13 +150,14 @@ export const examples: Record<string, Example> = {
       { name: 'interest', expr: 'amount - principal' }
     ]
   },
-  nestedObjects: {
-    name: 'Deep nested objects',
+  nestedArrays: {
+    name: 'Nested arrays (matrices)',
     expressions: [
-      { name: 'config', expr: '{display: {width: 1920, height: 1080}, scale: 2}' },
-      { name: 'scaledWidth', expr: 'config.display.width / config.scale' },
-      { name: 'scaledHeight', expr: 'config.display.height / config.scale' },
-      { name: 'aspectRatio', expr: 'scaledWidth / scaledHeight' }
+      { name: 'matrix', expr: '[[1, 2, 3], [4, 5, 6], [7, 8, 9]]' },
+      { name: 'topLeft', expr: 'matrix[0][0]' },
+      { name: 'center', expr: 'matrix[1][1]' },
+      { name: 'bottomRight', expr: 'matrix[2][2]' },
+      { name: 'diagonal', expr: 'topLeft + center + bottomRight' }
     ]
   },
   stressDependencies: {

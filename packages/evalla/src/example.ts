@@ -4,6 +4,7 @@
  */
 
 import { evalla } from './index.js';
+import Decimal from 'decimal.js';
 
 async function main() {
   console.log('=== Evalla Examples ===\n');
@@ -13,7 +14,7 @@ async function main() {
   const ex1 = await evalla([
     { name: 'x', expr: '0.1 + 0.2' }
   ]);
-  console.log(`   0.1 + 0.2 = ${(ex1.values.x as any).toString()}`);
+  console.log(`   0.1 + 0.2 = ${(ex1.values.x as Decimal).toString()}`);
   console.log(`   (JavaScript would give: ${0.1 + 0.2})\n`);
 
   // Example 2: Variable dependencies
@@ -58,9 +59,9 @@ async function main() {
     { name: 'sqrtArea', expr: '$math.sqrt(area)' }
   ]);
   console.log(`   Circle with radius=${ex4.values.radius}:`);
-  console.log(`   Circumference: ${(ex4.values.circumference as any).toFixed(2)}`);
-  console.log(`   Area: ${(ex4.values.area as any).toFixed(2)}`);
-  console.log(`   √Area: ${(ex4.values.sqrtArea as any).toFixed(2)}\n`);
+  console.log(`   Circumference: ${(ex4.values.circumference as Decimal).toFixed(2)}`);
+  console.log(`   Area: ${(ex4.values.area as Decimal).toFixed(2)}`);
+  console.log(`   √Area: ${(ex4.values.sqrtArea as Decimal).toFixed(2)}\n`);
 
   // Example 5: $unit namespace
   console.log('5. Unit Conversions:');
@@ -78,8 +79,8 @@ async function main() {
     { name: 'radians', expr: '$angle.toRad(degrees)' },
     { name: 'sine', expr: '$math.sin(radians)' }
   ]);
-  console.log(`   ${ex6.values.degrees}° = ${(ex6.values.radians as any).toFixed(4)} radians`);
-  console.log(`   sin(${ex6.values.degrees}°) = ${(ex6.values.sine as any).toFixed(4)}\n`);
+  console.log(`   ${ex6.values.degrees}° = ${(ex6.values.radians as Decimal).toFixed(4)} radians`);
+  console.log(`   sin(${ex6.values.degrees}°) = ${(ex6.values.sine as Decimal).toFixed(4)}\n`);
 
   // Example 7: Circular dependency detection
   console.log('7. Circular Dependency Detection:');
@@ -104,7 +105,7 @@ async function main() {
     { name: 'volumeInches3', expr: 'box.dimensions.width * box.dimensions.height * box.dimensions.depth' }
   ]);
   console.log(`   Box dimensions: ${ex8.values.volumeInches3} in³`);
-  console.log(`   Volume: ${(ex8.values.volumeMM3 as any).toFixed(0)} mm³`);
+  console.log(`   Volume: ${(ex8.values.volumeMM3 as Decimal).toFixed(0)} mm³`);
 }
 
 main().catch(console.error);

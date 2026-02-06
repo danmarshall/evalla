@@ -3,6 +3,7 @@ import { ExpressionInput, EvaluationResult } from './types.js';
 import { topologicalSort } from './toposort.js';
 import { evaluateExpression } from './evaluator.js';
 import { ValidationError } from './errors.js';
+import { checkVariableName } from './variable-name-checker.js';
 
 // Main evalla function - minimal, modular, DRY, testable, safe, secure
 export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResult> => {
@@ -18,38 +19,16 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
     if (typeof input.name !== 'string' || !input.name) {
       throw new ValidationError('Each input must have a non-empty string "name"');
     }
-    if (input.name.startsWith('$')) {
+    
+    // Validate variable name using checkVariableName
+    const nameCheck = checkVariableName(input.name);
+    if (!nameCheck.valid) {
       throw new ValidationError(
-        `Variable names cannot start with $: ${input.name} ($ is reserved for system namespaces)`,
+        `${nameCheck.error}: ${input.name}`,
         input.name
       );
     }
-    if (input.name.startsWith('__')) {
-      throw new ValidationError(
-        `Variable names cannot start with __: ${input.name} (__ prefix is reserved for security reasons)`,
-        input.name
-      );
-    }
-    // Reserved value names that cannot be used as variables
-    const reservedValues = ['true', 'false', 'null', 'Infinity'];
-    if (reservedValues.includes(input.name)) {
-      throw new ValidationError(
-        `Variable name cannot be a reserved value: ${input.name}`,
-        input.name
-      );
-    }
-    if (/^\d/.test(input.name)) {
-      throw new ValidationError(
-        `Variable names cannot start with a number: ${input.name}`,
-        input.name
-      );
-    }
-    if (input.name.includes('.')) {
-      throw new ValidationError(
-        `Variable names cannot contain dots: ${input.name} (dots are only for property access in expressions)`,
-        input.name
-      );
-    }
+    
     if (!input.expr && input.value === undefined) {
       throw new ValidationError(
         `Each input must have either "expr" or "value": ${input.name}`,

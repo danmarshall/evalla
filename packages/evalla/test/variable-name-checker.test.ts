@@ -147,6 +147,30 @@ describe('checkVariableName - Variable Name Validation', () => {
     });
   });
 
+  describe('Invalid variable names - invalid characters', () => {
+    it('should reject names with special characters like @', () => {
+      const result = checkVariableName('&&@c');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe('Variable name contains invalid characters (only letters, digits, underscore, or $ allowed)');
+    });
+
+    it('should reject names with various invalid characters', () => {
+      expect(checkVariableName('abc@def').valid).toBe(false);
+      expect(checkVariableName('a-b').valid).toBe(false);
+      expect(checkVariableName('a+b').valid).toBe(false);
+      expect(checkVariableName('a*b').valid).toBe(false);
+      expect(checkVariableName('a b').valid).toBe(false);
+      expect(checkVariableName('a!b').valid).toBe(false);
+      expect(checkVariableName('a#b').valid).toBe(false);
+    });
+
+    it('should reject names with only special characters', () => {
+      expect(checkVariableName('&&').valid).toBe(false);
+      expect(checkVariableName('@@').valid).toBe(false);
+      expect(checkVariableName('##').valid).toBe(false);
+    });
+  });
+
   describe('Return type validation', () => {
     it('should return correct structure for valid names', () => {
       const result: VariableNameCheckResult = checkVariableName('valid');

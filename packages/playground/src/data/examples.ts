@@ -1,6 +1,8 @@
 export interface Expression {
   name: string;
-  expr: string;
+  expr?: string;
+  value?: any;
+  mode?: 'expr' | 'value'; // Track the input mode
 }
 
 export interface Example {
@@ -29,31 +31,20 @@ export const examples: Record<string, Example> = {
     ]
   },
   objectProperties: {
-    name: 'Object properties (requires value input)',
+    name: 'Object properties with dot notation',
     expressions: [
-      // Note: This example shows the pattern. In the UI, 'point' would be created
-      // with the value property: { name: 'point', value: {x: 10, y: 20} }
-      // Currently the playground only supports expression input.
-      // Once value input UI is added, you'll be able to paste: {"x": 10, "y": 20}
-      { name: 'x', expr: '10' },
-      { name: 'y', expr: '20' },
-      { name: 'scaledX', expr: 'x * 2' },
-      { name: 'scaledY', expr: 'y * 2' },
-      { name: 'distance', expr: '$math.sqrt(x**2 + y**2)' }
+      { name: 'point', value: {x: 10, y: 20}, mode: 'value' },
+      { name: 'scaledX', expr: 'point.x * 2' },
+      { name: 'scaledY', expr: 'point.y * 2' },
+      { name: 'distance', expr: '$math.sqrt(point.x**2 + point.y**2)' }
     ]
   },
   nestedObjects: {
-    name: 'Nested objects (requires value input)',
+    name: 'Nested objects with dot notation',
     expressions: [
-      // Note: This example shows the pattern for nested property access.
-      // Once value input UI is added, 'config' would be created with:
-      // { name: 'config', value: {display: {width: 1920, height: 1080}, scale: 2} }
-      // Then you can use: config.display.width, config.display.height, config.scale
-      { name: 'width', expr: '1920' },
-      { name: 'height', expr: '1080' },
-      { name: 'scale', expr: '2' },
-      { name: 'scaledWidth', expr: 'width / scale' },
-      { name: 'scaledHeight', expr: 'height / scale' },
+      { name: 'config', value: {display: {width: 1920, height: 1080}, scale: 2}, mode: 'value' },
+      { name: 'scaledWidth', expr: 'config.display.width / config.scale' },
+      { name: 'scaledHeight', expr: 'config.display.height / config.scale' },
       { name: 'aspectRatio', expr: 'scaledWidth / scaledHeight' }
     ]
   },

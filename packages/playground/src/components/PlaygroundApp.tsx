@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, Play } from 'lucide-react';
 import { examples, type Expression } from '../data/examples';
 

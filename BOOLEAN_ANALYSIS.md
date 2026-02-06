@@ -1025,3 +1025,271 @@ Example use case:
 - ❌ **NaN** - Error state
 
 This keeps evalla focused on its identity as a **mathematical expression evaluator**.
+
+## DECISION: true, false, null as First-Class Reserved Value Names
+
+### Maintainer's Decision (Latest Update)
+
+**"I'm leaning into having true and false be first class reserved 'variable names' that cannot be reused by a user. We don't have this concept yet. I guess this includes null. I'm considering these as values, not JavaScript keywords."**
+
+This is a **new concept** in evalla's design - values that are reserved and cannot be used as variable names.
+
+### What This Means
+
+**New category: Reserved Value Names**
+- `true`, `false`, `null` are **reserved value names**
+- They **cannot be used as user variable names**
+- They are **values** (like mathematical constants), not JavaScript keywords
+- Similar to how `$math.PI` is a system value, but `true`/`false`/`null` are fundamental enough to not need `$` prefix
+
+### Distinction from JavaScript Keywords
+
+**JavaScript keywords** (allowed as variables in evalla):
+```typescript
+{ name: 'return', expr: '10' }    // ✅ Allowed - not a value, just a keyword
+{ name: 'if', expr: '20' }        // ✅ Allowed - not a value, just a keyword
+{ name: 'while', expr: '30' }     // ✅ Allowed - not a value, just a keyword
+```
+
+**Reserved value names** (NOT allowed as variables):
+```typescript
+{ name: 'true', expr: '10' }      // ❌ Not allowed - true is a reserved value
+{ name: 'false', expr: '0' }      // ❌ Not allowed - false is a reserved value
+{ name: 'null', expr: '0' }       // ❌ Not allowed - null is a reserved value
+```
+
+### Current State vs Desired State
+
+**Currently (grammar already does this):**
+```pegjs
+ReservedLiteral
+  = ("true" / "false" / "null") ![a-zA-Z0-9_$]
+
+Identifier
+  = !ReservedLiteral name:$([a-zA-Z_$] [a-zA-Z0-9_$]*) { ... }
+```
+
+✅ **The grammar already implements this!** `true`, `false`, `null` are already reserved.
+
+**However, there's a test that suggests they CAN be used as variable names:**
+```typescript
+// From test/keywords.test.ts:
+test('reserved literals (true, false, null) are primarily for values', async () => {
+  // Can even use as variable name (though discouraged in practice)
+  const result2 = await evalla([
+    { name: 'true', expr: '10' }
+  ]);
+  expect(result2.values.true.toString()).toBe('10');
+});
+```
+
+This test appears to pass, which contradicts the grammar! Need to investigate.
+
+### Implementation Requirements
+
+If `true`, `false`, `null` are to be **first-class reserved value names**:
+
+1. **Grammar: Already correct** ✅
+   - `ReservedLiteral` blocks them as identifiers
+   
+2. **Validation: May need update** ⚠️
+   - Check if validation allows these as variable names
+   - Should reject with clear error: "Cannot use reserved value name"
+
+3. **Tests: Need update** ⚠️
+   - Remove or update test that allows `{ name: 'true', expr: '10' }`
+   - Add tests confirming they're rejected as variable names
+   - Keep tests showing they work as values in expressions
+
+4. **Documentation: Need update** ⚠️
+   - Clarify that `true`, `false`, `null` are reserved **value names**
+   - Distinguished from JavaScript keywords (which can be variable names)
+   - Explain they're mathematical values, not programming keywords
+
+### Examples After Implementation
+
+```typescript
+// Reserved value names - NOT allowed:
+{ name: 'true', expr: '10' }           // ❌ Error: reserved value name
+{ name: 'false', expr: '0' }           // ❌ Error: reserved value name  
+{ name: 'null', expr: '0' }            // ❌ Error: reserved value name
+
+// JavaScript keywords - ALLOWED:
+{ name: 'return', expr: '10' }         // ✅ OK: keyword, not a value
+{ name: 'if', expr: '20' }             // ✅ OK: keyword, not a value
+
+// Using reserved values in expressions - ALLOWED:
+{ name: 'flag', expr: 'true' }         // ✅ OK: using true as a value
+{ name: 'check', expr: 'x > 0 ? true : false' }  // ✅ OK: values in ternary
+{ name: 'opt', expr: 'value ?? null' } // ✅ OK: using null as a value
+```
+
+### Conceptual Model
+
+**Three categories of identifiers in evalla:**
+
+1. **User variables** - Any name (including JS keywords)
+   - Examples: `x`, `radius`, `return`, `if`, `myVariable`
+   - Defined by users with `{ name, expr }`
+
+2. **System namespaces** - Start with `$`, cannot be user variables
+   - Examples: `$math`, `$unit`, `$angle`
+   - Provide built-in functions and constants
+
+3. **Reserved value names** - Fundamental values, cannot be user variables (NEW CONCEPT)
+   - Examples: `true`, `false`, `null`
+   - Built-in values like mathematical constants
+   - Not prefixed with `$` because they're fundamental
+
+### Benefits of This Approach
+
+✅ **Clear semantics** - `true` always means boolean true, never a user variable
+✅ **Consistency** - Values have stable meanings across all contexts
+✅ **Mathematical purity** - Treats boolean values as mathematical entities
+✅ **No system prefix needed** - `true` is cleaner than `$true`
+✅ **Prevents confusion** - Users can't shadow these fundamental values
+
+### Next Steps
+
+1. **Verify grammar enforcement** - Check if validation actually blocks these names
+2. **Update/fix tests** - Remove test allowing `{ name: 'true', expr: '10' }`
+3. **Add validation tests** - Confirm rejection with clear error messages
+4. **Update documentation** - Explain reserved value names vs keywords
+
+This decision solidifies the **"algebra, not code"** philosophy by treating `true`, `false`, `null` as fundamental mathematical values rather than programming keywords.
+
+## Thoughts on Infinity and NaN as Reserved Value Names
+
+### Testing Results
+
+**Current behavior discovered:**
+```typescript
+// These all WORK but SHOULDN'T (can shadow the values):
+{ name: 'true', expr: '10' }        // ❌ Allows shadowing true
+{ name: 'Infinity', expr: '10' }    // ❌ Allows shadowing Infinity  
+{ name: 'NaN', expr: '10' }         // ❌ Allows shadowing NaN
+
+// Arithmetic produces Infinity/NaN correctly:
+{ name: 'inf', expr: '1 / 0' }      // ✅ Returns Decimal(Infinity)
+{ name: 'negInf', expr: '-1 / 0' }  // ✅ Returns Decimal(-Infinity)
+{ name: 'nan', expr: '0 / 0' }      // ✅ Returns Decimal(NaN)
+
+// Infinity works in comparisons:
+{ name: 'check', expr: 'inf > 10 ? 1 : 0' }  // ✅ Returns 1
+```
+
+### Should Infinity Be a Reserved Value Name?
+
+**Arguments FOR including Infinity:**
+✅ **Fundamental mathematical concept** - Represents unboundedness, limits
+✅ **Already works through arithmetic** - `1/0` produces Infinity
+✅ **Useful in comparisons** - `x > Infinity` (always false), `x < Infinity` (always true for finite x)
+✅ **Prevents user shadowing** - Ensures `Infinity` always means infinity
+✅ **Mathematical modeling** - Useful for bounds, constraints, limits
+✅ **Algebraic legitimacy** - Used in extended real number system
+
+**Use cases:**
+```typescript
+// Maximum bounds
+{ name: 'maxValue', expr: 'Infinity' }
+{ name: 'clamped', expr: 'x < maxValue ? x : maxValue' }
+
+// Infinity in ternary conditions
+{ name: 'category', expr: 'x = Infinity ? 0 : x > 100 ? 3 : 2' }
+
+// Limits
+{ name: 'limit', expr: 'value < Infinity ? value : 0' }
+```
+
+**My recommendation: ✅ YES - Include Infinity**
+
+Infinity is a legitimate mathematical value (extended reals). It's fundamental enough to deserve reserved status alongside `true`, `false`, `null`.
+
+### Should NaN Be a Reserved Value Name?
+
+**Arguments FOR including NaN:**
+⚠️ **Represents undefined operations** - `0/0`, `∞-∞`, `√(-1)` in reals
+⚠️ **Already produced by arithmetic** - Division by zero, invalid operations
+⚠️ **Prevents user shadowing** - Ensures consistent behavior
+
+**Arguments AGAINST including NaN:**
+❌ **Not a mathematical value** - It's an error state, not a number
+❌ **Should be avoided** - Indicates something went wrong mathematically
+❌ **Not algebraic** - More of a IEEE 754 programming concept
+❌ **Less useful in practice** - You generally want to avoid producing NaN
+
+**Use cases are weak:**
+```typescript
+// Checking for NaN?
+{ name: 'check', expr: 'value = NaN ? 0 : value' }  // ⚠️ NaN != NaN in math!
+
+// Better approach: avoid operations that produce NaN
+{ name: 'safe', expr: 'denominator = 0 ? 0 : numerator / denominator' }
+```
+
+**The problem with NaN:**
+- `NaN = NaN` is **false** (NaN doesn't equal itself)
+- `NaN > x`, `NaN < x` are all **false**
+- It's a "poison value" that propagates through calculations
+- Not a value you want to work with intentionally
+
+**My recommendation: ❌ NO - Don't include NaN**
+
+NaN is an **error state**, not a mathematical value. While Decimal.js supports it for IEEE 754 compliance, it doesn't fit the "algebra, not code" philosophy. If an operation produces NaN, it indicates a mathematical error that should be handled differently (validation, error checking), not worked with as a first-class value.
+
+### Proposed Set of Reserved Value Names
+
+**First-class reserved value names (cannot be used as variables):**
+
+| Value | Include? | Rationale |
+|-------|----------|-----------|
+| `true` | ✅ YES | Fundamental boolean value for conditions |
+| `false` | ✅ YES | Fundamental boolean value for conditions |
+| `null` | ✅ YES | Absence of value, useful for objects/nullish coalescing |
+| `Infinity` | ✅ YES | Mathematical infinity, extended real numbers |
+| `-Infinity` | 🤔 Maybe? | Negative infinity (or just use `-Infinity` expression?) |
+| `NaN` | ❌ NO | Error state, not a mathematical value |
+
+**Rationale for Infinity:**
+- Legitimate mathematical concept (limits, bounds, extended reals)
+- Already works perfectly through arithmetic
+- Useful in modeling (maximum bounds, limit cases)
+- Should be protected from user shadowing
+
+**Rationale against NaN:**
+- Not a value you want to work with intentionally
+- Indicates mathematical error
+- Better to prevent NaN-producing operations
+- Can still be produced through arithmetic if needed (`0/0`)
+
+### Implementation Notes
+
+**Currently:** Grammar has `ReservedLiteral` but it doesn't actually block variable names (validation gap)
+
+**Needs implementation:**
+1. Add `Infinity` to reserved literals in grammar
+2. Add validation to reject `true`, `false`, `null`, `Infinity` as variable names
+3. Update tests to verify rejection
+4. Document these as reserved value names (not JavaScript keywords)
+
+**Example desired behavior:**
+```typescript
+// Should all be rejected:
+{ name: 'true', expr: '10' }       // ❌ Error: reserved value name
+{ name: 'Infinity', expr: '10' }   // ❌ Error: reserved value name
+{ name: 'NaN', expr: '10' }        // ✅ OK (NaN not reserved)
+
+// Should all work:
+{ name: 'return', expr: '10' }     // ✅ OK: keyword, not a value
+{ name: 'x', expr: 'Infinity' }    // ✅ OK: using Infinity as value
+{ name: 'check', expr: 'x < Infinity ? 1 : 0' }  // ✅ OK
+```
+
+### Summary
+
+**Reserved value names (first-class):**
+- ✅ `true`, `false`, `null` - Boolean/null values
+- ✅ `Infinity` - Mathematical infinity
+- ❌ `NaN` - Not reserved (error state, not a value)
+
+This aligns with "algebra, not code" by treating these as **fundamental mathematical values** rather than programming constructs, while excluding error states (NaN) from first-class status.

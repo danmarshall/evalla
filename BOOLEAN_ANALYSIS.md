@@ -1293,3 +1293,238 @@ NaN is an **error state**, not a mathematical value. While Decimal.js supports i
 - ❌ `NaN` - Not reserved (error state, not a value)
 
 This aligns with "algebra, not code" by treating these as **fundamental mathematical values** rather than programming constructs, while excluding error states (NaN) from first-class status.
+
+## CRITICAL QUESTION: Should Booleans Appear in Outputs?
+
+### The Maintainer's Insight
+
+**"If we go so far as to say they're first class 'named' entities, I suppose then they can have effects that we'd want to see in results."**
+
+This is a **profound shift** in the analysis. If `true`, `false`, `null`, and `Infinity` are first-class reserved value names (like mathematical constants), then their results should arguably be visible in output.
+
+### Example: "Is This Slope Steep?"
+
+```typescript
+const result = await evalla([
+  { name: 'angle', expr: '45' },
+  { name: 'radians', expr: '$angle.toRad(angle)' },
+  { name: 'slope', expr: '$math.tan(radians)' },
+  { name: 'isSteep', expr: 'slope > 1 ? true : false' }
+]);
+
+// Current behavior:
+console.log(result.values.isSteep);  // undefined
+
+// If booleans in output:
+console.log(result.values.isSteep);  // true (boolean value)
+```
+
+**The question:** Should `isSteep` return a boolean value to the user?
+
+### The Logical Consistency Argument
+
+**If we establish that:**
+1. `true`, `false`, `null`, `Infinity` are **first-class values** (not keywords)
+2. They are **fundamental mathematical entities**
+3. They are **reserved** (cannot be shadowed by users)
+4. They can be **used in expressions** and **returned from ternary operators**
+
+**Then logically:**
+- A variable assigned `true` should have `true` in the output
+- A variable assigned `Infinity` should have `Infinity` in the output
+- These are **legitimate results**, not intermediate values
+
+### Current Inconsistency
+
+**What works (returns value in output):**
+```typescript
+{ name: 'pi', expr: '$math.PI' }        // Returns Decimal(3.14159...)
+{ name: 'inf', expr: '1 / 0' }          // Returns Decimal(Infinity)
+{ name: 'result', expr: 'x > 0 ? 1 : 0' }  // Returns Decimal(1 or 0)
+```
+
+**What doesn't work (returns undefined):**
+```typescript
+{ name: 'flag', expr: 'true' }          // Returns undefined (inconsistent!)
+{ name: 'check', expr: 'x > 0 ? true : false' }  // Returns undefined (inconsistent!)
+```
+
+**The inconsistency:** If `true` and `Infinity` are both first-class reserved values, why does one appear in output and the other doesn't?
+
+### Two Design Options
+
+#### Option A: First-Class Values → Visible in Output
+
+**Philosophy:** If something is a first-class value, it should be visible in results.
+
+```typescript
+interface EvaluationResult {
+  values: Record<string, Decimal | boolean | null>;
+  order: string[];
+}
+```
+
+**Behavior:**
+```typescript
+{ name: 'isSteep', expr: 'slope > 1 ? true : false' }  // Returns true (boolean)
+{ name: 'maxBound', expr: 'Infinity' }                 // Returns Infinity (Decimal)
+{ name: 'optional', expr: 'hasValue ? value : null' }  // Returns null
+{ name: 'x', expr: '10' }                              // Returns Decimal(10)
+```
+
+**Pros:**
+- ✅ Logically consistent - first-class values are visible
+- ✅ Useful for validation flags: `isSteep`, `isValid`, `hasError`
+- ✅ Natural semantics - result matches expression intent
+- ✅ Infinity already appears as Decimal(Infinity)
+
+**Cons:**
+- ⚠️ Output type is now polymorphic: `Decimal | boolean | null`
+- ⚠️ Users must handle multiple types
+- ⚠️ May confuse "what is evalla?" (still a decimal calculator?)
+
+#### Option B: Reserved Values → Still Internal Only
+
+**Philosophy:** Reserved values are for internal logic only, output is still Decimal-only.
+
+```typescript
+interface EvaluationResult {
+  values: Record<string, Decimal>;
+  order: string[];
+}
+```
+
+**Behavior:**
+```typescript
+{ name: 'isSteep', expr: 'slope > 1 ? true : false' }  // Returns undefined
+{ name: 'isSteep2', expr: 'slope > 1 ? 1 : 0' }        // Returns Decimal(1)
+{ name: 'maxBound', expr: 'Infinity' }                 // Returns Decimal(Infinity)
+```
+
+**Pros:**
+- ✅ Simple type system - always Decimal
+- ✅ Clear identity - evalla is a decimal calculator
+- ✅ Users convert booleans to numbers (algebraic convention)
+
+**Cons:**
+- ❌ Logically inconsistent - `Infinity` is visible but `true` isn't
+- ❌ Less natural - `isSteep` returns undefined instead of true/false
+- ❌ Forces workarounds - use 1/0 instead of true/false
+
+### The "Is This Slope Steep?" Test Case
+
+**Option A (Booleans in output):**
+```typescript
+const result = await evalla([
+  { name: 'slope', expr: '$math.tan($angle.toRad(45))' },
+  { name: 'isSteep', expr: 'slope > 1 ? true : false' }
+]);
+
+console.log(result.values.isSteep);  // true (boolean)
+```
+✅ **Natural:** The result directly answers the question
+
+**Option B (Decimal-only output):**
+```typescript
+const result = await evalla([
+  { name: 'slope', expr: '$math.tan($angle.toRad(45))' },
+  { name: 'isSteep', expr: 'slope > 1 ? 1 : 0' }
+]);
+
+console.log(result.values.isSteep);  // Decimal(1)
+console.log(result.values.isSteep.toNumber() === 1 ? 'steep' : 'not steep');
+```
+⚠️ **Works but less natural:** Requires conversion/interpretation
+
+### Recommendation: If First-Class Values → Include in Output
+
+**My position:**
+
+If `true`, `false`, `null`, and `Infinity` are being established as **first-class reserved value names**, then **they should appear in output** for logical consistency.
+
+**Rationale:**
+1. **Consistency:** All first-class values should be visible
+2. **Semantic clarity:** `isSteep` should return true/false, not 1/0
+3. **Natural expressions:** Matches user intent
+4. **Infinity already visible:** `Infinity` appears as `Decimal(Infinity)` - extending to boolean is consistent
+
+**Type system:**
+```typescript
+interface EvaluationResult {
+  values: Record<string, Decimal | boolean | null>;
+  order: string[];
+}
+```
+
+**Note:** `Infinity` would still be `Decimal(Infinity)`, not a separate type.
+
+### Alternative: Algebraic Convention (1/0 instead of true/false)
+
+**If wanting to maintain Decimal-only output:**
+
+```typescript
+// Algebraic convention: 1 = true, 0 = false
+{ name: 'isSteep', expr: 'slope > 1 ? 1 : 0' }        // Returns Decimal(1)
+{ name: 'isFlat', expr: 'slope < 0.1 ? 1 : 0' }       // Returns Decimal(1 or 0)
+```
+
+**Pros:**
+- ✅ Algebraic tradition - boolean algebra uses 1/0
+- ✅ Keeps output simple (Decimal only)
+- ✅ Still works for all logic
+
+**Cons:**
+- ❌ Less semantic - "is it steep?" → "1" (not "yes")
+- ❌ Inconsistent if `true`/`false` are first-class values
+- ❌ Why have `true`/`false` if we use 1/0?
+
+### The Decision Point
+
+**Key question:** Are `true`, `false`, `null` **mathematical values** or **logical operators**?
+
+**If mathematical values (like π, Infinity):**
+→ They should appear in output
+→ Type: `Decimal | boolean | null`
+→ Example: `isSteep` returns `true`
+
+**If logical operators (like `&&`, `||`):**
+→ They power ternary logic only
+→ Type: `Decimal` only
+→ Example: `isSteep` returns `Decimal(1)`
+
+**The maintainer's perspective seems to lean toward:** They're **values**, which suggests they should be in output.
+
+### Practical Impact
+
+**For the "steep slope" example:**
+
+```typescript
+// With boolean output:
+const result = await evalla([
+  { name: 'angle', expr: '60' },
+  { name: 'slope', expr: '$math.tan($angle.toRad(angle))' },
+  { name: 'isSteep', expr: 'slope > 1' },  // Would need to allow standalone comparison
+  { name: 'category', expr: 'isSteep ? "steep" : "gentle"' }
+]);
+// isSteep: true, category: "steep" (but strings are a bug!)
+
+// With Decimal output (current):
+const result = await evalla([
+  { name: 'angle', expr: '60' },
+  { name: 'slope', expr: '$math.tan($angle.toRad(angle))' },
+  { name: 'steepness', expr: 'slope > 1 ? 1 : 0' }
+]);
+// steepness: Decimal(1)
+```
+
+### Summary
+
+The question "where do we stand on booleans in outputs?" is directly tied to the decision about first-class values.
+
+**If `true`/`false` are first-class mathematical values:**
+→ **They should appear in output** (Option A)
+
+**If keeping Decimal-only simplicity:**
+→ Use 1/0 convention, don't need `true`/`false` as reserved names
+
+**The maintainer's example ("is it steep?") suggests:** Boolean output would be more natural and useful, which implies **Option A**.

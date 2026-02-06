@@ -44,7 +44,7 @@ describe('Security Hardening', () => {
         { name: 'sum', expr: 'obj.x + obj.y' }
       ]);
       
-      expect(result.values.sum.toString()).toBe('30');
+      expect((result.values.sum as any).toString()).toBe('30');
     });
 
     test('should allow nested safe property access', async () => {
@@ -53,7 +53,7 @@ describe('Security Hardening', () => {
         { name: 'val', expr: 'obj.nested.value' }
       ]);
       
-      expect(result.values.val.toString()).toBe('42');
+      expect((result.values.val as any).toString()).toBe('42');
     });
   });
 });

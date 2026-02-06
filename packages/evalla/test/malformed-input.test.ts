@@ -36,11 +36,11 @@ describe('Malformed Expression Handling', () => {
         { name: 'result2', expr: 'let * await' }
       ]);
       
-      expect(result.values.let.toString()).toBe('10');
-      expect(result.values.async.toString()).toBe('5');
-      expect(result.values.await.toString()).toBe('3');
-      expect(result.values.result1.toString()).toBe('15');
-      expect(result.values.result2.toString()).toBe('30');
+      expect((result.values.let as any).toString()).toBe('10');
+      expect((result.values.async as any).toString()).toBe('5');
+      expect((result.values.await as any).toString()).toBe('3');
+      expect((result.values.result1 as any).toString()).toBe('15');
+      expect((result.values.result2 as any).toString()).toBe('30');
     });
 
     test('reserved words as property names DO work', async () => {
@@ -52,8 +52,8 @@ describe('Malformed Expression Handling', () => {
         { name: 'product', expr: 'obj.new * obj.return' }
       ]);
       
-      expect(result.values.sum.toString()).toBe('60');
-      expect(result.values.product.toString()).toBe('2000');
+      expect((result.values.sum as any).toString()).toBe('60');
+      expect((result.values.product as any).toString()).toBe('2000');
     });
 
     test('reserved words as object literal keys DO work', async () => {
@@ -63,7 +63,7 @@ describe('Malformed Expression Handling', () => {
         { name: 'total', expr: 'obj.if + obj.while + obj.for + obj.new + obj.class' }
       ]);
       
-      expect(result.values.total.toString()).toBe('15');
+      expect((result.values.total as any).toString()).toBe('15');
     });
 
     test('reserved words as variable names do NOT work (parser limitation)', async () => {
@@ -203,14 +203,15 @@ describe('Malformed Expression Handling', () => {
   });
 
   describe('Supported edge cases', () => {
-    test('triple equals (===) is supported for strict equality', async () => {
-      // Triple equals is supported for strict equality comparison
+    test('single equals (=) is supported for comparison', async () => {
+      // Single equals is now the comparison operator
       const result = await evalla([
         { name: 'a', expr: '5' },
         { name: 'b', expr: '5' },
-        { name: 'test', expr: 'a === b' }
+        { name: 'test', expr: 'a = b' }
       ]);
-      // Boolean results appear in order but not in values (they're not Decimal)
+      
+      expect(result.values.test).toBe(true);  // Boolean result
       expect(result.order).toContain('test');
     });
 

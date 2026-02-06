@@ -62,10 +62,10 @@ describe('Function Aliasing Prevention', () => {
       { name: 'angleVal', expr: '$angle.toRad(180)' }
     ]);
     
-    expect(result.values.absVal.toString()).toBe('42');
-    expect(result.values.sqrtVal.toString()).toBe('4');
-    expect(result.values.convVal.toString()).toBe('1');
-    expect(Math.abs(result.values.angleVal.toNumber() - Math.PI)).toBeLessThan(0.000001);
+    expect((result.values.absVal as any).toString()).toBe('42');
+    expect((result.values.sqrtVal as any).toString()).toBe('4');
+    expect((result.values.convVal as any).toString()).toBe('1');
+    expect(Math.abs((result.values.angleVal as any).toNumber() - Math.PI)).toBeLessThan(0.000001);
   });
 
   test('should allow accessing constants', async () => {
@@ -74,8 +74,8 @@ describe('Function Aliasing Prevention', () => {
       { name: 'e', expr: '$math.E' }
     ]);
     
-    expect(Math.abs(result.values.pi.toNumber() - Math.PI)).toBeLessThan(0.000001);
-    expect(Math.abs(result.values.e.toNumber() - Math.E)).toBeLessThan(0.000001);
+    expect(Math.abs((result.values.pi as any).toNumber() - Math.PI)).toBeLessThan(0.000001);
+    expect(Math.abs((result.values.e as any).toNumber() - Math.E)).toBeLessThan(0.000001);
   });
 
   test('error message should be descriptive', async () => {

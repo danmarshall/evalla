@@ -6,7 +6,7 @@ test('object literals and property access', async () => {
     { name: 'sum', expr: 'point.x + point.y' }
   ]);
   
-  expect(result.values.sum.toString()).toBe('30');
+  expect((result.values.sum as any).toString()).toBe('30');
 });
 
 test('nested object property access', async () => {
@@ -16,8 +16,8 @@ test('nested object property access', async () => {
     { name: 'scaledY', expr: 'data.pos.y * data.scale' }
   ]);
   
-  expect(result.values.scaledX.toString()).toBe('10');
-  expect(result.values.scaledY.toString()).toBe('20');
+  expect((result.values.scaledX as any).toString()).toBe('10');
+  expect((result.values.scaledY as any).toString()).toBe('20');
 });
 
 test('multiple objects with property access', async () => {
@@ -28,17 +28,18 @@ test('multiple objects with property access', async () => {
     { name: 'resultY', expr: 'point.y + offset.y' }
   ]);
   
-  expect(result.values.resultX.toString()).toBe('105');
-  expect(result.values.resultY.toString()).toBe('210');
+  expect((result.values.resultX as any).toString()).toBe('105');
+  expect((result.values.resultY as any).toString()).toBe('210');
 });
 
 test('deeply nested property access', async () => {
   const result = await evalla([
-    { name: 'config', expr: '{dimensions: {width: {value: 100, unit: "mm"}, height: {value: 50, unit: "mm"}}}' },
+    // Use direct value instead of string literals in expression
+    { name: 'config', value: {dimensions: {width: {value: 100, unit: "mm"}, height: {value: 50, unit: "mm"}}} },
     { name: 'area', expr: 'config.dimensions.width.value * config.dimensions.height.value' }
   ]);
   
-  expect(result.values.area.toString()).toBe('5000');
+  expect((result.values.area as any).toString()).toBe('5000');
 });
 
 test('object with namespace functions', async () => {
@@ -51,8 +52,8 @@ test('object with namespace functions', async () => {
   const expectedCirc = 2 * Math.PI * 10;
   const expectedArea = Math.PI * 100;
   
-  expect(Math.abs(result.values.circumference.toNumber() - expectedCirc)).toBeLessThan(0.000001);
-  expect(Math.abs(result.values.area.toNumber() - expectedArea)).toBeLessThan(0.000001);
+  expect(Math.abs((result.values.circumference as any).toNumber() - expectedCirc)).toBeLessThan(0.000001);
+  expect(Math.abs((result.values.area as any).toNumber() - expectedArea)).toBeLessThan(0.000001);
 });
 
 test('array of objects with property access', async () => {
@@ -62,8 +63,8 @@ test('array of objects with property access', async () => {
     { name: 'secondY', expr: 'points[1].y' }
   ]);
   
-  expect(result.values.firstX.toString()).toBe('1');
-  expect(result.values.secondY.toString()).toBe('4');
+  expect((result.values.firstX as any).toString()).toBe('1');
+  expect((result.values.secondY as any).toString()).toBe('4');
 });
 
 test('object dependencies in topological order', async () => {

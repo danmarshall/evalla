@@ -157,17 +157,16 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
     case '>=':
       return toDecimal(left).gte(toDecimal(right));
     case '==':
-    case '===':
+    case '=':
       if (left instanceof Decimal && right instanceof Decimal) {
         return left.eq(right);
       }
-      return operator === '===' ? left === right : left == right;
+      return left == right;
     case '!=':
-    case '!==':
       if (left instanceof Decimal && right instanceof Decimal) {
         return !left.eq(right);
       }
-      return operator === '!==' ? left !== right : left != right;
+      return left != right;
     default:
       throw new EvaluationError(`Unsupported binary operator: ${operator}`);
   }

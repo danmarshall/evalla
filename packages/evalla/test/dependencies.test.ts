@@ -8,7 +8,7 @@ describe('Variable Dependencies', () => {
       { name: 'area', expr: 'width * height' }
     ]);
     
-    expect(result.values.area.toString()).toBe('5000');
+    expect((result.values.area as any).toString()).toBe('5000');
   });
 
   test('complex dependency chain', async () => {
@@ -19,10 +19,10 @@ describe('Variable Dependencies', () => {
       { name: 'a', expr: '5' }
     ]);
     
-    expect(result.values.a.toString()).toBe('5');
-    expect(result.values.b.toString()).toBe('15');
-    expect(result.values.c.toString()).toBe('45');
-    expect(result.values.d.toString()).toBe('90');
+    expect((result.values.a as any).toString()).toBe('5');
+    expect((result.values.b as any).toString()).toBe('15');
+    expect((result.values.c as any).toString()).toBe('45');
+    expect((result.values.d as any).toString()).toBe('90');
     expect(result.order).toEqual(['a', 'b', 'c', 'd']);
   });
 

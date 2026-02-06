@@ -1,4 +1,4 @@
-import { evalla } from '../src/index';
+import { evalla, ValidationError } from '../src/index';
 
 describe('Keywords as Variable Names', () => {
   test('JavaScript keywords work as variable names', async () => {
@@ -8,9 +8,9 @@ describe('Keywords as Variable Names', () => {
       { name: 'result', expr: 'return + if' }
     ]);
     
-    expect(result.values.return.toString()).toBe('10');
-    expect(result.values.if.toString()).toBe('20');
-    expect(result.values.result.toString()).toBe('30');
+    expect((result.values.return as any).toString()).toBe('10');
+    expect((result.values.if as any).toString()).toBe('20');
+    expect((result.values.result as any).toString()).toBe('30');
     expect(result.order).toEqual(['return', 'if', 'result']);
   });
 
@@ -22,10 +22,10 @@ describe('Keywords as Variable Names', () => {
       { name: 'continue', expr: 'break + 2' }
     ]);
     
-    expect(result.values.while.toString()).toBe('5');
-    expect(result.values.for.toString()).toBe('3');
-    expect(result.values.break.toString()).toBe('15');
-    expect(result.values.continue.toString()).toBe('17');
+    expect((result.values.while as any).toString()).toBe('5');
+    expect((result.values.for as any).toString()).toBe('3');
+    expect((result.values.break as any).toString()).toBe('15');
+    expect((result.values.continue as any).toString()).toBe('17');
   });
 
   test('keywords in complex expressions', async () => {
@@ -35,9 +35,9 @@ describe('Keywords as Variable Names', () => {
       { name: 'const', expr: '(function - class) / 2' }
     ]);
     
-    expect(result.values.function.toString()).toBe('100');
-    expect(result.values.class.toString()).toBe('50');
-    expect(result.values.const.toString()).toBe('25');
+    expect((result.values.function as any).toString()).toBe('100');
+    expect((result.values.class as any).toString()).toBe('50');
+    expect((result.values.const as any).toString()).toBe('25');
   });
 
   test('keywords with object literals', async () => {
@@ -46,7 +46,7 @@ describe('Keywords as Variable Names', () => {
       { name: 'export', expr: 'import.x + import.y' }
     ]);
     
-    expect(result.values.export.toString()).toBe('30');
+    expect((result.values.export as any).toString()).toBe('30');
   });
 
   test('keywords with namespaces', async () => {
@@ -56,22 +56,29 @@ describe('Keywords as Variable Names', () => {
       { name: 'default', expr: 'switch + case' }
     ]);
     
-    expect(result.values.case.toString()).toBe('42');
-    expect(result.values.default.toNumber()).toBeCloseTo(45.14159, 3);
+    expect((result.values.case as any).toString()).toBe('42');
+    expect((result.values.default as any).toNumber()).toBeCloseTo(45.14159, 3);
   });
 
-  test('reserved literals (true, false, null) are primarily for values', async () => {
-    // true, false, null are reserved as literals in expressions
-    // However, they can technically be used as variable names (though not recommended)
+  test('reserved literals (true, false, null) are now reserved', async () => {
+    // Reserved literals can be used as literal values in expressions
     const result1 = await evalla([
       { name: 'x', expr: 'true' }  // true as a literal value
     ]);
     expect(result1.order).toContain('x');
+    expect(result1.values.x).toBe(true);  // Boolean output
     
-    // Can even use as variable name (though discouraged in practice)
-    const result2 = await evalla([
-      { name: 'true', expr: '10' }
-    ]);
-    expect(result2.values.true.toString()).toBe('10');
+    // But cannot be used as variable names (reserved)
+    await expect(
+      evalla([{ name: 'true', expr: '10' }])
+    ).rejects.toThrow(ValidationError);
+    
+    await expect(
+      evalla([{ name: 'false', expr: '10' }])
+    ).rejects.toThrow(ValidationError);
+    
+    await expect(
+      evalla([{ name: 'null', expr: '10' }])
+    ).rejects.toThrow(ValidationError);
   });
 });

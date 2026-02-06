@@ -8,7 +8,7 @@ describe('Basic Arithmetic', () => {
       { name: 'c', expr: 'a + b' }
     ]);
     
-    expect(result.values.c.toString()).toBe('30');
+    expect((result.values.c as any).toString()).toBe('30');
     expect(result.order).toEqual(['a', 'b', 'c']);
   });
 
@@ -17,7 +17,7 @@ describe('Basic Arithmetic', () => {
       { name: 'x', expr: '0.1 + 0.2' }
     ]);
     
-    expect(result.values.x.toString()).toBe('0.3');
+    expect((result.values.x as any).toString()).toBe('0.3');
   });
 
   test('expressions with multiple operators', async () => {
@@ -25,7 +25,7 @@ describe('Basic Arithmetic', () => {
       { name: 'result', expr: '(10 + 5) * 2 - 3' }
     ]);
     
-    expect(result.values.result.toString()).toBe('27');
+    expect((result.values.result as any).toString()).toBe('27');
   });
 
   test('empty input', async () => {

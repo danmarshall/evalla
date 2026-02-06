@@ -30,6 +30,14 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
         input.name
       );
     }
+    // Reserved value names that cannot be used as variables
+    const reservedValues = ['true', 'false', 'null', 'Infinity'];
+    if (reservedValues.includes(input.name)) {
+      throw new ValidationError(
+        `Variable name cannot be a reserved value: ${input.name}`,
+        input.name
+      );
+    }
     if (/^\d/.test(input.name)) {
       throw new ValidationError(
         `Variable names cannot start with a number: ${input.name}`,
@@ -78,7 +86,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
   }
   
   // Evaluate in topological order
-  const values: Record<string, Decimal> = Object.create(null);
+  const values: Record<string, Decimal | boolean | null> = Object.create(null);
   const context: Record<string, any> = Object.create(null);
   
   for (const name of order) {
@@ -96,16 +104,18 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
       result = await evaluateExpression(ast, context);
     }
     
-    // Store result - if it's a Decimal, that's our value
-    // If it's something else (object, array), store it in context but not in values
+    // Store result - can be Decimal, boolean, or null
     if (result instanceof Decimal) {
       values[name] = result;
       context[name] = result;
-    } else {
-      // Non-Decimal result (object, array, etc.) - store in context only
+    } else if (typeof result === 'boolean' || result === null) {
+      // Boolean and null values are now valid outputs
+      values[name] = result;
       context[name] = result;
-      // For output, we need a Decimal - this should not happen if design is correct
-      // but let's handle it gracefully
+    } else {
+      // Non-Decimal/boolean/null result (object, array, etc.) - store in context only
+      context[name] = result;
+      // For output, we need a valid type
       if (typeof result === 'number') {
         values[name] = new Decimal(result);
       } else {

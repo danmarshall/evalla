@@ -37,9 +37,8 @@ describe('checkSyntax - Expression Syntax Validation', () => {
       expect(checkSyntax('a >= b').valid).toBe(true);
       expect(checkSyntax('a <= b').valid).toBe(true);
       expect(checkSyntax('a == b').valid).toBe(true);
-      expect(checkSyntax('a === b').valid).toBe(true);
+      expect(checkSyntax('a = b').valid).toBe(true);  // Single equals is now valid
       expect(checkSyntax('a != b').valid).toBe(true);
-      expect(checkSyntax('a !== b').valid).toBe(true);
     });
 
     test('logical operators', () => {
@@ -58,7 +57,6 @@ describe('checkSyntax - Expression Syntax Validation', () => {
     test('member access', () => {
       expect(checkSyntax('obj.prop').valid).toBe(true);
       expect(checkSyntax('obj.nested.prop').valid).toBe(true);
-      expect(checkSyntax('obj["prop"]').valid).toBe(true);
       expect(checkSyntax('arr[0]').valid).toBe(true);
     });
 
@@ -80,10 +78,12 @@ describe('checkSyntax - Expression Syntax Validation', () => {
       expect(checkSyntax('[]').valid).toBe(true);
     });
 
-    test('string literals', () => {
-      expect(checkSyntax('"hello"').valid).toBe(true);
-      expect(checkSyntax("'world'").valid).toBe(true);
-      expect(checkSyntax('"hello world"').valid).toBe(true);
+    test('string literals (only in object keys)', () => {
+      // String literals are no longer valid as standalone expressions
+      expect(checkSyntax('"hello"').valid).toBe(false);
+      expect(checkSyntax("'world'").valid).toBe(false);
+      // But they work in object keys
+      expect(checkSyntax('{"hello": 123}').valid).toBe(true);
     });
 
     test('boolean and null literals', () => {
@@ -215,16 +215,15 @@ describe('checkSyntax - Expression Syntax Validation', () => {
       expect(result.error).toBeDefined();
     });
 
-    test('assignment operator (single equals)', () => {
+    test('single equals is now comparison operator', () => {
+      // Single equals is now a valid comparison operator
       const result = checkSyntax('a = 5');
-      expect(result.valid).toBe(false);
-      expect(result.error).toBeDefined();
+      expect(result.valid).toBe(true);
     });
 
-    test('assignment with addition', () => {
+    test('single equals with addition', () => {
       const result = checkSyntax('a = b + 1');
-      expect(result.valid).toBe(false);
-      expect(result.error).toBeDefined();
+      expect(result.valid).toBe(true);
     });
 
     test('semicolon at end', () => {

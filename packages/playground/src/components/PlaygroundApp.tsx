@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, Play } from 'lucide-react';
 import { examples, type Expression } from '../data/examples';
+
+// Import checkSyntax at module level to avoid repeated dynamic imports
+let checkSyntaxFn: ((expr: string) => { valid: boolean; error?: string }) | null = null;
 
 export default function PlaygroundApp() {
   const [expressions, setExpressions] = useState<Expression[]>([
@@ -12,34 +15,60 @@ export default function PlaygroundApp() {
   const [error, setError] = useState<string | null>(null);
   const [errorIndex, setErrorIndex] = useState<number | null>(null);
   const [syntaxErrors, setSyntaxErrors] = useState<Map<number, string>>(new Map());
+  
+  // Store debounce timeouts per expression index
+  const debounceTimeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
 
-  const updateExpression = async (index: number, field: 'name' | 'expr', value: string) => {
+  // Load checkSyntax on mount
+  useEffect(() => {
+    import('evalla').then(({ checkSyntax }) => {
+      checkSyntaxFn = checkSyntax;
+    }).catch(err => {
+      console.error('Failed to load checkSyntax:', err);
+    });
+  }, []);
+
+  const updateExpression = (index: number, field: 'name' | 'expr', value: string) => {
     const newExpressions = [...expressions];
     newExpressions[index][field] = value;
     setExpressions(newExpressions);
 
-    // Check syntax for expression field in real-time
-    if (field === 'expr' && value.trim()) {
-      try {
-        const { checkSyntax } = await import('evalla');
-        const syntaxResult = checkSyntax(value);
-        
-        const newSyntaxErrors = new Map(syntaxErrors);
-        if (!syntaxResult.valid) {
-          newSyntaxErrors.set(index, syntaxResult.error || 'Syntax error');
-        } else {
-          newSyntaxErrors.delete(index);
-        }
-        setSyntaxErrors(newSyntaxErrors);
-      } catch (err) {
-        // If import fails, ignore syntax checking
-        console.error('Failed to check syntax:', err);
+    // Check syntax for expression field in real-time with debouncing
+    if (field === 'expr') {
+      // Clear existing timeout for this expression
+      const existingTimeout = debounceTimeouts.current.get(index);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
       }
-    } else if (field === 'expr' && !value.trim()) {
-      // Clear syntax error when expression is cleared
-      const newSyntaxErrors = new Map(syntaxErrors);
-      newSyntaxErrors.delete(index);
-      setSyntaxErrors(newSyntaxErrors);
+
+      if (!value.trim()) {
+        // Clear syntax error when expression is cleared
+        const newSyntaxErrors = new Map(syntaxErrors);
+        newSyntaxErrors.delete(index);
+        setSyntaxErrors(newSyntaxErrors);
+        return;
+      }
+
+      // Debounce syntax check (300ms delay)
+      const timeout = setTimeout(() => {
+        if (!checkSyntaxFn) {
+          return; // checkSyntax not loaded yet
+        }
+
+        const syntaxResult = checkSyntaxFn(value);
+        
+        setSyntaxErrors(prev => {
+          const newSyntaxErrors = new Map(prev);
+          if (!syntaxResult.valid) {
+            newSyntaxErrors.set(index, syntaxResult.error || 'Syntax error');
+          } else {
+            newSyntaxErrors.delete(index);
+          }
+          return newSyntaxErrors;
+        });
+      }, 300);
+
+      debounceTimeouts.current.set(index, timeout);
     }
   };
 
@@ -48,12 +77,23 @@ export default function PlaygroundApp() {
   };
 
   const removeExpression = (index: number) => {
+    // Clear any pending timeout for this expression
+    const timeout = debounceTimeouts.current.get(index);
+    if (timeout) {
+      clearTimeout(timeout);
+      debounceTimeouts.current.delete(index);
+    }
+
     setExpressions(expressions.filter((_, i) => i !== index));
+    
     // Remove syntax error for the removed expression
     const newSyntaxErrors = new Map(syntaxErrors);
     newSyntaxErrors.delete(index);
-    // Adjust indices for remaining expressions
+    
+    // Adjust indices for remaining expressions and their timeouts
     const adjustedErrors = new Map<number, string>();
+    const adjustedTimeouts = new Map<number, NodeJS.Timeout>();
+    
     newSyntaxErrors.forEach((error, idx) => {
       if (idx > index) {
         adjustedErrors.set(idx - 1, error);
@@ -61,7 +101,17 @@ export default function PlaygroundApp() {
         adjustedErrors.set(idx, error);
       }
     });
+    
+    debounceTimeouts.current.forEach((timeout, idx) => {
+      if (idx > index) {
+        adjustedTimeouts.set(idx - 1, timeout);
+      } else if (idx !== index) {
+        adjustedTimeouts.set(idx, timeout);
+      }
+    });
+    
     setSyntaxErrors(adjustedErrors);
+    debounceTimeouts.current = adjustedTimeouts;
   };
 
 

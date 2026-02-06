@@ -19,6 +19,7 @@ Playground
 <h2 id="features">Features</h2>
 <ul>
 <li>✅ <strong>Decimal Precision</strong>: Uses <a href="https://mikemcl.github.io/decimal.js/">decimal.js</a> internally for accurate arithmetic</li>
+<li>✅ <strong>Boolean &#x26; Null Output</strong>: Results can be <code>Decimal</code>, <code>boolean</code>, or <code>null</code> for natural mathematical expressions</li>
 <li>✅ <strong>Variable References</strong>: Support dependencies between expressions</li>
 <li>✅ <strong>Dot-Traversal</strong>: Reference nested properties (e.g., <code>point.x</code>, <code>offset.y</code>)</li>
 <li>✅ <strong>Topological Ordering</strong>: Evaluates in correct dependency order (DAG)</li>
@@ -53,9 +54,15 @@ Playground
 <span class="line"><span style="color:#24292E">]);</span></span></code></pre>
 <h3 id="output-format">Output Format</h3>
 <pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">interface</span><span style="color:#6F42C1"> EvaluationResult</span><span style="color:#24292E"> {</span></span>
-<span class="line"><span style="color:#E36209">  values</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#6F42C1">Decimal</span><span style="color:#24292E">>;  </span><span style="color:#6A737D">// Computed values as Decimal objects</span></span>
-<span class="line"><span style="color:#E36209">  order</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[];                  </span><span style="color:#6A737D">// Evaluation order (topologically sorted)</span></span>
+<span class="line"><span style="color:#E36209">  values</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#6F42C1">Decimal</span><span style="color:#D73A49"> |</span><span style="color:#005CC5"> boolean</span><span style="color:#D73A49"> |</span><span style="color:#005CC5"> null</span><span style="color:#24292E">>;  </span><span style="color:#6A737D">// Computed values</span></span>
+<span class="line"><span style="color:#E36209">  order</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[];                                   </span><span style="color:#6A737D">// Evaluation order (topologically sorted)</span></span>
 <span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>Results can be:</p>
+<ul>
+<li><strong>Decimal</strong>: Numeric values with arbitrary precision</li>
+<li><strong>boolean</strong>: Results from comparisons (<code>a > b</code>) or boolean literals (<code>true</code>, <code>false</code>)</li>
+<li><strong>null</strong>: The null literal or null branches in ternary expressions</li>
+</ul>
 <h2 id="examples">Examples</h2>
 <h3 id="basic-arithmetic-with-precision">Basic Arithmetic with Precision</h3>
 <pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
@@ -92,6 +99,86 @@ Playground
 <span class="line"><span style="color:#24292E">]);</span></span>
 <span class="line"></span>
 <span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.scaledX.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">()); </span><span style="color:#6A737D">// "10"</span></span></code></pre>
+<h2 id="reserved-values">Reserved Values</h2>
+<p><strong>Algebra, not code:</strong> evalla is designed for natural mathematical expressions, not programming. A few special values are reserved as first-class mathematical primitives and cannot be used as variable names:</p>
+<ul>
+<li><code>true</code> - Boolean true value</li>
+<li><code>false</code> - Boolean false value</li>
+<li><code>null</code> - Null value (for missing/undefined results)</li>
+<li><code>Infinity</code> - Mathematical infinity</li>
+</ul>
+<p>These reserved values allow evalla to return boolean results from comparisons and handle edge cases naturally, just like in mathematical notation.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#6A737D">// ❌ Cannot use reserved values as variable names</span></span>
+<span class="line"><span style="color:#D73A49">await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'true'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'10'</span><span style="color:#24292E"> }]);     </span><span style="color:#6A737D">// ValidationError</span></span>
+<span class="line"><span style="color:#D73A49">await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'false'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'10'</span><span style="color:#24292E"> }]);    </span><span style="color:#6A737D">// ValidationError</span></span>
+<span class="line"><span style="color:#D73A49">await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'null'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'10'</span><span style="color:#24292E"> }]);     </span><span style="color:#6A737D">// ValidationError</span></span>
+<span class="line"><span style="color:#D73A49">await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'Infinity'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'10'</span><span style="color:#24292E"> }]); </span><span style="color:#6A737D">// ValidationError</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// ✅ Can use them as values</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'isValid'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'true'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'isEmpty'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'false'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'missing'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'null'</span><span style="color:#24292E"> }</span></span>
+<span class="line"><span style="color:#24292E">]);</span></span></code></pre>
+<p><strong>Why reserve these?</strong> Unlike programming keywords (which evalla allows as variable names), these mathematical primitives need special handling to support boolean logic and comparisons as first-class results.</p>
+<h2 id="boolean-output">Boolean Output</h2>
+<p>Results can now be boolean values, not just numbers. This enables natural mathematical questions:</p>
+<h3 id="standalone-comparisons">Standalone Comparisons</h3>
+<p>Comparisons return <code>true</code> or <code>false</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'slope'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'0.75'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'isSteep'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'slope > 0.5'</span><span style="color:#24292E"> }  </span><span style="color:#6A737D">// Returns boolean true</span></span>
+<span class="line"><span style="color:#24292E">]);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.isSteep); </span><span style="color:#6A737D">// true</span></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(</span><span style="color:#D73A49">typeof</span><span style="color:#24292E"> result.values.isSteep); </span><span style="color:#6A737D">// "boolean"</span></span></code></pre>
+<p>All comparison operators return boolean:</p>
+<ul>
+<li><code>&#x3C;</code>, <code>></code>, <code>&#x3C;=</code>, <code>>=</code> - Numeric comparisons</li>
+<li><code>=</code>, <code>==</code> - Equality (both work the same)</li>
+<li><code>!=</code> - Inequality</li>
+<li><code>&#x26;&#x26;</code>, <code>||</code>, <code>!</code> - Logical operators</li>
+</ul>
+<h3 id="boolean-branches-in-ternary">Boolean Branches in Ternary</h3>
+<p>Ternary expressions can have boolean or null branches:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'score'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'85'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'passed'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'score >= 60 ? true : false'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'bonus'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'score >= 90 ? 10 : null'</span><span style="color:#24292E"> }</span></span>
+<span class="line"><span style="color:#24292E">]);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.passed);  </span><span style="color:#6A737D">// true (boolean)</span></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.bonus);   </span><span style="color:#6A737D">// null</span></span></code></pre>
+<h3 id="boolean-literals">Boolean Literals</h3>
+<p>Use <code>true</code> and <code>false</code> directly:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'enabled'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'true'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'disabled'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'false'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'result'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'enabled &#x26;&#x26; !disabled'</span><span style="color:#24292E"> }</span></span>
+<span class="line"><span style="color:#24292E">]);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.result); </span><span style="color:#6A737D">// true</span></span></code></pre>
+<h2 id="equality-operators">Equality Operators</h2>
+<p>evalla supports two equality operators that work identically:</p>
+<h3 id="single-equals--algebraic">Single Equals <code>=</code> (Algebraic)</h3>
+<p>In mathematics, <code>=</code> tests equality. evalla follows this convention:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'x'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'5'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'y'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'5'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'equal'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'x = y'</span><span style="color:#24292E"> }  </span><span style="color:#6A737D">// Algebraic equality</span></span>
+<span class="line"><span style="color:#24292E">]);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.equal); </span><span style="color:#6A737D">// true</span></span></code></pre>
+<h3 id="double-equals--programmer-friendly">Double Equals <code>==</code> (Programmer-Friendly)</h3>
+<p>For programmers familiar with <code>==</code>, it works exactly the same:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'a'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'10'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'b'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'20'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'test'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'(a + 10) == b'</span><span style="color:#24292E"> }</span></span>
+<span class="line"><span style="color:#24292E">]);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.test); </span><span style="color:#6A737D">// true</span></span></code></pre>
+<p><strong>No loose vs. strict:</strong> Unlike JavaScript, there’s no distinction between <code>==</code> and <code>===</code> in evalla. Both <code>=</code> and <code>==</code> perform the same strict equality check. Use whichever feels more natural.</p>
 <h3 id="namespaces">Namespaces</h3>
 <p>Variables may not begin with $, this is reserved for namespaces for built-in functions and constants.</p>
 <h4 id="math-namespace">$math Namespace</h4>
@@ -141,6 +228,7 @@ Playground
 <span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <h3 id="variable-naming">Variable naming</h3>
 <p>Variables may not begin with a number, double underscore(__), or $ (see namespaces above).</p>
+<p>Variables cannot use reserved values: <code>true</code>, <code>false</code>, <code>null</code>, <code>Infinity</code> (see <a href="#reserved-values">Reserved Values</a>).</p>
 <h4 id="keywords-as-variable-names">Keywords as Variable Names</h4>
 <p>Unlike JavaScript, algebra-like variable names can include JavaScript keywords:</p>
 <pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>

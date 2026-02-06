@@ -31,6 +31,18 @@ export default function PlaygroundApp() {
     });
   }, []);
 
+  // Helper function to get input field styling based on error state
+  const getInputClassName = (hasValidationError: boolean, index: number) => {
+    const baseClasses = 'w-full px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2';
+    if (hasValidationError) {
+      return `${baseClasses} border-orange-400 bg-orange-50 focus:ring-orange-500`;
+    }
+    if (errorIndex === index) {
+      return `${baseClasses} border-red-300 bg-white focus:ring-blue-500`;
+    }
+    return `${baseClasses} border-gray-300 bg-white focus:ring-blue-500`;
+  };
+
   const updateExpression = (index: number, field: 'name' | 'expr', value: string) => {
     const newExpressions = [...expressions];
     newExpressions[index][field] = value;
@@ -271,13 +283,7 @@ export default function PlaygroundApp() {
                       placeholder="e.g. radius"
                       value={expr.name}
                       onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                      className={`w-full px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 ${
-                        hasNameError 
-                          ? 'border-orange-400 bg-orange-50 focus:ring-orange-500' 
-                          : errorIndex === index 
-                            ? 'border-red-300 bg-white focus:ring-blue-500' 
-                            : 'border-gray-300 bg-white focus:ring-blue-500'
-                      }`}
+                      className={getInputClassName(hasNameError, index)}
                     />
                     {hasNameError && (
                       <div className="text-orange-600 text-xs mt-1 font-mono">
@@ -291,13 +297,7 @@ export default function PlaygroundApp() {
                       placeholder="e.g. a + b"
                       value={expr.expr}
                       onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                      className={`w-full px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 ${
-                        hasSyntaxError 
-                          ? 'border-orange-400 bg-orange-50 focus:ring-orange-500' 
-                          : errorIndex === index 
-                            ? 'border-red-300 bg-white focus:ring-blue-500' 
-                            : 'border-gray-300 bg-white focus:ring-blue-500'
-                      }`}
+                      className={getInputClassName(hasSyntaxError, index)}
                     />
                     {hasSyntaxError && (
                       <div className="text-orange-600 text-xs mt-1 font-mono">
@@ -324,13 +324,7 @@ export default function PlaygroundApp() {
                           placeholder="e.g. radius"
                           value={expr.name}
                           onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                          className={`w-full px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 ${
-                            hasNameError 
-                              ? 'border-orange-400 bg-orange-50 focus:ring-orange-500' 
-                              : errorIndex === index 
-                                ? 'border-red-300 bg-white focus:ring-blue-500' 
-                                : 'border-gray-300 bg-white focus:ring-blue-500'
-                          }`}
+                          className={getInputClassName(hasNameError, index)}
                         />
                         {hasNameError && (
                           <div className="text-orange-600 text-xs mt-1 font-mono">
@@ -347,13 +341,7 @@ export default function PlaygroundApp() {
                           placeholder="e.g. a + b"
                           value={expr.expr}
                           onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                          className={`w-full px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 ${
-                            hasSyntaxError 
-                              ? 'border-orange-400 bg-orange-50 focus:ring-orange-500' 
-                              : errorIndex === index 
-                                ? 'border-red-300 bg-white focus:ring-blue-500' 
-                                : 'border-gray-300 bg-white focus:ring-blue-500'
-                          }`}
+                          className={getInputClassName(hasSyntaxError, index)}
                         />
                         {hasSyntaxError && (
                           <div className="text-orange-600 text-xs mt-1 font-mono">

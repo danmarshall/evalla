@@ -1,4 +1,5 @@
 import { evalla, SecurityError } from '../src/index';
+import Decimal from 'decimal.js';
 
 describe('Security Hardening', () => {
   describe('Dangerous property access', () => {
@@ -44,7 +45,7 @@ describe('Security Hardening', () => {
         { name: 'sum', expr: 'obj.x + obj.y' }
       ]);
       
-      expect((result.values.sum as any).toString()).toBe('30');
+      expect((result.values.sum as Decimal).toString()).toBe('30');
     });
 
     test('should allow nested safe property access', async () => {
@@ -53,7 +54,7 @@ describe('Security Hardening', () => {
         { name: 'val', expr: 'obj.nested.value' }
       ]);
       
-      expect((result.values.val as any).toString()).toBe('42');
+      expect((result.values.val as Decimal).toString()).toBe('42');
     });
   });
 });

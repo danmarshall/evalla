@@ -1,4 +1,5 @@
 import { evalla, ValidationError } from '../src/index';
+import Decimal from 'decimal.js';
 
 describe('Keywords as Variable Names', () => {
   test('JavaScript keywords work as variable names', async () => {
@@ -8,9 +9,9 @@ describe('Keywords as Variable Names', () => {
       { name: 'result', expr: 'return + if' }
     ]);
     
-    expect((result.values.return as any).toString()).toBe('10');
-    expect((result.values.if as any).toString()).toBe('20');
-    expect((result.values.result as any).toString()).toBe('30');
+    expect((result.values.return as Decimal).toString()).toBe('10');
+    expect((result.values.if as Decimal).toString()).toBe('20');
+    expect((result.values.result as Decimal).toString()).toBe('30');
     expect(result.order).toEqual(['return', 'if', 'result']);
   });
 
@@ -22,10 +23,10 @@ describe('Keywords as Variable Names', () => {
       { name: 'continue', expr: 'break + 2' }
     ]);
     
-    expect((result.values.while as any).toString()).toBe('5');
-    expect((result.values.for as any).toString()).toBe('3');
-    expect((result.values.break as any).toString()).toBe('15');
-    expect((result.values.continue as any).toString()).toBe('17');
+    expect((result.values.while as Decimal).toString()).toBe('5');
+    expect((result.values.for as Decimal).toString()).toBe('3');
+    expect((result.values.break as Decimal).toString()).toBe('15');
+    expect((result.values.continue as Decimal).toString()).toBe('17');
   });
 
   test('keywords in complex expressions', async () => {
@@ -35,9 +36,9 @@ describe('Keywords as Variable Names', () => {
       { name: 'const', expr: '(function - class) / 2' }
     ]);
     
-    expect((result.values.function as any).toString()).toBe('100');
-    expect((result.values.class as any).toString()).toBe('50');
-    expect((result.values.const as any).toString()).toBe('25');
+    expect((result.values.function as Decimal).toString()).toBe('100');
+    expect((result.values.class as Decimal).toString()).toBe('50');
+    expect((result.values.const as Decimal).toString()).toBe('25');
   });
 
   test('keywords with object literals', async () => {
@@ -46,7 +47,7 @@ describe('Keywords as Variable Names', () => {
       { name: 'export', expr: 'import.x + import.y' }
     ]);
     
-    expect((result.values.export as any).toString()).toBe('30');
+    expect((result.values.export as Decimal).toString()).toBe('30');
   });
 
   test('keywords with namespaces', async () => {
@@ -56,8 +57,8 @@ describe('Keywords as Variable Names', () => {
       { name: 'default', expr: 'switch + case' }
     ]);
     
-    expect((result.values.case as any).toString()).toBe('42');
-    expect((result.values.default as any).toNumber()).toBeCloseTo(45.14159, 3);
+    expect((result.values.case as Decimal).toString()).toBe('42');
+    expect((result.values.default as Decimal).toNumber()).toBeCloseTo(45.14159, 3);
   });
 
   test('reserved literals (true, false, null) are now reserved', async () => {

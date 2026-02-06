@@ -1,4 +1,5 @@
-import { evalla } from '../src/index';
+import { evalla, EvaluationError } from '../src/index';
+import Decimal from 'decimal.js';
 
 describe('Namespaces', () => {
   describe('$math namespace', () => {
@@ -8,8 +9,8 @@ describe('Namespaces', () => {
         { name: 'sqrt2', expr: '$math.SQRT2' }
       ]);
       
-      expect(Math.abs((result.values.pi as any).toNumber() - Math.PI)).toBeLessThan(0.000001);
-      expect(Math.abs((result.values.sqrt2 as any).toNumber() - Math.SQRT2)).toBeLessThan(0.000001);
+      expect(Math.abs((result.values.pi as Decimal).toNumber() - Math.PI)).toBeLessThan(0.000001);
+      expect(Math.abs((result.values.sqrt2 as Decimal).toNumber() - Math.SQRT2)).toBeLessThan(0.000001);
     });
 
     test('functions', async () => {
@@ -21,11 +22,11 @@ describe('Namespaces', () => {
         { name: 'roundVal', expr: '$math.round(4.5)' }
       ]);
       
-      expect((result.values.absVal as any).toString()).toBe('42');
-      expect((result.values.sqrtVal as any).toString()).toBe('4');
-      expect((result.values.floorVal as any).toString()).toBe('4');
-      expect((result.values.ceilVal as any).toString()).toBe('5');
-      expect((result.values.roundVal as any).toString()).toBe('5');
+      expect((result.values.absVal as Decimal).toString()).toBe('42');
+      expect((result.values.sqrtVal as Decimal).toString()).toBe('4');
+      expect((result.values.floorVal as Decimal).toString()).toBe('4');
+      expect((result.values.ceilVal as Decimal).toString()).toBe('5');
+      expect((result.values.roundVal as Decimal).toString()).toBe('5');
     });
 
     test('min and max', async () => {
@@ -34,8 +35,8 @@ describe('Namespaces', () => {
         { name: 'maxVal', expr: '$math.max(10, 5, 20, 3)' }
       ]);
       
-      expect((result.values.minVal as any).toString()).toBe('3');
-      expect((result.values.maxVal as any).toString()).toBe('20');
+      expect((result.values.minVal as Decimal).toString()).toBe('3');
+      expect((result.values.maxVal as Decimal).toString()).toBe('20');
     });
 
     test('with variables', async () => {
@@ -48,8 +49,8 @@ describe('Namespaces', () => {
       const expectedCirc = 2 * Math.PI * 10;
       const expectedArea = Math.PI * 100;
       
-      expect(Math.abs((result.values.circumference as any).toNumber() - expectedCirc)).toBeLessThan(0.000001);
-      expect(Math.abs((result.values.area as any).toNumber() - expectedArea)).toBeLessThan(0.000001);
+      expect(Math.abs((result.values.circumference as Decimal).toNumber() - expectedCirc)).toBeLessThan(0.000001);
+      expect(Math.abs((result.values.area as Decimal).toNumber() - expectedArea)).toBeLessThan(0.000001);
     });
   });
 
@@ -60,8 +61,8 @@ describe('Namespaces', () => {
         { name: 'mm', expr: '$unit.inchToMm(1)' }
       ]);
       
-      expect((result.values.inches as any).toString()).toBe('1');
-      expect((result.values.mm as any).toString()).toBe('25.4');
+      expect((result.values.inches as Decimal).toString()).toBe('1');
+      expect((result.values.mm as Decimal).toString()).toBe('25.4');
     });
   });
 
@@ -72,8 +73,8 @@ describe('Namespaces', () => {
         { name: 'degrees', expr: '$angle.toDeg($math.PI)' }
       ]);
       
-      expect(Math.abs((result.values.radians as any).toNumber() - Math.PI)).toBeLessThan(0.000001);
-      expect(Math.abs((result.values.degrees as any).toNumber() - 180)).toBeLessThan(0.000001);
+      expect(Math.abs((result.values.radians as Decimal).toNumber() - Math.PI)).toBeLessThan(0.000001);
+      expect(Math.abs((result.values.degrees as Decimal).toNumber() - 180)).toBeLessThan(0.000001);
     });
   });
 });

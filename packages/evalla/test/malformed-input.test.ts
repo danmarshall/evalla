@@ -1,4 +1,5 @@
 import { evalla, EvaluationError, ValidationError } from '../src/index';
+import Decimal from 'decimal.js';
 
 describe('Malformed Expression Handling', () => {
   describe('Variable naming rules', () => {
@@ -36,11 +37,11 @@ describe('Malformed Expression Handling', () => {
         { name: 'result2', expr: 'let * await' }
       ]);
       
-      expect((result.values.let as any).toString()).toBe('10');
-      expect((result.values.async as any).toString()).toBe('5');
-      expect((result.values.await as any).toString()).toBe('3');
-      expect((result.values.result1 as any).toString()).toBe('15');
-      expect((result.values.result2 as any).toString()).toBe('30');
+      expect((result.values.let as Decimal).toString()).toBe('10');
+      expect((result.values.async as Decimal).toString()).toBe('5');
+      expect((result.values.await as Decimal).toString()).toBe('3');
+      expect((result.values.result1 as Decimal).toString()).toBe('15');
+      expect((result.values.result2 as Decimal).toString()).toBe('30');
     });
 
     test('reserved words as property names DO work', async () => {
@@ -52,8 +53,8 @@ describe('Malformed Expression Handling', () => {
         { name: 'product', expr: 'obj.new * obj.return' }
       ]);
       
-      expect((result.values.sum as any).toString()).toBe('60');
-      expect((result.values.product as any).toString()).toBe('2000');
+      expect((result.values.sum as Decimal).toString()).toBe('60');
+      expect((result.values.product as Decimal).toString()).toBe('2000');
     });
 
     test('reserved words as object literal keys DO work', async () => {
@@ -63,7 +64,7 @@ describe('Malformed Expression Handling', () => {
         { name: 'total', expr: 'obj.if + obj.while + obj.for + obj.new + obj.class' }
       ]);
       
-      expect((result.values.total as any).toString()).toBe('15');
+      expect((result.values.total as Decimal).toString()).toBe('15');
     });
 
     test('reserved words as variable names do NOT work (parser limitation)', async () => {

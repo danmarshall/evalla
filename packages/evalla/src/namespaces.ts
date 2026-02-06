@@ -22,14 +22,15 @@ export const createNamespaces = () => {
   // $math namespace - mathematical constants and functions
   namespaces.$math = Object.create(null);
   namespaces.$math[NAMESPACE_HEAD_MARKER] = true;
-  namespaces.$math.PI = new Decimal(Math.PI);
-  namespaces.$math.E = new Decimal(Math.E);
-  namespaces.$math.SQRT2 = new Decimal(Math.SQRT2);
-  namespaces.$math.SQRT1_2 = new Decimal(Math.SQRT1_2);
-  namespaces.$math.LN2 = new Decimal(Math.LN2);
-  namespaces.$math.LN10 = new Decimal(Math.LN10);
-  namespaces.$math.LOG2E = new Decimal(Math.LOG2E);
-  namespaces.$math.LOG10E = new Decimal(Math.LOG10E);
+  // Use Decimal.js methods for maximum precision as recommended in docs
+  namespaces.$math.PI = new Decimal(-1).acos(); // Decimal.acos(-1) gives precise PI
+  namespaces.$math.E = new Decimal(1).exp(); // e^1 gives precise E
+  namespaces.$math.SQRT2 = new Decimal(2).sqrt();
+  namespaces.$math.SQRT1_2 = new Decimal(0.5).sqrt();
+  namespaces.$math.LN2 = new Decimal(2).ln();
+  namespaces.$math.LN10 = new Decimal(10).ln();
+  namespaces.$math.LOG2E = namespaces.$math.E.log(2);
+  namespaces.$math.LOG10E = namespaces.$math.E.log(10);
   
   // Safe math functions wrapped with Decimal
   namespaces.$math.abs = (x: any) => toDecimal(x).abs();
@@ -68,8 +69,9 @@ export const createNamespaces = () => {
   // $angle namespace - angle conversions
   namespaces.$angle = Object.create(null);
   namespaces.$angle[NAMESPACE_HEAD_MARKER] = true;
-  namespaces.$angle.toRad = (deg: any) => toDecimal(deg).mul(Math.PI).div(180);
-  namespaces.$angle.toDeg = (rad: any) => toDecimal(rad).mul(180).div(Math.PI);
+  // Use precise PI from $math namespace for angle conversions
+  namespaces.$angle.toRad = (deg: any) => toDecimal(deg).mul(namespaces.$math.PI).div(180);
+  namespaces.$angle.toDeg = (rad: any) => toDecimal(rad).mul(180).div(namespaces.$math.PI);
 
   return namespaces;
 };

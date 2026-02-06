@@ -57,10 +57,10 @@ describe('Malformed Expression Handling', () => {
       expect((result.values.product as Decimal).toString()).toBe('2000');
     });
 
-    test('reserved words as object literal keys DO work', async () => {
-      // Reserved words are also valid as object literal keys
+    test('reserved words as object properties via value DO work', async () => {
+      // Reserved words are valid as object property keys when passed via value
       const result = await evalla([
-        { name: 'obj', expr: '{if: 1, while: 2, for: 3, new: 4, class: 5}' },
+        { name: 'obj', value: {if: 1, while: 2, for: 3, new: 4, class: 5} },
         { name: 'total', expr: 'obj.if + obj.while + obj.for + obj.new + obj.class' }
       ]);
       

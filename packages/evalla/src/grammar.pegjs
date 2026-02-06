@@ -138,7 +138,6 @@ ArgumentList
 PrimaryExpression
   = Literal
   / ArrayLiteral
-  / ObjectLiteral
   / Identifier
   / "(" _ expr:Expression _ ")" { return expr; }
 
@@ -164,35 +163,7 @@ BooleanLiteral
 NullLiteral
   = "null" ![a-zA-Z0-9_$] { return { type: 'Literal', value: null, raw: 'null' }; }
 
-StringLiteral
-  = '"' chars:DoubleStringCharacter* '"' {
-      return {
-        type: 'Literal',
-        value: chars.join(''),
-        raw: '"' + chars.join('') + '"'
-      };
-    }
-  / "'" chars:SingleStringCharacter* "'" {
-      return {
-        type: 'Literal',
-        value: chars.join(''),
-        raw: "'" + chars.join('') + "'"
-      };
-    }
 
-DoubleStringCharacter
-  = !["\\] char:. { return char; }
-  / "\\" sequence:EscapeSequence { return sequence; }
-
-SingleStringCharacter
-  = !['\\] char:. { return char; }
-  / "\\" sequence:EscapeSequence { return sequence; }
-
-EscapeSequence
-  = "n" { return "\n"; }
-  / "r" { return "\r"; }
-  / "t" { return "\t"; }
-  / char:. { return char; }
 
 // Array literals
 ArrayLiteral
@@ -208,37 +179,7 @@ ElementList
       return [head].concat(tail.map(t => t[3]));
     }
 
-// Object literals
-ObjectLiteral
-  = "{" _ properties:PropertyList? _ "}" {
-      return {
-        type: 'ObjectExpression',
-        properties: properties || []
-      };
-    }
 
-PropertyList
-  = head:Property tail:(_ "," _ Property)* {
-      return [head].concat(tail.map(t => t[3]));
-    }
-
-Property
-  = key:PropertyKey _ ":" _ value:Expression {
-      return {
-        type: 'Property',
-        key: key,
-        value: value,
-        kind: 'init',
-        method: false,
-        shorthand: false,
-        computed: false
-      };
-    }
-
-PropertyKey
-  = Identifier
-  / StringLiteral
-  / NumericLiteral
 
 // Identifiers - NO KEYWORD RESTRICTIONS
 // This is the key difference from JavaScript - all identifiers are allowed

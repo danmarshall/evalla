@@ -1528,3 +1528,114 @@ The question "where do we stand on booleans in outputs?" is directly tied to the
 → Use 1/0 convention, don't need `true`/`false` as reserved names
 
 **The maintainer's example ("is it steep?") suggests:** Boolean output would be more natural and useful, which implies **Option A**.
+
+## API Consistency: $ Prefix for Namespaces vs Reserved Values
+
+### The Maintainer's Concern
+
+**"I'm kind of an API nut - and I like consistency. Since we have reserved values, it makes me think that our namespaces might just lose the $ prefix. But they're namespaces, not values."**
+
+This raises an important design question about the `$` prefix convention.
+
+### Current Design
+
+**With `$` prefix:**
+- `$math`, `$unit`, `$angle` - Namespaces (contain functions/constants)
+- `true`, `false`, `null`, `Infinity` - Reserved values (standalone values)
+
+**Without `$` prefix:**
+- Both would look similar: `math.PI`, `unit.mmToInch()`, `true`, `false`
+
+### Why the Distinction Makes Sense
+
+**Namespaces (`$` prefix):**
+- Are **containers** of functions and constants
+- Accessed via dot notation: `$math.PI`, `$math.sqrt(x)`
+- Cannot be used standalone: `$math` alone is meaningless
+- Cannot be in comparisons: `x < $math` is nonsensical
+
+**Reserved values (no `$` prefix):**
+- Are **standalone values** - complete entities
+- Used directly: `true`, `false`, `Infinity`
+- Can be in comparisons: `x < Infinity` makes sense
+- Can be assigned: `{ name: 'flag', expr: 'true' }`
+
+### The Conceptual Model
+
+```
+evalla concepts:
+
+1. User variables (no prefix)
+   - Examples: x, radius, slope, return, if
+   - Defined by users
+   - Can be any identifier (including JS keywords)
+
+2. Namespaces ($ prefix)
+   - Examples: $math, $unit, $angle
+   - System-provided containers
+   - Cannot be used as values
+   - Accessed via dot notation only
+
+3. Reserved values (no prefix)
+   - Examples: true, false, null, Infinity
+   - System-provided fundamental values
+   - Cannot be redefined by users
+   - Can be used as values, in comparisons, etc.
+```
+
+### Why `$true` Feels Different
+
+**The maintainer noted:** "Like we could have used $true - but that felt different."
+
+**Why it feels different:**
+- `$true` suggests a namespace member (like `$math.PI`)
+- But `true` is a standalone value, not a member of anything
+- `true` is more fundamental than even `$math.PI`
+- The lack of `$` elevates it to "core language value" status
+
+**Consistency check:**
+```typescript
+// These feel right:
+$math.PI         // Member of math namespace ✅
+$unit.mmToInch   // Member of unit namespace ✅
+true             // Fundamental value ✅
+Infinity         // Fundamental value ✅
+
+// These feel wrong:
+$true            // True is not a namespace member ❌
+$false           // False is not a namespace member ❌
+math.PI          // Without $, looks like user variable ❌
+```
+
+### The `$` Convention Is Actually Consistent
+
+**Rule:** `$` prefix indicates **system-provided namespaces**, not individual values.
+
+- Values in namespaces: `$math.PI` (has `$`)
+- Standalone reserved values: `true`, `Infinity` (no `$`)
+- User variables: `x`, `slope`, `return` (no `$`)
+
+This is **clean and justified**:
+- `$` marks system **containers**
+- No `$` for standalone values (system or user)
+- Clear semantic distinction
+
+### Side Note: Namespace Heads in Comparisons
+
+**Important constraint to document:**
+
+**ILLEGAL:** Using namespace heads (without member access) in comparisons
+```typescript
+{ name: 'bad', expr: 'x < $math' }       // ❌ Illegal - namespace, not value
+{ name: 'bad', expr: '$unit > 5' }       // ❌ Illegal - namespace, not value
+```
+
+**LEGAL:** Using namespace members
+```typescript
+{ name: 'good', expr: 'x < $math.PI' }   // ✅ OK - accessing value
+{ name: 'good', expr: '$math.sqrt(x) > 0' }  // ✅ OK - function result
+```
+
+**Reason:** Namespaces are containers, not values. Only their members can be used in expressions.
+
+**Implementation:** This should throw a clear error if attempted.

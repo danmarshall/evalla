@@ -91,8 +91,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   }
 
   // Check if name is a valid identifier (must match: [a-zA-Z_$][a-zA-Z0-9_$]*)
-  // This ensures the name can be referenced in expressions
-  // This is a catch-all for any other invalid characters
+  // This ensures the name can be referenced in expressions (catch-all for invalid characters)
   if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name)) {
     return {
       valid: false,

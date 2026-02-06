@@ -179,11 +179,11 @@ Comparisons return `true` or `false`:
 ```typescript
 const result = await evalla([
   { name: 'slope', expr: '0.75' },
-  { name: 'isSteeep', expr: 'slope > 0.5' }  // Returns boolean true
+  { name: 'isSteep', expr: 'slope > 0.5' }  // Returns boolean true
 ]);
 
-console.log(result.values.isSteeep); // true
-console.log(typeof result.values.isSteeep); // "boolean"
+console.log(result.values.isSteep); // true
+console.log(typeof result.values.isSteep); // "boolean"
 ```
 
 All comparison operators return boolean:

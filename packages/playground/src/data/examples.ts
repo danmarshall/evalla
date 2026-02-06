@@ -220,8 +220,8 @@ export const examples: Record<string, Example> = {
       { name: 'rise', expr: '15' },
       { name: 'run', expr: '20' },
       { name: 'slope', expr: 'rise / run' },
-      { name: 'isSteeep', expr: 'slope > 0.5' },
-      { name: 'label', expr: 'isSteeep ? slope : null' }
+      { name: 'isSteep', expr: 'slope > 0.5' },
+      { name: 'label', expr: 'isSteep ? slope : null' }
     ]
   },
   booleanComparisons: {

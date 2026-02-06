@@ -6,6 +6,14 @@ const toDecimal = (x: any): Decimal => {
   return new Decimal(x);
 };
 
+// Symbol to mark namespace head objects
+const NAMESPACE_HEAD_MARKER = Symbol('NAMESPACE_HEAD');
+
+// Check if a value is a namespace head
+export const isNamespaceHead = (value: any): boolean => {
+  return value != null && typeof value === 'object' && value[NAMESPACE_HEAD_MARKER] === true;
+};
+
 // Safe, whitelisted namespaces only - security first
 export const createNamespaces = () => {
   // Use Object.create(null) to prevent prototype pollution
@@ -13,6 +21,7 @@ export const createNamespaces = () => {
 
   // $math namespace - mathematical constants and functions
   namespaces.$math = Object.create(null);
+  namespaces.$math[NAMESPACE_HEAD_MARKER] = true;
   namespaces.$math.PI = new Decimal(Math.PI);
   namespaces.$math.E = new Decimal(Math.E);
   namespaces.$math.SQRT2 = new Decimal(Math.SQRT2);
@@ -48,6 +57,7 @@ export const createNamespaces = () => {
 
   // $unit namespace - unit conversions
   namespaces.$unit = Object.create(null);
+  namespaces.$unit[NAMESPACE_HEAD_MARKER] = true;
   namespaces.$unit.mmToInch = (x: any) => toDecimal(x).div(25.4);
   namespaces.$unit.inchToMm = (x: any) => toDecimal(x).mul(25.4);
   namespaces.$unit.cmToInch = (x: any) => toDecimal(x).div(2.54);
@@ -57,6 +67,7 @@ export const createNamespaces = () => {
 
   // $angle namespace - angle conversions
   namespaces.$angle = Object.create(null);
+  namespaces.$angle[NAMESPACE_HEAD_MARKER] = true;
   namespaces.$angle.toRad = (deg: any) => toDecimal(deg).mul(Math.PI).div(180);
   namespaces.$angle.toDeg = (rad: any) => toDecimal(rad).mul(180).div(Math.PI);
 

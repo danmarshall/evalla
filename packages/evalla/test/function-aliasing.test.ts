@@ -1,4 +1,4 @@
-import { evalla, SecurityError } from '../src/index';
+import { evalla, SecurityError, EvaluationError } from '../src/index';
 import Decimal from 'decimal.js';
 
 describe('Function Aliasing Prevention', () => {
@@ -37,12 +37,13 @@ describe('Function Aliasing Prevention', () => {
   });
 
   test('should not allow indirect aliasing through object property', async () => {
+    // This now fails because namespace heads cannot be used as values
     await expect(
       evalla([
         { name: 'mathObj', expr: '$math' },
         { name: 'fn', expr: 'mathObj.abs' }
       ])
-    ).rejects.toThrow(SecurityError);
+    ).rejects.toThrow(EvaluationError);
   });
 
   test('should not allow using aliased functions', async () => {

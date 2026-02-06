@@ -1,142 +1,25 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, Play } from 'lucide-react';
 import { examples, type Expression } from '../data/examples';
 
 export default function PlaygroundApp() {
   const [expressions, setExpressions] = useState<Expression[]>([
-    { name: 'a', expr: '10', mode: 'expr' },
-    { name: 'b', expr: 'a * 2', mode: 'expr' },
-    { name: 'c', expr: 'a + b', mode: 'expr' }
+    { name: 'a', expr: '10' },
+    { name: 'b', expr: 'a * 2' },
+    { name: 'c', expr: 'a + b' }
   ]);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorIndex, setErrorIndex] = useState<number | null>(null);
-  const [syntaxErrors, setSyntaxErrors] = useState<Map<number, string>>(new Map());
-  const [nameErrors, setNameErrors] = useState<Map<number, string>>(new Map());
-  
-  // Store debounce timeouts per expression index
-  const debounceTimeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
-  const nameDebounceTimeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
-  // Store check functions in ref to avoid module-level state
-  const checkSyntaxFn = useRef<((expr: string) => { valid: boolean; error?: string }) | null>(null);
-  const checkVariableNameFn = useRef<((name: string) => { valid: boolean; error?: string }) | null>(null);
 
-  // Load check functions on mount
-  useEffect(() => {
-    import('evalla').then(({ checkSyntax, checkVariableName }) => {
-      checkSyntaxFn.current = checkSyntax;
-      checkVariableNameFn.current = checkVariableName;
-    }).catch(err => {
-      console.error('Failed to load validation functions:', err);
-    });
-  }, []);
-
-  // Helper function to get input field styling based on error state
-  const getInputClassName = (hasValidationError: boolean, index: number) => {
-    const baseClasses = 'w-full px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2';
-    if (hasValidationError) {
-      return `${baseClasses} border-orange-400 bg-orange-50 focus:ring-orange-500`;
-    }
-    if (errorIndex === index) {
-      return `${baseClasses} border-red-300 bg-white focus:ring-blue-500`;
-    }
-    return `${baseClasses} border-gray-300 bg-white focus:ring-blue-500`;
-  };
-
-  const updateExpression = (index: number, field: 'name' | 'expr' | 'value', value: string) => {
+  const updateExpression = (index: number, field: 'name' | 'expr', value: string) => {
     const newExpressions = [...expressions];
-    if (field === 'value') {
-      // Parse JSON for value field
-      try {
-        newExpressions[index].value = JSON.parse(value);
-      } catch (e) {
-        // Keep as string if not valid JSON yet
-        newExpressions[index].value = value;
-      }
-    } else {
-      newExpressions[index][field] = value;
-    }
+    newExpressions[index][field] = value;
     setExpressions(newExpressions);
-
-    // Check variable name in real-time with debouncing
-    if (field === 'name') {
-      // Clear existing timeout for this name field
-      const existingTimeout = nameDebounceTimeouts.current.get(index);
-      if (existingTimeout) {
-        clearTimeout(existingTimeout);
-      }
-
-      if (!value.trim()) {
-        // Clear name error when name is cleared
-        const newNameErrors = new Map(nameErrors);
-        newNameErrors.delete(index);
-        setNameErrors(newNameErrors);
-        return;
-      }
-
-      // Debounce name check (300ms delay)
-      const timeout = setTimeout(() => {
-        if (!checkVariableNameFn.current) {
-          return; // checkVariableName not loaded yet
-        }
-
-        const nameResult = checkVariableNameFn.current(value);
-        
-        setNameErrors(prev => {
-          const newNameErrors = new Map(prev);
-          if (!nameResult.valid) {
-            newNameErrors.set(index, nameResult.error || 'Invalid variable name');
-          } else {
-            newNameErrors.delete(index);
-          }
-          return newNameErrors;
-        });
-      }, 300);
-
-      nameDebounceTimeouts.current.set(index, timeout);
-    }
-
-    // Check syntax for expression field in real-time with debouncing
-    if (field === 'expr') {
-      // Clear existing timeout for this expression
-      const existingTimeout = debounceTimeouts.current.get(index);
-      if (existingTimeout) {
-        clearTimeout(existingTimeout);
-      }
-
-      if (!value.trim()) {
-        // Clear syntax error when expression is cleared
-        const newSyntaxErrors = new Map(syntaxErrors);
-        newSyntaxErrors.delete(index);
-        setSyntaxErrors(newSyntaxErrors);
-        return;
-      }
-
-      // Debounce syntax check (300ms delay)
-      const timeout = setTimeout(() => {
-        if (!checkSyntaxFn.current) {
-          return; // checkSyntax not loaded yet
-        }
-
-        const syntaxResult = checkSyntaxFn.current(value);
-        
-        setSyntaxErrors(prev => {
-          const newSyntaxErrors = new Map(prev);
-          if (!syntaxResult.valid) {
-            newSyntaxErrors.set(index, syntaxResult.error || 'Syntax error');
-          } else {
-            newSyntaxErrors.delete(index);
-          }
-          return newSyntaxErrors;
-        });
-      }, 300);
-
-      debounceTimeouts.current.set(index, timeout);
-    }
   };
 
-  const addExpression = (mode: 'expr' | 'value' = 'expr') => {
-    setExpressions([...expressions, { name: '', expr: mode === 'expr' ? '' : undefined, value: mode === 'value' ? '' : undefined, mode }]);
+  const addExpression = () => {
+    setExpressions([...expressions, { name: '', expr: '' }]);
   };
 
   const removeExpression = (index: number) => {
@@ -147,17 +30,10 @@ export default function PlaygroundApp() {
   const loadExample = (key: string) => {
     const example = examples[key];
     if (example) {
-      // Ensure mode is set for each expression
-      const examplesWithMode = example.expressions.map(e => ({
-        ...e,
-        mode: e.mode || (e.expr !== undefined ? 'expr' : 'value') as 'expr' | 'value'
-      }));
-      setExpressions(examplesWithMode);
+      setExpressions(example.expressions);
       setResult(null);
       setError(null);
       setErrorIndex(null);
-      setSyntaxErrors(new Map());
-      setNameErrors(new Map());
     }
   };
 
@@ -169,29 +45,7 @@ export default function PlaygroundApp() {
       // Dynamic import to avoid SSR issues
       const { evalla } = await import('evalla');
 
-      // Filter out expressions without names and prepare for evalla
-      const validExpressions = expressions
-        .filter(e => e.name.trim())
-        .map(e => {
-          if (e.mode === 'value') {
-            // For value mode, parse JSON if it's a string
-            let parsedValue = e.value;
-            if (typeof e.value === 'string' && e.value.trim()) {
-              try {
-                parsedValue = JSON.parse(e.value);
-              } catch (err) {
-                throw new Error(`Invalid JSON for "${e.name}": ${e.value}`);
-              }
-            }
-            return { name: e.name, value: parsedValue };
-          } else {
-            // For expression mode
-            if (!e.expr || !e.expr.trim()) {
-              throw new Error(`Expression for "${e.name}" is empty`);
-            }
-            return { name: e.name, expr: e.expr };
-          }
-        });
+      const validExpressions = expressions.filter(e => e.name.trim() && e.expr.trim());
 
       if (validExpressions.length === 0) {
         setError('Please add at least one expression');
@@ -239,61 +93,31 @@ export default function PlaygroundApp() {
           {/* Desktop header */}
           <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 mb-2 text-sm font-medium text-gray-600">
             <div>Name</div>
-            <div>Expression / Value (JSON)</div>
+            <div>Expression</div>
             <div className="w-[90px]"></div>
           </div>
           <div className="space-y-4 sm:space-y-2">
-            {expressions.map((expr, index) => {
-              const mode = expr.mode || (expr.expr !== undefined ? 'expr' : 'value');
-              const isValueMode = mode === 'value';
-              const hasSyntaxError = syntaxErrors.has(index);
-              const hasNameError = nameErrors.has(index);
-              
-              return (
+            {expressions.map((expr, index) => (
               <div
                 key={index}
                 className={`${errorIndex === index ? 'bg-red-50 -mx-2 px-2 py-1 rounded' : ''}`}
               >
                 {/* Desktop layout */}
-                <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 items-start">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder="e.g. radius"
-                      value={expr.name}
-                      onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                      className={getInputClassName(hasNameError, index)}
-                    />
-                    {hasNameError && (
-                      <div className="text-xs text-orange-600 mt-1">{nameErrors.get(index)}</div>
-                    )}
-                  </div>
-                  {isValueMode ? (
-                    <div className="space-y-1">
-                      <textarea
-                        placeholder='e.g. {"x": 10, "y": 20}'
-                        value={typeof expr.value === 'string' ? expr.value : JSON.stringify(expr.value, null, 2)}
-                        onChange={(e) => updateExpression(index, 'value', e.target.value)}
-                        rows={3}
-                        className={getInputClassName(false, index)}
-                      />
-                      <div className="text-xs text-gray-500 italic">Value mode (JSON)</div>
-                    </div>
-                  ) : (
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        placeholder="e.g. a + b"
-                        value={expr.expr || ''}
-                        onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                        className={getInputClassName(hasSyntaxError, index)}
-                      />
-                      {hasSyntaxError && (
-                        <div className="text-xs text-orange-600 mt-1">{syntaxErrors.get(index)}</div>
-                      )}
-                      <div className="text-xs text-gray-500 italic">Expression mode</div>
-                    </div>
-                  )}
+                <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 items-center">
+                  <input
+                    type="text"
+                    placeholder="e.g. radius"
+                    value={expr.name}
+                    onChange={(e) => updateExpression(index, 'name', e.target.value)}
+                    className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'}`}
+                  />
+                  <input
+                    type="text"
+                    placeholder="e.g. a + b"
+                    value={expr.expr}
+                    onChange={(e) => updateExpression(index, 'expr', e.target.value)}
+                    className={`px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'}`}
+                  />
                   <button
                     onClick={() => removeExpression(index)}
                     className="w-24 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
@@ -305,47 +129,25 @@ export default function PlaygroundApp() {
                 {/* Mobile layout */}
                 <div className="sm:hidden flex gap-2">
                   <div className="flex-1 space-y-1">
-                    <div className="flex gap-2 items-start">
-                      <label className="text-xs font-medium text-gray-600 w-12 mt-2">Name</label>
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          placeholder="e.g. radius"
-                          value={expr.name}
-                          onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                          className={getInputClassName(hasNameError, index).replace('w-full', 'flex-1')}
-                        />
-                        {hasNameError && (
-                          <div className="text-xs text-orange-600 mt-1">{nameErrors.get(index)}</div>
-                        )}
-                      </div>
+                    <div className="flex gap-2 items-center">
+                      <label className="text-xs font-medium text-gray-600 w-12">Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. radius"
+                        value={expr.name}
+                        onChange={(e) => updateExpression(index, 'name', e.target.value)}
+                        className={`flex-1 px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'}`}
+                      />
                     </div>
-                    <div className="flex gap-2 items-start">
-                      <label className="text-xs font-medium text-gray-600 w-12 mt-2">{isValueMode ? 'Value' : 'Expr'}</label>
-                      {isValueMode ? (
-                        <div className="flex-1">
-                          <textarea
-                            placeholder='{"x": 10}'
-                            value={typeof expr.value === 'string' ? expr.value : JSON.stringify(expr.value, null, 2)}
-                            onChange={(e) => updateExpression(index, 'value', e.target.value)}
-                            rows={3}
-                            className={getInputClassName(false, index).replace('w-full', 'flex-1')}
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex-1">
-                          <input
-                            type="text"
-                            placeholder="e.g. a + b"
-                            value={expr.expr || ''}
-                            onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                            className={getInputClassName(hasSyntaxError, index).replace('w-full', 'flex-1')}
-                          />
-                          {hasSyntaxError && (
-                            <div className="text-xs text-orange-600 mt-1">{syntaxErrors.get(index)}</div>
-                          )}
-                        </div>
-                      )}
+                    <div className="flex gap-2 items-center">
+                      <label className="text-xs font-medium text-gray-600 w-12">Expr</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. a + b"
+                        value={expr.expr}
+                        onChange={(e) => updateExpression(index, 'expr', e.target.value)}
+                        className={`flex-1 px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${errorIndex === index ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'}`}
+                      />
                     </div>
                   </div>
                   <button
@@ -356,22 +158,15 @@ export default function PlaygroundApp() {
                   </button>
                 </div>
               </div>
-            )})}
+            ))}
           </div>
-          <div className="flex justify-end gap-2 mt-3">
+          <div className="flex justify-end mt-3">
             <button
-              onClick={() => addExpression('expr')}
-              className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+              onClick={addExpression}
+              className="w-24 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
             >
               <Plus size={16} />
-              <span>Add Expression</span>
-            </button>
-            <button
-              onClick={() => addExpression('value')}
-              className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
-            >
-              <Plus size={16} />
-              <span>Add Value</span>
+              <span>Add</span>
             </button>
           </div>
 

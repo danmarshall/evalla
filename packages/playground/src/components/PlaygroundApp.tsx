@@ -209,12 +209,18 @@ export default function PlaygroundApp() {
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(result.values).map(([name, value]: [string, any]) => (
-                    <tr key={name}>
-                      <td className="py-2 px-2 font-mono text-gray-700">{name}</td>
-                      <td className="py-2 px-2 font-mono text-green-700 font-semibold break-all">{value.toString()}</td>
-                    </tr>
-                  ))}
+                  {Object.entries(result.values).map(([name, value]: [string, any]) => {
+                    // Handle different value types: Decimal, boolean, null
+                    const displayValue = value === null ? 'null' : 
+                                        typeof value === 'boolean' ? String(value) :
+                                        value.toString();
+                    return (
+                      <tr key={name}>
+                        <td className="py-2 px-2 font-mono text-gray-700">{name}</td>
+                        <td className="py-2 px-2 font-mono text-green-700 font-semibold break-all">{displayValue}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
               <div className="mt-4 text-gray-600 text-xs sm:text-sm italic">

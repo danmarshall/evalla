@@ -1,4 +1,5 @@
 import { evalla } from '../src/index';
+import Decimal from 'decimal.js';
 
 describe('Value Property', () => {
   test('direct object value', async () => {
@@ -7,7 +8,7 @@ describe('Value Property', () => {
       { name: 'sum', expr: 'point.x + point.y' }
     ]);
     
-    expect(result.values.sum.toString()).toBe('30');
+    expect((result.values.sum as Decimal).toString()).toBe('30');
   });
 
   test('direct number value', async () => {
@@ -17,7 +18,7 @@ describe('Value Property', () => {
       { name: 'c', expr: 'a + b' }
     ]);
     
-    expect(result.values.c.toString()).toBe('30');
+    expect((result.values.c as Decimal).toString()).toBe('30');
   });
 
   test('mixed with expr', async () => {
@@ -27,7 +28,7 @@ describe('Value Property', () => {
       { name: 'area', expr: 'width * height' }
     ]);
     
-    expect(result.values.area.toString()).toBe('5000');
+    expect((result.values.area as Decimal).toString()).toBe('5000');
   });
 
   test('complex object without stringification', async () => {
@@ -45,7 +46,7 @@ describe('Value Property', () => {
       { name: 'scaledHeight', expr: 'box.dimensions.height * box.scale' }
     ]);
     
-    expect(result.values.scaledWidth.toString()).toBe('200');
-    expect(result.values.scaledHeight.toString()).toBe('100');
+    expect((result.values.scaledWidth as Decimal).toString()).toBe('200');
+    expect((result.values.scaledHeight as Decimal).toString()).toBe('100');
   });
 });

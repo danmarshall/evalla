@@ -213,5 +213,65 @@ export const examples: Record<string, Example> = {
       { name: 'price', expr: '19.99' },
       { name: 'taxRate', expr: '0.08' }
     ]
+  },
+  booleanSlope: {
+    name: 'Boolean - Is it steep?',
+    expressions: [
+      { name: 'rise', expr: '15' },
+      { name: 'run', expr: '20' },
+      { name: 'slope', expr: 'rise / run' },
+      { name: 'isSteep', expr: 'slope > 0.5' },
+      { name: 'label', expr: 'isSteep ? slope : null' }
+    ]
+  },
+  booleanComparisons: {
+    name: 'Boolean - Comparisons',
+    expressions: [
+      { name: 'a', expr: '10' },
+      { name: 'b', expr: '20' },
+      { name: 'less', expr: 'a < b' },
+      { name: 'greater', expr: 'a > b' },
+      { name: 'equal', expr: 'a = b' },
+      { name: 'notEqual', expr: 'a != b' }
+    ]
+  },
+  booleanLogic: {
+    name: 'Boolean - Logical ops',
+    expressions: [
+      { name: 'x', expr: '15' },
+      { name: 'inRange', expr: 'x > 10 && x < 20' },
+      { name: 'outOfRange', expr: 'x < 10 || x > 20' },
+      { name: 'valid', expr: '!outOfRange' }
+    ]
+  },
+  equalityOperators: {
+    name: 'Equality - Single & double',
+    expressions: [
+      { name: 'x', expr: '5' },
+      { name: 'y', expr: '5' },
+      { name: 'z', expr: '10' },
+      { name: 'singleEq', expr: 'x = y' },
+      { name: 'doubleEq', expr: 'x == y' },
+      { name: 'calculated', expr: '(x + 5) = z' }
+    ]
+  },
+  reservedValues: {
+    name: 'Reserved values in action',
+    expressions: [
+      { name: 'enabled', expr: 'true' },
+      { name: 'disabled', expr: 'false' },
+      { name: 'missing', expr: 'null' },
+      { name: 'result', expr: 'enabled && !disabled' },
+      { name: 'fallback', expr: 'missing ?? 42' }
+    ]
+  },
+  ternaryBoolean: {
+    name: 'Ternary with boolean branches',
+    expressions: [
+      { name: 'score', expr: '85' },
+      { name: 'passed', expr: 'score >= 60 ? true : false' },
+      { name: 'grade', expr: 'score >= 90 ? 100 : score' },
+      { name: 'bonus', expr: 'score >= 90 ? 10 : null' }
+    ]
   }
 };

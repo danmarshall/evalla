@@ -21,6 +21,7 @@ console.log(result.order);               // ['c', 'a', 'b']
 ## Features
 
 - ✅ **Decimal Precision**: Uses [decimal.js](https://mikemcl.github.io/decimal.js/) internally for accurate arithmetic
+- ✅ **Boolean & Null Output**: Results can be `Decimal`, `boolean`, or `null` for natural mathematical expressions
 - ✅ **Variable References**: Support dependencies between expressions
 - ✅ **Dot-Traversal**: Reference nested properties (e.g., `point.x`, `offset.y`)
 - ✅ **Topological Ordering**: Evaluates in correct dependency order (DAG)
@@ -75,10 +76,15 @@ const result = await evalla([
 
 ```typescript
 interface EvaluationResult {
-  values: Record<string, Decimal>;  // Computed values as Decimal objects
-  order: string[];                  // Evaluation order (topologically sorted)
+  values: Record<string, Decimal | boolean | null>;  // Computed values
+  order: string[];                                   // Evaluation order (topologically sorted)
 }
 ```
+
+Results can be:
+- **Decimal**: Numeric values with arbitrary precision
+- **boolean**: Results from comparisons (`a > b`) or boolean literals (`true`, `false`)
+- **null**: The null literal or null branches in ternary expressions
 
 ## Examples
 
@@ -133,6 +139,121 @@ const result = await evalla([
 
 console.log(result.values.scaledX.toString()); // "10"
 ```
+
+## Reserved Values
+
+**Algebra, not code:** evalla is designed for natural mathematical expressions, not programming. A few special values are reserved as first-class mathematical primitives and cannot be used as variable names:
+
+- `true` - Boolean true value
+- `false` - Boolean false value  
+- `null` - Null value (for missing/undefined results)
+- `Infinity` - Mathematical infinity
+
+These reserved values allow evalla to return boolean results from comparisons and handle edge cases naturally, just like in mathematical notation.
+
+```typescript
+// ❌ Cannot use reserved values as variable names
+await evalla([{ name: 'true', expr: '10' }]);     // ValidationError
+await evalla([{ name: 'false', expr: '10' }]);    // ValidationError
+await evalla([{ name: 'null', expr: '10' }]);     // ValidationError
+await evalla([{ name: 'Infinity', expr: '10' }]); // ValidationError
+
+// ✅ Can use them as values
+const result = await evalla([
+  { name: 'isValid', expr: 'true' },
+  { name: 'isEmpty', expr: 'false' },
+  { name: 'missing', expr: 'null' }
+]);
+```
+
+**Why reserve these?** Unlike programming keywords (which evalla allows as variable names), these mathematical primitives need special handling to support boolean logic and comparisons as first-class results.
+
+## Boolean Output
+
+Results can now be boolean values, not just numbers. This enables natural mathematical questions:
+
+### Standalone Comparisons
+
+Comparisons return `true` or `false`:
+
+```typescript
+const result = await evalla([
+  { name: 'slope', expr: '0.75' },
+  { name: 'isSteep', expr: 'slope > 0.5' }  // Returns boolean true
+]);
+
+console.log(result.values.isSteep); // true
+console.log(typeof result.values.isSteep); // "boolean"
+```
+
+All comparison operators return boolean:
+- `<`, `>`, `<=`, `>=` - Numeric comparisons
+- `=`, `==` - Equality (both work the same)
+- `!=` - Inequality
+- `&&`, `||`, `!` - Logical operators
+
+### Boolean Branches in Ternary
+
+Ternary expressions can have boolean or null branches:
+
+```typescript
+const result = await evalla([
+  { name: 'score', expr: '85' },
+  { name: 'passed', expr: 'score >= 60 ? true : false' },
+  { name: 'bonus', expr: 'score >= 90 ? 10 : null' }
+]);
+
+console.log(result.values.passed);  // true (boolean)
+console.log(result.values.bonus);   // null
+```
+
+### Boolean Literals
+
+Use `true` and `false` directly:
+
+```typescript
+const result = await evalla([
+  { name: 'enabled', expr: 'true' },
+  { name: 'disabled', expr: 'false' },
+  { name: 'result', expr: 'enabled && !disabled' }
+]);
+
+console.log(result.values.result); // true
+```
+
+## Equality Operators
+
+evalla supports two equality operators that work identically:
+
+### Single Equals `=` (Algebraic)
+
+In mathematics, `=` tests equality. evalla follows this convention:
+
+```typescript
+const result = await evalla([
+  { name: 'x', expr: '5' },
+  { name: 'y', expr: '5' },
+  { name: 'equal', expr: 'x = y' }  // Algebraic equality
+]);
+
+console.log(result.values.equal); // true
+```
+
+### Double Equals `==` (Programmer-Friendly)
+
+For programmers familiar with `==`, it works exactly the same:
+
+```typescript
+const result = await evalla([
+  { name: 'a', expr: '10' },
+  { name: 'b', expr: '20' },
+  { name: 'test', expr: '(a + 10) == b' }
+]);
+
+console.log(result.values.test); // true
+```
+
+**No loose vs. strict:** Unlike JavaScript, there's no distinction between `==` and `===` in evalla. Both `=` and `==` perform the same strict equality check. Use whichever feels more natural.
 
 ### Namespaces
 
@@ -202,6 +323,8 @@ try {
 ### Variable naming
 
 Variables may not begin with a number, double underscore(__), or $ (see namespaces above).
+
+Variables cannot use reserved values: `true`, `false`, `null`, `Infinity` (see [Reserved Values](#reserved-values)).
 
 #### Keywords as Variable Names
 

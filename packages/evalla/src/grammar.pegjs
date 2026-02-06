@@ -56,7 +56,7 @@ LogicalAndExpression
 
 // Equality operators
 EqualityExpression
-  = head:RelationalExpression tail:(_ ("===" / "!==" / "==" / "!=") _ RelationalExpression)* {
+  = head:RelationalExpression tail:(_ ("!=" / "==" / "=") _ RelationalExpression)* {
       return buildBinaryExpression(head, tail);
     }
 
@@ -147,7 +147,6 @@ Literal
   = NumericLiteral
   / BooleanLiteral
   / NullLiteral
-  / StringLiteral
 
 NumericLiteral
   = raw:$([0-9]+ ("." [0-9]+)? ([eE] [+-]? [0-9]+)?) {
@@ -159,11 +158,11 @@ NumericLiteral
     }
 
 BooleanLiteral
-  = "true" { return { type: 'Literal', value: true, raw: 'true' }; }
-  / "false" { return { type: 'Literal', value: false, raw: 'false' }; }
+  = "true" ![a-zA-Z0-9_$] { return { type: 'Literal', value: true, raw: 'true' }; }
+  / "false" ![a-zA-Z0-9_$] { return { type: 'Literal', value: false, raw: 'false' }; }
 
 NullLiteral
-  = "null" { return { type: 'Literal', value: null, raw: 'null' }; }
+  = "null" ![a-zA-Z0-9_$] { return { type: 'Literal', value: null, raw: 'null' }; }
 
 StringLiteral
   = '"' chars:DoubleStringCharacter* '"' {
@@ -244,16 +243,12 @@ PropertyKey
 // Identifiers - NO KEYWORD RESTRICTIONS
 // This is the key difference from JavaScript - all identifiers are allowed
 Identifier
-  = !ReservedLiteral name:$([a-zA-Z_$] [a-zA-Z0-9_$]*) {
+  = name:$([a-zA-Z_$] [a-zA-Z0-9_$]*) {
       return {
         type: 'Identifier',
         name: name
       };
     }
-
-// Reserved literals that cannot be identifiers
-ReservedLiteral
-  = ("true" / "false" / "null") ![a-zA-Z0-9_$]
 
 // Whitespace (including newlines)
 _ "whitespace"

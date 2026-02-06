@@ -42,6 +42,9 @@ export const evaluateExpression = async (
       return new Decimal(result);
     } else if (typeof result === 'string' && !isNaN(Number(result))) {
       return new Decimal(result);
+    } else if (typeof result === 'boolean' || result === null) {
+      // Boolean and null values pass through
+      return result;
     } else {
       // Return as-is for objects, arrays, etc.
       return result;

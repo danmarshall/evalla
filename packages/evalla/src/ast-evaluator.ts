@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js';
 import { SecurityError, EvaluationError } from './errors.js';
+import { isNamespaceHead } from './namespaces.js';
 
 // Dangerous properties that should never be accessible
 const DANGEROUS_PROPERTIES = new Set([
@@ -130,6 +131,13 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
 
 // Evaluate binary operations with Decimal support
 const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
+  // Check for namespace heads in binary operations
+  if (isNamespaceHead(left) || isNamespaceHead(right)) {
+    throw new EvaluationError(
+      'Cannot use namespace head in operations - namespace heads must be used with property access (e.g., $math.PI) or method calls (e.g., $math.abs(x))'
+    );
+  }
+  
   const toDecimal = (val: any): Decimal => {
     if (val instanceof Decimal) return val;
     return new Decimal(val);

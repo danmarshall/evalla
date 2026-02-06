@@ -371,6 +371,16 @@ await evalla([{ name: 'mysqrt', expr: '$math.sqrt' }]);
 await evalla([{ name: 'result', expr: '$math.abs(-5)' }]); // ✅ Works
 ```
 
+**Blocked namespace head usage:**
+```typescript
+// Namespace heads cannot be used as standalone values
+await evalla([{ name: 'a', expr: '$math' }]); // ❌ EvaluationError
+await evalla([{ name: 'a', value: 5 }, { name: 'b', expr: 'a < $angle' }]); // ❌ EvaluationError
+// Correct usage - access properties or call methods:
+await evalla([{ name: 'pi', expr: '$math.PI' }]); // ✅ Works
+await evalla([{ name: 'rad', expr: '$angle.toRad(180)' }]); // ✅ Works
+```
+
 Properties starting with `__` are blocked because they typically provide access to JavaScript internals that could be exploited for prototype pollution or other security vulnerabilities.
 
 ## API

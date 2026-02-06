@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
-import { createNamespaces } from './namespaces.js';
+import { createNamespaces, isNamespaceHead } from './namespaces.js';
 import { evaluateAST } from './ast-evaluator.js';
-import { EvallaError, SecurityError } from './errors.js';
+import { EvallaError, SecurityError, EvaluationError } from './errors.js';
 
 // Safe expression evaluator - no arbitrary code execution
 // Accepts a pre-parsed AST for efficiency (no double parsing)
@@ -26,6 +26,14 @@ export const evaluateExpression = async (
     
     // Evaluate AST with custom evaluator that uses Decimal for precision
     const result = await evaluateAST(ast, safeScope);
+    
+    // Security check: block namespace heads
+    // Namespace heads like $math, $angle should never be used as standalone values
+    if (isNamespaceHead(result)) {
+      throw new EvaluationError(
+        'Cannot use namespace head as a value - namespace heads must be used with property access (e.g., $math.PI) or method calls (e.g., $math.abs(x))'
+      );
+    }
     
     // Security check: block function aliasing
     // Functions from namespaces must be called, not assigned to variables

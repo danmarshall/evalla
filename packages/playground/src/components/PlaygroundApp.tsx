@@ -2,9 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, Play } from 'lucide-react';
 import { examples, type Expression } from '../data/examples';
 
-// Import checkSyntax at module level to avoid repeated dynamic imports
-let checkSyntaxFn: ((expr: string) => { valid: boolean; error?: string }) | null = null;
-
 export default function PlaygroundApp() {
   const [expressions, setExpressions] = useState<Expression[]>([
     { name: 'a', expr: '10' },
@@ -18,11 +15,13 @@ export default function PlaygroundApp() {
   
   // Store debounce timeouts per expression index
   const debounceTimeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
+  // Store checkSyntax function in ref to avoid module-level state
+  const checkSyntaxFn = useRef<((expr: string) => { valid: boolean; error?: string }) | null>(null);
 
   // Load checkSyntax on mount
   useEffect(() => {
     import('evalla').then(({ checkSyntax }) => {
-      checkSyntaxFn = checkSyntax;
+      checkSyntaxFn.current = checkSyntax;
     }).catch(err => {
       console.error('Failed to load checkSyntax:', err);
     });
@@ -51,11 +50,11 @@ export default function PlaygroundApp() {
 
       // Debounce syntax check (300ms delay)
       const timeout = setTimeout(() => {
-        if (!checkSyntaxFn) {
+        if (!checkSyntaxFn.current) {
           return; // checkSyntax not loaded yet
         }
 
-        const syntaxResult = checkSyntaxFn(value);
+        const syntaxResult = checkSyntaxFn.current(value);
         
         setSyntaxErrors(prev => {
           const newSyntaxErrors = new Map(prev);

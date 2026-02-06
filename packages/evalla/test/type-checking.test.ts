@@ -1,5 +1,6 @@
 import { evalla } from '../src/index';
 import { EvaluationError } from '../src/errors';
+import Decimal from 'decimal.js';
 
 describe('Type checking in operations', () => {
   describe('Arithmetic operations reject invalid types', () => {

@@ -28,6 +28,35 @@ export const examples: Record<string, Example> = {
       { name: 'average', expr: 'sum / 5' }
     ]
   },
+  objectProperties: {
+    name: 'Object properties (requires value input)',
+    expressions: [
+      // Note: This example shows the pattern. In the UI, 'point' would be created
+      // with the value property: { name: 'point', value: {x: 10, y: 20} }
+      // Currently the playground only supports expression input.
+      // Once value input UI is added, you'll be able to paste: {"x": 10, "y": 20}
+      { name: 'x', expr: '10' },
+      { name: 'y', expr: '20' },
+      { name: 'scaledX', expr: 'x * 2' },
+      { name: 'scaledY', expr: 'y * 2' },
+      { name: 'distance', expr: '$math.sqrt(x**2 + y**2)' }
+    ]
+  },
+  nestedObjects: {
+    name: 'Nested objects (requires value input)',
+    expressions: [
+      // Note: This example shows the pattern for nested property access.
+      // Once value input UI is added, 'config' would be created with:
+      // { name: 'config', value: {display: {width: 1920, height: 1080}, scale: 2} }
+      // Then you can use: config.display.width, config.display.height, config.scale
+      { name: 'width', expr: '1920' },
+      { name: 'height', expr: '1080' },
+      { name: 'scale', expr: '2' },
+      { name: 'scaledWidth', expr: 'width / scale' },
+      { name: 'scaledHeight', expr: 'height / scale' },
+      { name: 'aspectRatio', expr: 'scaledWidth / scaledHeight' }
+    ]
+  },
   precision: {
     name: 'Decimal precision',
     expressions: [

@@ -1639,3 +1639,139 @@ This is **clean and justified**:
 **Reason:** Namespaces are containers, not values. Only their members can be used in expressions.
 
 **Implementation:** This should throw a clear error if attempted.
+
+## Better Justification for `$` Prefix: User Freedom
+
+### The Real Reason (From Maintainer)
+
+**"A user doesn't have to say to themselves 'oh, I just wanted to calculate angle of something, but it's a reserved word' and they 'need a reference'. Keep it natural."**
+
+This is the **true justification** for the `$` prefix - not just "marking containers."
+
+### The User Freedom Philosophy
+
+**Without `$` prefix (bad design):**
+```typescript
+// User wants to calculate angle:
+{ name: 'angle', expr: 'atan2(y, x)' }  // ❌ Error: 'angle' is reserved!
+// User must rename: angleValue, myAngle, theta, etc. (frustrating!)
+
+// User wants to do math:
+{ name: 'math', expr: 'a + b' }  // ❌ Error: 'math' is reserved!
+// User must rename: mathResult, calculation, etc. (annoying!)
+```
+
+**With `$` prefix (good design):**
+```typescript
+// System namespace has $ prefix:
+{ name: 'result', expr: '$angle.toRad(45)' }  // System function
+
+// User is FREE to use natural names:
+{ name: 'angle', expr: 'atan2(y, x)' }        // ✅ User variable (no conflict!)
+{ name: 'math', expr: 'a + b' }               // ✅ User variable (no conflict!)
+{ name: 'unit', expr: 'kg * m / s^2' }        // ✅ User variable (no conflict!)
+```
+
+### Why This Matters
+
+**Users think naturally in domain terms:**
+- Geometry: `angle`, `radius`, `diameter`, `arc`
+- Physics: `force`, `mass`, `acceleration`, `unit`
+- Engineering: `stress`, `strain`, `modulus`
+- General: `result`, `value`, `total`, `math`
+
+**The `$` prefix protects user freedom:**
+- ✅ Users can use ANY natural name for their domain
+- ✅ No surprises: "Oh no, `angle` is reserved!"
+- ✅ System names are explicitly marked (won't collide)
+- ✅ Future-proof: Can add `$chemistry`, `$physics` without breaking user code
+
+### Contrast with Reserved Values
+
+**Reserved values (`true`, `false`, `null`, `Infinity`):**
+
+**Why no `$` prefix?**
+- These are **fundamental mathematical values**, not domain-specific
+- Users **wouldn't naturally name variables** `true` or `Infinity`
+- These words have **universal mathematical meaning**
+- Like mathematical constants (π, e), they're fundamental enough to not need qualification
+
+**Natural naming test:**
+```typescript
+// Would a user naturally write these?
+{ name: 'true', expr: '...' }      // ❌ No - true is a value, not a variable name
+{ name: 'Infinity', expr: '...' }  // ❌ No - Infinity is a value, not a quantity
+{ name: 'null', expr: '...' }      // ❌ No - null is a concept, not a measurement
+
+// Would a user naturally write these?
+{ name: 'angle', expr: '...' }     // ✅ YES - common in geometry
+{ name: 'math', expr: '...' }      // ✅ YES - might want to store calculation
+{ name: 'unit', expr: '...' }      // ✅ YES - common in physics/engineering
+```
+
+### The Complete Picture
+
+**`$` prefix is about USER FREEDOM, not just "marking":**
+
+1. **User freedom:** Can use natural domain names without fear of collision
+2. **Explicit system:** System namespaces are clearly marked
+3. **Future-proof:** Can add new namespaces without breaking code
+4. **Natural:** Users wouldn't name variables `true` or `Infinity`, so those don't need `$`
+
+**The design principle:**
+- **Domain-specific system features** → Need `$` (users might want those names)
+- **Universal mathematical values** → No `$` (users wouldn't use those names)
+
+### Examples
+
+**User writes geometry code:**
+```typescript
+// User naturally wants to use:
+{ name: 'angle', expr: 'atan2(y, x)' }           // ✅ Works! (no conflict)
+{ name: 'radius', expr: 'sqrt(x^2 + y^2)' }      // ✅ Works!
+{ name: 'degrees', expr: '$angle.toDeg(angle)' } // ✅ Uses system, no conflict
+
+// If system didn't have $:
+{ name: 'angle', expr: '...' }  // ❌ Would error! (reserved by system)
+// User forced to rename to: myAngle, angleValue, theta (frustrating)
+```
+
+**User writes physics code:**
+```typescript
+// User naturally wants to use:
+{ name: 'force', expr: 'mass * acceleration' }   // ✅ Works!
+{ name: 'unit', expr: '"newtons"' }              // ✅ Could work! (no conflict)
+{ name: 'meters', expr: '$unit.ftToM(feet)' }    // ✅ Uses system, no conflict
+```
+
+### Why Reserved Values Don't Need `$`
+
+**`true`, `false`, `null`, `Infinity` are:**
+- Universal (not domain-specific)
+- Fundamental (like π, e in math)
+- Not variable names (they're values themselves)
+- Wouldn't cause natural naming conflicts
+
+**A user writing "is this steep?" wouldn't name a variable `true`:**
+```typescript
+// Natural user code:
+{ name: 'slope', expr: 'rise / run' }
+{ name: 'isSteep', expr: 'slope > 1 ? true : false' }  // ✅ Natural
+
+// Unnatural (user wouldn't write):
+{ name: 'true', expr: 'slope > 1' }  // ❌ Doesn't make sense as variable name
+```
+
+### Summary
+
+**`$` prefix exists to give users FREEDOM:**
+- Freedom to use natural domain names
+- Freedom from "reserved word" surprises
+- Freedom to evolve their code without worrying about future namespace additions
+
+**Reserved values don't need `$` because:**
+- They're universal, not domain-specific
+- Users wouldn't naturally name variables `true` or `Infinity`
+- They're fundamental mathematical entities, not namespaced features
+
+This keeps evalla **natural and user-friendly** while maintaining clear system boundaries.

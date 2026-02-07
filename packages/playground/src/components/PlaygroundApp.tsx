@@ -381,31 +381,21 @@ export default function PlaygroundApp() {
                   </div>
                   <div className="flex-1">
                     {expr.mode === 'value' ? (
-                      <>
-                        <textarea
-                          rows={3}
-                          value={getTextareaValue(expr.value)}
-                          onChange={(e) => updateExpression(index, 'value', e.target.value)}
-                          className={getInputClassName(hasSyntaxError, index)}
-                          placeholder='{"x": 10, "y": 20}'
-                        />
-                        <div className="text-xs text-gray-500 mt-1">
-                          Value mode (JSON)
-                        </div>
-                      </>
+                      <textarea
+                        rows={3}
+                        value={getTextareaValue(expr.value)}
+                        onChange={(e) => updateExpression(index, 'value', e.target.value)}
+                        className={getInputClassName(hasSyntaxError, index)}
+                        placeholder='{"x": 10, "y": 20}'
+                      />
                     ) : (
-                      <>
-                        <input
-                          type="text"
-                          placeholder="e.g. a + b"
-                          value={expr.expr || ''}
-                          onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                          className={getInputClassName(hasSyntaxError, index)}
-                        />
-                        <div className="text-xs text-gray-500 mt-1">
-                          Expression mode
-                        </div>
-                      </>
+                      <input
+                        type="text"
+                        placeholder="e.g. a + b"
+                        value={expr.expr || ''}
+                        onChange={(e) => updateExpression(index, 'expr', e.target.value)}
+                        className={getInputClassName(hasSyntaxError, index)}
+                      />
                     )}
                     {hasSyntaxError && (
                       <div className="text-orange-600 text-xs mt-1 font-mono">
@@ -445,31 +435,21 @@ export default function PlaygroundApp() {
                       <label className="text-xs font-medium text-gray-600 w-12 mt-2">{expr.mode === 'value' ? 'Value' : 'Expr'}</label>
                       <div className="flex-1">
                         {expr.mode === 'value' ? (
-                          <>
-                            <textarea
-                              rows={3}
-                              value={getTextareaValue(expr.value)}
-                              onChange={(e) => updateExpression(index, 'value', e.target.value)}
-                              className={getInputClassName(hasSyntaxError, index)}
-                              placeholder='{"x": 10, "y": 20}'
-                            />
-                            <div className="text-xs text-gray-500 mt-1">
-                              Value mode (JSON)
-                            </div>
-                          </>
+                          <textarea
+                            rows={3}
+                            value={getTextareaValue(expr.value)}
+                            onChange={(e) => updateExpression(index, 'value', e.target.value)}
+                            className={getInputClassName(hasSyntaxError, index)}
+                            placeholder='{"x": 10, "y": 20}'
+                          />
                         ) : (
-                          <>
-                            <input
-                              type="text"
-                              placeholder="e.g. a + b"
-                              value={expr.expr || ''}
-                              onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                              className={getInputClassName(hasSyntaxError, index)}
-                            />
-                            <div className="text-xs text-gray-500 mt-1">
-                              Expression mode
-                            </div>
-                          </>
+                          <input
+                            type="text"
+                            placeholder="e.g. a + b"
+                            value={expr.expr || ''}
+                            onChange={(e) => updateExpression(index, 'expr', e.target.value)}
+                            className={getInputClassName(hasSyntaxError, index)}
+                          />
                         )}
                         {hasSyntaxError && (
                           <div className="text-orange-600 text-xs mt-1 font-mono">

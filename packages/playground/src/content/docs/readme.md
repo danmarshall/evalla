@@ -295,7 +295,7 @@ console.log(result.values.test); // true
 
 **No loose vs. strict:** Unlike JavaScript, there's no distinction between `=` and `==` in evalla. Both `=` and `==` perform the same strict equality check. Use whichever feels more natural.
 
-### Namespaces
+## Namespaces
 
 Variables may not begin with $, this is reserved for namespaces for built-in functions and constants.
 

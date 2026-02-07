@@ -77,6 +77,9 @@ export const evaluateExpression = async (
     } else if (typeof result === 'boolean' || result === null) {
       // Boolean and null values pass through
       return result;
+    } else if (result === undefined) {
+      // Convert undefined to null (e.g., accessing non-existent property)
+      return null;
     } else {
       // This should not be reached due to the checks above
       throw new EvaluationError(

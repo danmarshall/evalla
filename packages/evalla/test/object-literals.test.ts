@@ -186,5 +186,25 @@ describe('Arrays in expressions', () => {
     // Should return the property value (42), not the string "key"
     expect((result.values.val as Decimal).toString()).toBe('42');
   });
+
+  test('accessing non-existent property returns null', async () => {
+    const result = await evalla([
+      { name: 'point', value: { x: 10, y: 20 } },
+      { name: 'fakeProp', expr: 'point.fakeprop' }
+    ]);
+    
+    // Non-existent property should return null (undefined -> null)
+    expect(result.values.fakeProp).toBe(null);
+  });
+
+  test('accessing non-existent nested property returns null', async () => {
+    const result = await evalla([
+      { name: 'obj', value: { a: { b: 5 } } },
+      { name: 'missing', expr: 'obj.a.missing' }
+    ]);
+    
+    // Non-existent nested property should return null
+    expect(result.values.missing).toBe(null);
+  });
 });
 

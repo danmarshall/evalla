@@ -43,8 +43,8 @@ export const evaluateExpression = async (
       );
     }
     
-    // Type restriction: expressions cannot return objects or arrays
-    // Objects and arrays can only be provided via the value property
+    // Type restriction: expressions cannot return objects, arrays, or strings
+    // Objects, arrays, and strings can only be provided via the value property
     if (typeof result === 'object' && result !== null && !(result instanceof Decimal)) {
       if (Array.isArray(result)) {
         throw new EvaluationError(
@@ -57,18 +57,28 @@ export const evaluateExpression = async (
       }
     }
     
+    // Reject string results (except when converting numeric strings to Decimal)
+    if (typeof result === 'string') {
+      // Try to convert numeric strings to Decimal
+      if (!isNaN(Number(result))) {
+        return new Decimal(result);
+      }
+      // Non-numeric strings are not allowed
+      throw new EvaluationError(
+        'Expressions cannot return strings - strings must be provided via the value property'
+      );
+    }
+    
     // Convert numeric results to Decimal for precision
     if (result instanceof Decimal) {
       return result;
     } else if (typeof result === 'number') {
       return new Decimal(result);
-    } else if (typeof result === 'string' && !isNaN(Number(result))) {
-      return new Decimal(result);
     } else if (typeof result === 'boolean' || result === null) {
       // Boolean and null values pass through
       return result;
     } else {
-      // This should not be reached due to the check above
+      // This should not be reached due to the checks above
       throw new EvaluationError(
         `Unsupported expression result type: ${typeof result}`
       );

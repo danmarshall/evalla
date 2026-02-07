@@ -175,5 +175,16 @@ describe('Arrays in expressions', () => {
     
     expect((result.values.val as Decimal).toString()).toBe('20');
   });
+
+  test('string literals in computed access are used as property names, not returned', async () => {
+    // String literal in computed access should access the property, not return the string
+    const result = await evalla([
+      { name: 'obj', value: { key: 42 } },
+      { name: 'val', expr: 'obj["key"]' }
+    ]);
+    
+    // Should return the property value (42), not the string "key"
+    expect((result.values.val as Decimal).toString()).toBe('42');
+  });
 });
 

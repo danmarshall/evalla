@@ -294,7 +294,7 @@ const result = await evalla([
 console.log(result.values.test); // true
 ```
 
-**No loose vs. strict:** Unlike JavaScript, there's no distinction between `==` and `===` in evalla. Both `=` and `==` perform the same strict equality check. Use whichever feels more natural.
+**No loose vs. strict:** Unlike JavaScript, there's no distinction between `=` and `==` in evalla. Both `=` and `==` perform the same strict equality check. Use whichever feels more natural.
 
 ### Namespaces
 

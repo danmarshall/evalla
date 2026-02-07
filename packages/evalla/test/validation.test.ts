@@ -55,10 +55,17 @@ describe('Input Validation', () => {
   });
 
   test('must provide either expr or value', async () => {
+    // Must have expr or value field defined (even if expr is blank)
     await expect(
       evalla([
-        { name: 'test' }
+        { name: 'test' } as any
       ])
     ).rejects.toThrow(ValidationError);
+  });
+
+  test('blank expr is valid (returns null)', async () => {
+    // expr: '' is now valid and returns null
+    const result = await evalla([{ name: 'test', expr: '' }]);
+    expect(result.values.test).toBe(null);
   });
 });

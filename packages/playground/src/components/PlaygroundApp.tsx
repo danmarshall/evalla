@@ -299,7 +299,8 @@ export default function PlaygroundApp() {
           if (e.mode === 'value') {
             return e.value !== undefined && e.value !== '';
           } else {
-            return e.expr && e.expr.trim();
+            // Allow blank expr (will return null), just ensure expr field exists
+            return e.expr !== undefined;
           }
         })
         .map(e => {
@@ -307,7 +308,7 @@ export default function PlaygroundApp() {
             // Value mode: pass value property
             return { name: e.name, value: e.value };
           } else {
-            // Expression mode: pass expr property
+            // Expression mode: pass expr property (even if blank)
             return { name: e.name, expr: e.expr || '' };
           }
         });

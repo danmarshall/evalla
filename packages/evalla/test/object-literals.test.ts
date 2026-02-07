@@ -145,4 +145,35 @@ describe('Arrays in expressions', () => {
     // sum should be in values
     expect((result.values.sum as Decimal).toString()).toBe('15');
   });
+
+  test('string literals for computed property access with special characters', async () => {
+    const result = await evalla([
+      { name: 'obj', value: { 'y-y': [20, 9], 'prop name': 42 } },
+      { name: 'hyphenProp', expr: 'obj["y-y"][0]' },
+      { name: 'spaceProp', expr: 'obj["prop name"]' }
+    ]);
+    
+    expect((result.values.hyphenProp as Decimal).toString()).toBe('20');
+    expect((result.values.spaceProp as Decimal).toString()).toBe('42');
+  });
+
+  test('computed property with undefined variable should fail', async () => {
+    await expect(async () => {
+      await evalla([
+        { name: 'point', value: { x: 10 } },
+        { name: 'result', expr: 'point[x]' }  // x is undefined
+      ]);
+    }).rejects.toThrow('Undefined variable: x');
+  });
+
+  test('computed property with numeric index should work', async () => {
+    const result = await evalla([
+      { name: 'arr', value: [10, 20, 30] },
+      { name: 'idx', expr: '1' },
+      { name: 'val', expr: 'arr[idx]' }
+    ]);
+    
+    expect((result.values.val as Decimal).toString()).toBe('20');
+  });
 });
+

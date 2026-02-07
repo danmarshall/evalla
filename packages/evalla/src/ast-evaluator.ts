@@ -63,20 +63,6 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       
       return object[propertyName];
       
-    case 'ObjectExpression':
-      const obj: any = {};
-      for (const prop of node.properties) {
-        if (prop.type === 'Property') {
-          const key = prop.key.type === 'Identifier' ? prop.key.name : await evaluateAST(prop.key, context);
-          const value = await evaluateAST(prop.value, context);
-          obj[key] = value;
-        } else if (prop.type === 'SpreadElement') {
-          const spread = await evaluateAST(prop.argument, context);
-          Object.assign(obj, spread);
-        }
-      }
-      return obj;
-      
     case 'BinaryExpression':
       const left = await evaluateAST(node.left, context);
       const right = await evaluateAST(node.right, context);
@@ -130,12 +116,73 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
 };
 
 // Evaluate binary operations with Decimal support
+// Evaluate binary operations with Decimal support
 const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
   // Check for namespace heads in binary operations
   if (isNamespaceHead(left) || isNamespaceHead(right)) {
     throw new EvaluationError(
       'Cannot use namespace head in operations - namespace heads must be used with property access (e.g., $math.PI) or method calls (e.g., $math.abs(x))'
     );
+  }
+  
+  // Type validation for arithmetic and comparison operators
+  const arithmeticOps = ['+', '-', '*', '/', '%', '**'];
+  const comparisonOps = ['<', '>', '<=', '>='];
+  
+  if (arithmeticOps.includes(operator) || comparisonOps.includes(operator)) {
+    // Check left operand
+    if (typeof left === 'string') {
+      throw new EvaluationError(
+        `Cannot use string in ${operator} operation - strings are not supported in mathematical expressions`
+      );
+    }
+    if (typeof left === 'object' && left !== null && !(left instanceof Decimal) && !Array.isArray(left)) {
+      throw new EvaluationError(
+        `Cannot use object in ${operator} operation - only numeric values are allowed`
+      );
+    }
+    if (Array.isArray(left)) {
+      throw new EvaluationError(
+        `Cannot use array in ${operator} operation - only numeric values are allowed`
+      );
+    }
+    
+    // Check right operand
+    if (typeof right === 'string') {
+      throw new EvaluationError(
+        `Cannot use string in ${operator} operation - strings are not supported in mathematical expressions`
+      );
+    }
+    if (typeof right === 'object' && right !== null && !(right instanceof Decimal) && !Array.isArray(right)) {
+      throw new EvaluationError(
+        `Cannot use object in ${operator} operation - only numeric values are allowed`
+      );
+    }
+    if (Array.isArray(right)) {
+      throw new EvaluationError(
+        `Cannot use array in ${operator} operation - only numeric values are allowed`
+      );
+    }
+  }
+  
+  // For equality operators, allow any types but provide clear semantics
+  if (operator === '==' || operator === '=' || operator === '!=') {
+    // Decimals: use Decimal.eq()
+    if (left instanceof Decimal && right instanceof Decimal) {
+      const equal = left.eq(right);
+      return operator === '!=' ? !equal : equal;
+    }
+    
+    // Booleans and null: use === for type-safe comparison
+    if (typeof left === 'boolean' || left === null || 
+        typeof right === 'boolean' || right === null) {
+      const equal = left === right;
+      return operator === '!=' ? !equal : equal;
+    }
+    
+    // Different types or mixed types: use == for compatibility
+    const equal = left == right;
+    return operator === '!=' ? !equal : equal;
   }
   
   const toDecimal = (val: any): Decimal => {
@@ -164,17 +211,6 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
       return toDecimal(left).lte(toDecimal(right));
     case '>=':
       return toDecimal(left).gte(toDecimal(right));
-    case '==':
-    case '=':
-      if (left instanceof Decimal && right instanceof Decimal) {
-        return left.eq(right);
-      }
-      return left == right;
-    case '!=':
-      if (left instanceof Decimal && right instanceof Decimal) {
-        return !left.eq(right);
-      }
-      return left != right;
     default:
       throw new EvaluationError(`Unsupported binary operator: ${operator}`);
   }
@@ -184,15 +220,35 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
 const evaluateUnaryOp = (operator: string, argument: any): any => {
   switch (operator) {
     case '-':
-      if (argument instanceof Decimal) {
-        return argument.neg();
-      }
-      return -argument;
     case '+':
-      if (argument instanceof Decimal) {
-        return argument;
+      // Type validation for unary arithmetic operators
+      if (typeof argument === 'string') {
+        throw new EvaluationError(
+          `Cannot use string with unary ${operator} - strings are not supported in mathematical expressions`
+        );
       }
-      return +argument;
+      if (typeof argument === 'object' && argument !== null && !(argument instanceof Decimal) && !Array.isArray(argument)) {
+        throw new EvaluationError(
+          `Cannot use object with unary ${operator} - only numeric values are allowed`
+        );
+      }
+      if (Array.isArray(argument)) {
+        throw new EvaluationError(
+          `Cannot use array with unary ${operator} - only numeric values are allowed`
+        );
+      }
+      
+      if (operator === '-') {
+        if (argument instanceof Decimal) {
+          return argument.neg();
+        }
+        return -argument;
+      } else {
+        if (argument instanceof Decimal) {
+          return argument;
+        }
+        return +argument;
+      }
     case '!':
       return !argument;
     default:

@@ -41,9 +41,9 @@ describe('Keywords as Variable Names', () => {
     expect((result.values.const as Decimal).toString()).toBe('25');
   });
 
-  test('keywords with object literals', async () => {
+  test('keywords with objects via value', async () => {
     const result = await evalla([
-      { name: 'import', expr: '{x: 10, y: 20}' },
+      { name: 'import', value: {x: 10, y: 20} },
       { name: 'export', expr: 'import.x + import.y' }
     ]);
     

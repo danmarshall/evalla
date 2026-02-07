@@ -66,24 +66,22 @@ describe('checkSyntax - Expression Syntax Validation', () => {
       expect(checkSyntax('func()').valid).toBe(true);
     });
 
-    test('object literals', () => {
-      expect(checkSyntax('{x: 1, y: 2}').valid).toBe(true);
-      expect(checkSyntax('{nested: {a: 1}}').valid).toBe(true);
-      expect(checkSyntax('{}').valid).toBe(true);
+    test('object literals not allowed', () => {
+      expect(checkSyntax('{x: 1, y: 2}').valid).toBe(false);
+      expect(checkSyntax('{nested: {a: 1}}').valid).toBe(false);
+      expect(checkSyntax('{}').valid).toBe(false);
     });
 
-    test('array literals', () => {
+    test('array literals ARE allowed', () => {
       expect(checkSyntax('[1, 2, 3]').valid).toBe(true);
       expect(checkSyntax('[[1, 2], [3, 4]]').valid).toBe(true);
       expect(checkSyntax('[]').valid).toBe(true);
     });
 
-    test('string literals (only in object keys)', () => {
-      // String literals are no longer valid as standalone expressions
+    test('string literals not allowed', () => {
+      // String literals are not valid in expressions
       expect(checkSyntax('"hello"').valid).toBe(false);
       expect(checkSyntax("'world'").valid).toBe(false);
-      // But they work in object keys
-      expect(checkSyntax('{"hello": 123}').valid).toBe(true);
     });
 
     test('boolean and null literals', () => {

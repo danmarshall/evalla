@@ -113,27 +113,44 @@ console.log(result.order); // ['a', 'b', 'c', 'd']
 console.log(result.values.d.toString()); // "90"
 ```
 
-### Dot-Traversal with Object Literals
+### Array Literals
 
-Variable names must be simple identifiers (no dots), but expressions can use object literals and dot-notation:
+Arrays can be created directly in expressions:
 
 ```typescript
 const result = await evalla([
-  { name: 'point', expr: '{x: 10, y: 20}' },
-  { name: 'offset', expr: '{x: 5, y: 10}' },
+  { name: 'data', expr: '[10, 20, 30, 40, 50]' },
+  { name: 'first', expr: 'data[0]' },
+  { name: 'sum', expr: 'data[0] + data[1] + data[2]' }
+]);
+
+console.log(result.values.first.toString()); // "10"
+console.log(result.values.sum.toString());   // "60"
+```
+
+### Object Property Access (via value property)
+
+Objects must be passed via the `value` property, then accessed with dot notation:
+
+```typescript
+const result = await evalla([
+  { name: 'point', value: {x: 10, y: 20} },
+  { name: 'offset', value: {x: 5, y: 10} },
   { name: 'resultX', expr: 'point.x + offset.x' },
   { name: 'resultY', expr: 'point.y + offset.y' }
 ]);
 
 console.log(result.values.resultX.toString()); // "15"
-console.log(result.values.resultY.toString()); // "25"
+console.log(result.values.resultY.toString()); // "30"
 ```
+
+**Note:** Objects cannot be created within expressions (`{x: 10}` syntax not allowed). Use the `value` property to pass objects, then access properties with dot notation.
 
 ### Nested Property Access
 
 ```typescript
 const result = await evalla([
-  { name: 'data', expr: '{pos: {x: 5, y: 10}, scale: 2}' },
+  { name: 'data', value: {pos: {x: 5, y: 10}, scale: 2} },
   { name: 'scaledX', expr: 'data.pos.x * data.scale' }
 ]);
 

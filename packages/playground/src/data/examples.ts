@@ -2,7 +2,6 @@ export interface Expression {
   name: string;
   expr?: string;
   value?: any;
-  mode?: 'expr' | 'value'; // Track the input mode
 }
 
 export interface Example {
@@ -31,20 +30,25 @@ export const examples: Record<string, Example> = {
     ]
   },
   objectProperties: {
-    name: 'Object properties with dot notation',
+    name: 'Object properties (requires value input UI)',
     expressions: [
-      { name: 'point', value: {x: 10, y: 20}, mode: 'value' },
-      { name: 'scaledX', expr: 'point.x * 2' },
-      { name: 'scaledY', expr: 'point.y * 2' },
-      { name: 'distance', expr: '$math.sqrt(point.x**2 + point.y**2)' }
+      // Temporary: decomposed variables until value input UI is added
+      { name: 'x', expr: '10' },
+      { name: 'y', expr: '20' },
+      { name: 'scaledX', expr: 'x * 2' },
+      { name: 'scaledY', expr: 'y * 2' },
+      { name: 'distance', expr: '$math.sqrt(x**2 + y**2)' }
     ]
   },
   nestedObjects: {
-    name: 'Nested objects with dot notation',
+    name: 'Nested objects (requires value input UI)',
     expressions: [
-      { name: 'config', value: {display: {width: 1920, height: 1080}, scale: 2}, mode: 'value' },
-      { name: 'scaledWidth', expr: 'config.display.width / config.scale' },
-      { name: 'scaledHeight', expr: 'config.display.height / config.scale' },
+      // Temporary: decomposed variables until value input UI is added
+      { name: 'width', expr: '1920' },
+      { name: 'height', expr: '1080' },
+      { name: 'scale', expr: '2' },
+      { name: 'scaledWidth', expr: 'width / scale' },
+      { name: 'scaledHeight', expr: 'height / scale' },
       { name: 'aspectRatio', expr: 'scaledWidth / scaledHeight' }
     ]
   },

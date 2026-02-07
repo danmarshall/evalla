@@ -347,7 +347,7 @@ const result = await evalla([
 - `toRad` (degrees to radians)
 - `toDeg` (radians to degrees)
 
-### Circular Dependency Detection
+## Circular Dependency Detection
 
 ```typescript
 try {
@@ -360,7 +360,7 @@ try {
 }
 ```
 
-### Variable naming
+## Variable naming
 
 Variables may not begin with a number, double underscore(__), or $ (see namespaces above).
 

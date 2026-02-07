@@ -144,7 +144,7 @@ export default function PlaygroundApp() {
       { 
         name: `var${expressions.length + 1}`, 
         expr: mode === 'expr' ? '' : undefined,
-        value: mode === 'value' ? undefined : undefined,
+        value: undefined,
         mode 
       },
     ]);
@@ -237,7 +237,7 @@ export default function PlaygroundApp() {
       const { evalla } = await import('evalla');
 
       // Format inputs for evalla based on mode
-      const inputs = expressions
+      const validInputs = expressions
         .filter(e => {
           // Filter out incomplete expressions
           if (!e.name.trim()) return false;
@@ -257,14 +257,12 @@ export default function PlaygroundApp() {
           }
         });
 
-      const validExpressions = inputs;
-
-      if (validExpressions.length === 0) {
+      if (validInputs.length === 0) {
         setError('Please add at least one expression');
         return;
       }
 
-      const evalResult = await evalla(validExpressions);
+      const evalResult = await evalla(validInputs);
       setResult(evalResult);
     } catch (err: any) {
       setError(err.message);

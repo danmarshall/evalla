@@ -21,7 +21,7 @@ console.log(result.order);               // ['c', 'a', 'b']
 ## Features
 
 - ✅ **Decimal Precision**: Uses [decimal.js](https://mikemcl.github.io/decimal.js/) internally for accurate arithmetic
-- ✅ **Boolean & Null Output**: Results can be `Decimal`, `boolean`, or `null` for natural mathematical expressions
+- ✅ **Decimal, Boolean & Null Output**: Results can be `Decimal`, `boolean`, or `null` for natural mathematical expressions
 - ✅ **Variable References**: Support dependencies between expressions
 - ✅ **Dot-Traversal**: Reference nested properties (e.g., `point.x`, `offset.y`)
 - ✅ **Topological Ordering**: Evaluates in correct dependency order (DAG)

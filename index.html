@@ -247,7 +247,7 @@ Playground
 <li><code>toRad</code> (degrees to radians)</li>
 <li><code>toDeg</code> (radians to degrees)</li>
 </ul>
-<h3 id="circular-dependency-detection">Circular Dependency Detection</h3>
+<h2 id="circular-dependency-detection">Circular Dependency Detection</h2>
 <pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">try</span><span style="color:#24292E"> {</span></span>
 <span class="line"><span style="color:#D73A49">  await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
 <span class="line"><span style="color:#24292E">    { name: </span><span style="color:#032F62">'a'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'b + 1'</span><span style="color:#24292E"> },</span></span>
@@ -256,7 +256,7 @@ Playground
 <span class="line"><span style="color:#24292E">} </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (error) {</span></span>
 <span class="line"><span style="color:#24292E">  console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(error.message); </span><span style="color:#6A737D">// "Circular dependency detected: b -> a -> b"</span></span>
 <span class="line"><span style="color:#24292E">}</span></span></code></pre>
-<h3 id="variable-naming">Variable naming</h3>
+<h2 id="variable-naming">Variable naming</h2>
 <p>Variables may not begin with a number, double underscore(__), or $ (see namespaces above).</p>
 <p>Variables cannot use reserved values: <code>true</code>, <code>false</code>, <code>null</code>, <code>Infinity</code> (see <a href="#reserved-values">Reserved Values</a>).</p>
 <h4 id="keywords-as-variable-names">Keywords as Variable Names</h4>

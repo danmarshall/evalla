@@ -13,6 +13,7 @@ export default function PlaygroundApp() {
   const [errorIndex, setErrorIndex] = useState<number | null>(null);
   const [syntaxErrors, setSyntaxErrors] = useState<Map<number, string>>(new Map());
   const [nameErrors, setNameErrors] = useState<Map<number, string>>(new Map());
+  const [nextVarNumber, setNextVarNumber] = useState<number>(4); // Counter for unique variable names
   
   // Store debounce timeouts per expression index
   const debounceTimeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
@@ -48,11 +49,12 @@ export default function PlaygroundApp() {
     
     if (field === 'value') {
       // Parse JSON for value mode
+      // While typing, invalid JSON is stored as string, valid JSON is parsed
+      // This allows gradual typing without errors
       try {
         newExpressions[index].value = value ? JSON.parse(value) : undefined;
       } catch (e) {
         // Keep raw string if JSON is invalid (user still typing)
-        // Store as string in a temporary way - we'll handle this better
         newExpressions[index].value = value;
       }
     } else {
@@ -142,12 +144,13 @@ export default function PlaygroundApp() {
     setExpressions([
       ...expressions,
       { 
-        name: `var${expressions.length + 1}`, 
+        name: `var${nextVarNumber}`, 
         expr: mode === 'expr' ? '' : undefined,
         value: undefined,
         mode 
       },
     ]);
+    setNextVarNumber(nextVarNumber + 1);
   };
 
   const removeExpression = (index: number) => {

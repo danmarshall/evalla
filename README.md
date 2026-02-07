@@ -37,6 +37,8 @@ console.log(result.order);               // ['c', 'a', 'b']
 npm install evalla
 ```
 
+## Usage
+
 ### Input Format
 
 ```typescript

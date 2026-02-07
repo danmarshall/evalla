@@ -36,7 +36,14 @@ Playground
 <span class="line"><span style="color:#E36209">  expr</span><span style="color:#D73A49">?:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;        </span><span style="color:#6A737D">// Math expression (optional if value is provided)</span></span>
 <span class="line"><span style="color:#E36209">  value</span><span style="color:#D73A49">?:</span><span style="color:#005CC5"> any</span><span style="color:#24292E">;          </span><span style="color:#6A737D">// Direct value (optional if expr is provided)</span></span>
 <span class="line"><span style="color:#24292E">}</span></span></code></pre>
-<p>You must provide either <code>expr</code> or <code>value</code> per item. The <code>value</code> property allows you to pass objects directly without stringifying them into expressions.</p>
+<p>You must provide either <code>expr</code> or <code>value</code> per item. The <code>value</code> property allows you to pass objects and arrays directly without stringifying them into expressions.</p>
+<p><strong>Important Type Restrictions:</strong></p>
+<ul>
+<li><strong>Objects and arrays can ONLY be provided via <code>value</code> property</strong></li>
+<li>Expressions cannot create or return objects/arrays (only <code>Decimal</code>, <code>boolean</code>, or <code>null</code>)</li>
+<li>Objects/arrays from <code>value</code> are stored in context for property access but <strong>not included in output values</strong></li>
+<li>This ensures clean output types: <code>Record&#x3C;string, Decimal | boolean | null></code></li>
+</ul>
 <p><strong>Using expressions:</strong></p>
 <pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
 <span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'width'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'100'</span><span style="color:#24292E"> },</span></span>
@@ -81,16 +88,18 @@ Playground
 <span class="line"><span style="color:#6A737D">// Automatically orders: a, b, c, d</span></span>
 <span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.order); </span><span style="color:#6A737D">// ['a', 'b', 'c', 'd']</span></span>
 <span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.d.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">()); </span><span style="color:#6A737D">// "90"</span></span></code></pre>
-<h3 id="array-literals">Array Literals</h3>
-<p>Arrays can be created directly in expressions:</p>
+<h3 id="arrays-and-objects-via-value-property">Arrays and Objects (via value property)</h3>
+<p><strong>Important</strong>: Arrays and objects can ONLY be supplied via the <code>value</code> property. They cannot be created in expressions.</p>
+<p>Arrays passed via <code>value</code> can be accessed with computed property syntax:</p>
 <pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
-<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'data'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'[10, 20, 30, 40, 50]'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'data'</span><span style="color:#24292E">, value: [</span><span style="color:#005CC5">10</span><span style="color:#24292E">, </span><span style="color:#005CC5">20</span><span style="color:#24292E">, </span><span style="color:#005CC5">30</span><span style="color:#24292E">, </span><span style="color:#005CC5">40</span><span style="color:#24292E">, </span><span style="color:#005CC5">50</span><span style="color:#24292E">] },</span></span>
 <span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'first'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'data[0]'</span><span style="color:#24292E"> },</span></span>
 <span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'sum'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'data[0] + data[1] + data[2]'</span><span style="color:#24292E"> }</span></span>
 <span class="line"><span style="color:#24292E">]);</span></span>
 <span class="line"></span>
 <span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.first.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">()); </span><span style="color:#6A737D">// "10"</span></span>
-<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.sum.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">());   </span><span style="color:#6A737D">// "60"</span></span></code></pre>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.sum.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">());   </span><span style="color:#6A737D">// "60"</span></span>
+<span class="line"><span style="color:#6A737D">// Note: result.values.data is undefined (arrays from value property are not in output)</span></span></code></pre>
 <h3 id="object-property-access-via-value-property">Object Property Access (via value property)</h3>
 <p>Objects must be passed via the <code>value</code> property, then accessed with dot notation:</p>
 <pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
@@ -101,8 +110,18 @@ Playground
 <span class="line"><span style="color:#24292E">]);</span></span>
 <span class="line"></span>
 <span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.resultX.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">()); </span><span style="color:#6A737D">// "15"</span></span>
-<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.resultY.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">()); </span><span style="color:#6A737D">// "30"</span></span></code></pre>
-<p><strong>Note:</strong> Objects cannot be created within expressions (<code>{x: 10}</code> syntax not allowed). Use the <code>value</code> property to pass objects, then access properties with dot notation.</p>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.resultY.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">()); </span><span style="color:#6A737D">// "30"</span></span>
+<span class="line"><span style="color:#6A737D">// Note: result.values.point and result.values.offset are undefined (objects from value property are not in output)</span></span></code></pre>
+<p><strong>Special Property Names</strong>: Use string literals in computed property access for property names with special characters:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'obj'</span><span style="color:#24292E">, value: { </span><span style="color:#032F62">'y-y'</span><span style="color:#24292E">: </span><span style="color:#005CC5">20</span><span style="color:#24292E">, </span><span style="color:#032F62">'prop name'</span><span style="color:#24292E">: </span><span style="color:#005CC5">42</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'hyphen'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'obj["y-y"]'</span><span style="color:#24292E"> },      </span><span style="color:#6A737D">// String literal for hyphenated property</span></span>
+<span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'space'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'obj["prop name"]'</span><span style="color:#24292E"> }  </span><span style="color:#6A737D">// String literal for property with space</span></span>
+<span class="line"><span style="color:#24292E">]);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.hyphen.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">()); </span><span style="color:#6A737D">// "20"</span></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result.values.space.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">());  </span><span style="color:#6A737D">// "42"</span></span></code></pre>
+<p><strong>Note:</strong> Objects and arrays cannot be created within expressions. Use the <code>value</code> property to pass them, then access properties/elements in expressions.</p>
 <h3 id="nested-property-access">Nested Property Access</h3>
 <pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([</span></span>
 <span class="line"><span style="color:#24292E">  { name: </span><span style="color:#032F62">'data'</span><span style="color:#24292E">, value: {pos: {x: </span><span style="color:#005CC5">5</span><span style="color:#24292E">, y: </span><span style="color:#005CC5">10</span><span style="color:#24292E">}, scale: </span><span style="color:#005CC5">2</span><span style="color:#24292E">} },</span></span>

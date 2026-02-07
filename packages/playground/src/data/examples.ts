@@ -2,6 +2,7 @@ export interface Expression {
   name: string;
   expr?: string;
   value?: any;
+  valueRaw?: string;  // Raw string for value mode textarea (before parsing)
   mode?: 'expr' | 'value';
 }
 

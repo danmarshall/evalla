@@ -33,8 +33,13 @@ export default function PlaygroundApp() {
   }, []);
 
   // Helper function to format textarea value for display
-  const getTextareaValue = (value: any): string => {
-    return typeof value === 'string' ? value : (value ? JSON.stringify(value, null, 2) : '');
+  const getTextareaValue = (expr: Expression): string => {
+    // Use raw string if available (user is editing)
+    if (expr.valueRaw !== undefined) {
+      return expr.valueRaw;
+    }
+    // Otherwise format the parsed value (from examples)
+    return expr.value ? JSON.stringify(expr.value, null, 2) : '';
   };
 
   // Helper function to get input field styling based on error state
@@ -53,14 +58,16 @@ export default function PlaygroundApp() {
     const newExpressions = [...expressions];
     
     if (field === 'value') {
-      // Parse JSON for value mode
+      // Store raw string for textarea display
+      newExpressions[index].valueRaw = value;
+      
+      // Parse JSON for evaluation later
       // While typing, invalid JSON is stored as string, valid JSON is parsed
-      // This allows gradual typing without errors
       try {
         newExpressions[index].value = value ? JSON.parse(value) : undefined;
       } catch (e) {
-        // Keep raw string if JSON is invalid (user still typing)
-        newExpressions[index].value = value;
+        // Keep unparsed for now - validation will show error
+        newExpressions[index].value = undefined;
       }
     } else {
       newExpressions[index][field] = value;
@@ -383,7 +390,7 @@ export default function PlaygroundApp() {
                     {expr.mode === 'value' ? (
                       <textarea
                         rows={3}
-                        value={getTextareaValue(expr.value)}
+                        value={getTextareaValue(expr)}
                         onChange={(e) => updateExpression(index, 'value', e.target.value)}
                         className={getInputClassName(hasSyntaxError, index)}
                         placeholder='{"x": 10, "y": 20}'
@@ -437,7 +444,7 @@ export default function PlaygroundApp() {
                         {expr.mode === 'value' ? (
                           <textarea
                             rows={3}
-                            value={getTextareaValue(expr.value)}
+                            value={getTextareaValue(expr)}
                             onChange={(e) => updateExpression(index, 'value', e.target.value)}
                             className={getInputClassName(hasSyntaxError, index)}
                             placeholder='{"x": 10, "y": 20}'

@@ -21,13 +21,13 @@ export const examples: Record<string, Example> = {
     ]
   },
   arrayLiterals: {
-    name: 'Array literals',
+    name: 'Arrays via value property',
     expressions: [
-      { name: 'data', expr: '[10, 20, 30, 40, 50]' },
-      { name: 'first', expr: 'data[0]' },
-      { name: 'last', expr: 'data[4]' },
-      { name: 'sum', expr: 'data[0] + data[1] + data[2] + data[3] + data[4]' },
-      { name: 'average', expr: 'sum / 5' }
+      { name: 'data', value: [10, 20, 30, 40, 50], mode: 'value' as const },
+      { name: 'first', expr: 'data[0]', mode: 'expr' as const },
+      { name: 'last', expr: 'data[4]', mode: 'expr' as const },
+      { name: 'sum', expr: 'data[0] + data[1] + data[2] + data[3] + data[4]', mode: 'expr' as const },
+      { name: 'average', expr: 'sum / 5', mode: 'expr' as const }
     ]
   },
   objectProperties: {
@@ -114,10 +114,10 @@ export const examples: Record<string, Example> = {
   mathMinMax: {
     name: '$math - Min/Max with arrays',
     expressions: [
-      { name: 'values', expr: '[42, 17, 99, 8]' },
-      { name: 'minVal', expr: '$math.min(values[0], values[1], values[2], values[3])' },
-      { name: 'maxVal', expr: '$math.max(values[0], values[1], values[2], values[3])' },
-      { name: 'range', expr: 'maxVal - minVal' }
+      { name: 'values', value: [42, 17, 99, 8], mode: 'value' as const },
+      { name: 'minVal', expr: '$math.min(values[0], values[1], values[2], values[3])', mode: 'expr' as const },
+      { name: 'maxVal', expr: '$math.max(values[0], values[1], values[2], values[3])', mode: 'expr' as const },
+      { name: 'range', expr: 'maxVal - minVal', mode: 'expr' as const }
     ]
   },
   trigAdvanced: {
@@ -187,11 +187,11 @@ export const examples: Record<string, Example> = {
   nestedArrays: {
     name: 'Nested arrays (matrices)',
     expressions: [
-      { name: 'matrix', expr: '[[1, 2, 3], [4, 5, 6], [7, 8, 9]]' },
-      { name: 'topLeft', expr: 'matrix[0][0]' },
-      { name: 'center', expr: 'matrix[1][1]' },
-      { name: 'bottomRight', expr: 'matrix[2][2]' },
-      { name: 'diagonal', expr: 'topLeft + center + bottomRight' }
+      { name: 'matrix', value: [[1, 2, 3], [4, 5, 6], [7, 8, 9]], mode: 'value' as const },
+      { name: 'topLeft', expr: 'matrix[0][0]', mode: 'expr' as const },
+      { name: 'center', expr: 'matrix[1][1]', mode: 'expr' as const },
+      { name: 'bottomRight', expr: 'matrix[2][2]', mode: 'expr' as const },
+      { name: 'diagonal', expr: 'topLeft + center + bottomRight', mode: 'expr' as const }
     ]
   },
   stressDependencies: {

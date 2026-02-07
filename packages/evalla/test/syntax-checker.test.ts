@@ -72,10 +72,10 @@ describe('checkSyntax - Expression Syntax Validation', () => {
       expect(checkSyntax('{}').valid).toBe(false);
     });
 
-    test('array literals ARE allowed', () => {
-      expect(checkSyntax('[1, 2, 3]').valid).toBe(true);
-      expect(checkSyntax('[[1, 2], [3, 4]]').valid).toBe(true);
-      expect(checkSyntax('[]').valid).toBe(true);
+    test('array literals are NOT allowed', () => {
+      expect(checkSyntax('[1, 2, 3]').valid).toBe(false);
+      expect(checkSyntax('[[1, 2], [3, 4]]').valid).toBe(false);
+      expect(checkSyntax('[]').valid).toBe(false);
     });
 
     test('string literals not allowed', () => {

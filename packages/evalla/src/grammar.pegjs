@@ -137,7 +137,6 @@ ArgumentList
 // Primary expressions
 PrimaryExpression
   = Literal
-  / ArrayLiteral
   / Identifier
   / "(" _ expr:Expression _ ")" { return expr; }
 
@@ -163,21 +162,6 @@ BooleanLiteral
 NullLiteral
   = "null" ![a-zA-Z0-9_$] { return { type: 'Literal', value: null, raw: 'null' }; }
 
-
-
-// Array literals
-ArrayLiteral
-  = "[" _ elements:ElementList? _ "]" {
-      return {
-        type: 'ArrayExpression',
-        elements: elements || []
-      };
-    }
-
-ElementList
-  = head:Expression tail:(_ "," _ Expression)* {
-      return [head].concat(tail.map(t => t[3]));
-    }
 
 
 

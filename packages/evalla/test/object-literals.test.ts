@@ -90,17 +90,12 @@ describe('Objects via value property', () => {
 });
 
 describe('Arrays in expressions', () => {
-  test('array literals with numeric values', async () => {
-    const result = await evalla([
-      { name: 'data', expr: '[1, 2, 3, 4, 5]' },
-      { name: 'first', expr: 'data[0]' },
-      { name: 'third', expr: 'data[2]' },
-      { name: 'sum', expr: 'data[0] + data[1] + data[2]' }
-    ]);
-    
-    expect((result.values.first as Decimal).toString()).toBe('1');
-    expect((result.values.third as Decimal).toString()).toBe('3');
-    expect((result.values.sum as Decimal).toString()).toBe('6');
+  test('array literals are not allowed in expressions', async () => {
+    await expect(async () => {
+      await evalla([
+        { name: 'data', expr: '[1, 2, 3, 4, 5]' }
+      ]);
+    }).rejects.toThrow();
   });
 
   test('array access via value property', async () => {
@@ -125,5 +120,29 @@ describe('Arrays in expressions', () => {
     
     expect((result.values.center as Decimal).toString()).toBe('5');
     expect((result.values.corner as Decimal).toString()).toBe('9');
+  });
+
+  test('arrays from value property are not included in output', async () => {
+    const result = await evalla([
+      { name: 'data', value: [10, 20, 30] },
+      { name: 'first', expr: 'data[0]' }
+    ]);
+    
+    // data should not be in values (only in context)
+    expect(result.values.data).toBeUndefined();
+    // first should be in values
+    expect((result.values.first as Decimal).toString()).toBe('10');
+  });
+
+  test('objects from value property are not included in output', async () => {
+    const result = await evalla([
+      { name: 'point', value: {x: 5, y: 10} },
+      { name: 'sum', expr: 'point.x + point.y' }
+    ]);
+    
+    // point should not be in values (only in context)
+    expect(result.values.point).toBeUndefined();
+    // sum should be in values
+    expect((result.values.sum as Decimal).toString()).toBe('15');
   });
 });

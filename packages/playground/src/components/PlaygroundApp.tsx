@@ -479,14 +479,14 @@ export default function PlaygroundApp() {
           <div className="flex justify-end gap-2 mt-3">
             <button
               onClick={() => addExpression('expr')}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
             >
               <Plus size={16} />
               <span>Add Expression</span>
             </button>
             <button
               onClick={() => addExpression('value')}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
             >
               <Plus size={16} />
               <span>Add Value</span>

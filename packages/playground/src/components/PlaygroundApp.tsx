@@ -358,7 +358,7 @@ export default function PlaygroundApp() {
           {/* Desktop header */}
           <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 mb-2 text-sm font-medium text-gray-600">
             <div>Name</div>
-            <div>Expression</div>
+            <div>Expression or Value</div>
             <div className="w-[90px]"></div>
           </div>
           <div className="space-y-4 sm:space-y-2">

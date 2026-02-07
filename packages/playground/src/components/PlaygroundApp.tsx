@@ -4,9 +4,9 @@ import { examples, type Expression } from '../data/examples';
 
 export default function PlaygroundApp() {
   const [expressions, setExpressions] = useState<Expression[]>([
-    { name: 'a', expr: '10' },
-    { name: 'b', expr: 'a * 2' },
-    { name: 'c', expr: 'a + b' }
+    { name: 'a', expr: '10', mode: 'expr' },
+    { name: 'b', expr: 'a * 2', mode: 'expr' },
+    { name: 'c', expr: 'a + b', mode: 'expr' }
   ]);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,9 +43,22 @@ export default function PlaygroundApp() {
     return `${baseClasses} border-gray-300 bg-white focus:ring-blue-500`;
   };
 
-  const updateExpression = (index: number, field: 'name' | 'expr', value: string) => {
+  const updateExpression = (index: number, field: 'name' | 'expr' | 'value', value: string) => {
     const newExpressions = [...expressions];
-    newExpressions[index][field] = value;
+    
+    if (field === 'value') {
+      // Parse JSON for value mode
+      try {
+        newExpressions[index].value = value ? JSON.parse(value) : undefined;
+      } catch (e) {
+        // Keep raw string if JSON is invalid (user still typing)
+        // Store as string in a temporary way - we'll handle this better
+        newExpressions[index].value = value;
+      }
+    } else {
+      newExpressions[index][field] = value;
+    }
+    
     setExpressions(newExpressions);
 
     // Check variable name in real-time with debouncing
@@ -86,8 +99,8 @@ export default function PlaygroundApp() {
       nameDebounceTimeouts.current.set(index, timeout);
     }
 
-    // Check syntax for expression field in real-time with debouncing
-    if (field === 'expr') {
+    // Check syntax for expression field in real-time with debouncing (only for expr mode)
+    if (field === 'expr' && newExpressions[index].mode === 'expr') {
       // Clear existing timeout for this expression
       const existingTimeout = debounceTimeouts.current.get(index);
       if (existingTimeout) {
@@ -125,8 +138,16 @@ export default function PlaygroundApp() {
     }
   };
 
-  const addExpression = () => {
-    setExpressions([...expressions, { name: '', expr: '' }]);
+  const addExpression = (mode: 'expr' | 'value' = 'expr') => {
+    setExpressions([
+      ...expressions,
+      { 
+        name: `var${expressions.length + 1}`, 
+        expr: mode === 'expr' ? '' : undefined,
+        value: mode === 'value' ? undefined : undefined,
+        mode 
+      },
+    ]);
   };
 
   const removeExpression = (index: number) => {
@@ -215,7 +236,28 @@ export default function PlaygroundApp() {
       // Dynamic import to avoid SSR issues
       const { evalla } = await import('evalla');
 
-      const validExpressions = expressions.filter(e => e.name.trim() && e.expr.trim());
+      // Format inputs for evalla based on mode
+      const inputs = expressions
+        .filter(e => {
+          // Filter out incomplete expressions
+          if (!e.name.trim()) return false;
+          if (e.mode === 'value') {
+            return e.value !== undefined && e.value !== '';
+          } else {
+            return e.expr && e.expr.trim();
+          }
+        })
+        .map(e => {
+          if (e.mode === 'value') {
+            // Value mode: pass value property
+            return { name: e.name, value: e.value };
+          } else {
+            // Expression mode: pass expr property
+            return { name: e.name, expr: e.expr || '' };
+          }
+        });
+
+      const validExpressions = inputs;
 
       if (validExpressions.length === 0) {
         setError('Please add at least one expression');
@@ -292,13 +334,33 @@ export default function PlaygroundApp() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder="e.g. a + b"
-                      value={expr.expr}
-                      onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                      className={getInputClassName(hasSyntaxError, index)}
-                    />
+                    {expr.mode === 'value' ? (
+                      <>
+                        <textarea
+                          rows={3}
+                          value={typeof expr.value === 'string' ? expr.value : (expr.value ? JSON.stringify(expr.value, null, 2) : '')}
+                          onChange={(e) => updateExpression(index, 'value', e.target.value)}
+                          className={getInputClassName(hasSyntaxError, index)}
+                          placeholder='{"x": 10, "y": 20}'
+                        />
+                        <div className="text-xs text-gray-500 mt-1">
+                          Value mode (JSON)
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <input
+                          type="text"
+                          placeholder="e.g. a + b"
+                          value={expr.expr || ''}
+                          onChange={(e) => updateExpression(index, 'expr', e.target.value)}
+                          className={getInputClassName(hasSyntaxError, index)}
+                        />
+                        <div className="text-xs text-gray-500 mt-1">
+                          Expression mode
+                        </div>
+                      </>
+                    )}
                     {hasSyntaxError && (
                       <div className="text-orange-600 text-xs mt-1 font-mono">
                         {syntaxErrors.get(index)}
@@ -333,16 +395,36 @@ export default function PlaygroundApp() {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2 items-center">
-                      <label className="text-xs font-medium text-gray-600 w-12">Expr</label>
+                    <div className="flex gap-2 items-start">
+                      <label className="text-xs font-medium text-gray-600 w-12 mt-2">{expr.mode === 'value' ? 'Value' : 'Expr'}</label>
                       <div className="flex-1">
-                        <input
-                          type="text"
-                          placeholder="e.g. a + b"
-                          value={expr.expr}
-                          onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                          className={getInputClassName(hasSyntaxError, index)}
-                        />
+                        {expr.mode === 'value' ? (
+                          <>
+                            <textarea
+                              rows={3}
+                              value={typeof expr.value === 'string' ? expr.value : (expr.value ? JSON.stringify(expr.value, null, 2) : '')}
+                              onChange={(e) => updateExpression(index, 'value', e.target.value)}
+                              className={getInputClassName(hasSyntaxError, index)}
+                              placeholder='{"x": 10, "y": 20}'
+                            />
+                            <div className="text-xs text-gray-500 mt-1">
+                              Value mode (JSON)
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <input
+                              type="text"
+                              placeholder="e.g. a + b"
+                              value={expr.expr || ''}
+                              onChange={(e) => updateExpression(index, 'expr', e.target.value)}
+                              className={getInputClassName(hasSyntaxError, index)}
+                            />
+                            <div className="text-xs text-gray-500 mt-1">
+                              Expression mode
+                            </div>
+                          </>
+                        )}
                         {hasSyntaxError && (
                           <div className="text-orange-600 text-xs mt-1 font-mono">
                             {syntaxErrors.get(index)}
@@ -361,13 +443,20 @@ export default function PlaygroundApp() {
               </div>
             )})}
           </div>
-          <div className="flex justify-end mt-3">
+          <div className="flex justify-end gap-2 mt-3">
             <button
-              onClick={addExpression}
-              className="w-24 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+              onClick={() => addExpression('expr')}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors flex items-center gap-1.5"
             >
               <Plus size={16} />
-              <span>Add</span>
+              <span>Add Expression</span>
+            </button>
+            <button
+              onClick={() => addExpression('value')}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+            >
+              <Plus size={16} />
+              <span>Add Value</span>
             </button>
           </div>
 

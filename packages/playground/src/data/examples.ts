@@ -2,6 +2,7 @@ export interface Expression {
   name: string;
   expr?: string;
   value?: any;
+  mode?: 'expr' | 'value';
 }
 
 export interface Example {
@@ -13,10 +14,10 @@ export const examples: Record<string, Example> = {
   circle: {
     name: 'Circle calculations',
     expressions: [
-      { name: 'radius', expr: '5' },
-      { name: 'pi', expr: '$math.PI' },
-      { name: 'circumference', expr: '2 * pi * radius' },
-      { name: 'area', expr: 'pi * radius * radius' }
+      { name: 'radius', expr: '5', mode: 'expr' as const },
+      { name: 'pi', expr: '$math.PI', mode: 'expr' as const },
+      { name: 'circumference', expr: '2 * pi * radius', mode: 'expr' as const },
+      { name: 'area', expr: 'pi * radius * radius', mode: 'expr' as const }
     ]
   },
   arrayLiterals: {
@@ -30,26 +31,35 @@ export const examples: Record<string, Example> = {
     ]
   },
   objectProperties: {
-    name: 'Object properties (requires value input UI)',
+    name: 'Object properties with dot notation',
     expressions: [
-      // Temporary: decomposed variables until value input UI is added
-      { name: 'x', expr: '10' },
-      { name: 'y', expr: '20' },
-      { name: 'scaledX', expr: 'x * 2' },
-      { name: 'scaledY', expr: 'y * 2' },
-      { name: 'distance', expr: '$math.sqrt(x**2 + y**2)' }
+      { 
+        name: 'point', 
+        value: {x: 10, y: 20}, 
+        mode: 'value' as const
+      },
+      { name: 'scaledX', expr: 'point.x * 2', mode: 'expr' as const },
+      { name: 'scaledY', expr: 'point.y * 2', mode: 'expr' as const },
+      { name: 'distance', expr: '$math.sqrt(point.x**2 + point.y**2)', mode: 'expr' as const }
     ]
   },
   nestedObjects: {
-    name: 'Nested objects (requires value input UI)',
+    name: 'Nested objects with dot notation',
     expressions: [
-      // Temporary: decomposed variables until value input UI is added
-      { name: 'width', expr: '1920' },
-      { name: 'height', expr: '1080' },
-      { name: 'scale', expr: '2' },
-      { name: 'scaledWidth', expr: 'width / scale' },
-      { name: 'scaledHeight', expr: 'height / scale' },
-      { name: 'aspectRatio', expr: 'scaledWidth / scaledHeight' }
+      { 
+        name: 'config', 
+        value: {
+          display: {
+            width: 1920,
+            height: 1080
+          },
+          scale: 2
+        }, 
+        mode: 'value' as const
+      },
+      { name: 'scaledWidth', expr: 'config.display.width / config.scale', mode: 'expr' as const },
+      { name: 'scaledHeight', expr: 'config.display.height / config.scale', mode: 'expr' as const },
+      { name: 'aspectRatio', expr: 'config.display.width / config.display.height', mode: 'expr' as const }
     ]
   },
   precision: {

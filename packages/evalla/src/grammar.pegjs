@@ -108,7 +108,7 @@ UnaryExpression
 MemberExpression
   = head:PrimaryExpression tail:(
       _ "(" _ args:ArgumentList? _ ")" { return { type: 'call', args: args || [] }; }
-      / _ "[" _ prop:Expression _ "]" { return { type: 'member', property: prop, computed: true }; }
+      / _ "[" _ prop:ComputedPropertyExpression _ "]" { return { type: 'member', property: prop, computed: true }; }
       / _ "." _ prop:Identifier { return { type: 'member', property: prop, computed: false }; }
     )* {
       return tail.reduce((object, element) => {
@@ -129,6 +129,34 @@ MemberExpression
       }, head);
     }
 
+// Computed property can be a string literal or numeric expression
+// String literals are ONLY allowed in computed property access (for properties like "y-y")
+ComputedPropertyExpression
+  = StringLiteral
+  / Expression
+
+StringLiteral
+  = '"' chars:DoubleStringCharacter* '"' {
+      return {
+        type: 'Literal',
+        value: chars.join(''),
+        raw: '"' + chars.join('') + '"'
+      };
+    }
+  / "'" chars:SingleStringCharacter* "'" {
+      return {
+        type: 'Literal',
+        value: chars.join(''),
+        raw: "'" + chars.join('') + "'"
+      };
+    }
+
+DoubleStringCharacter
+  = !'"' char:. { return char; }
+
+SingleStringCharacter
+  = !"'" char:. { return char; }
+
 ArgumentList
   = head:Expression tail:(_ "," _ Expression)* {
       return [head].concat(tail.map(t => t[3]));
@@ -137,7 +165,6 @@ ArgumentList
 // Primary expressions
 PrimaryExpression
   = Literal
-  / ArrayLiteral
   / Identifier
   / "(" _ expr:Expression _ ")" { return expr; }
 
@@ -163,21 +190,6 @@ BooleanLiteral
 NullLiteral
   = "null" ![a-zA-Z0-9_$] { return { type: 'Literal', value: null, raw: 'null' }; }
 
-
-
-// Array literals
-ArrayLiteral
-  = "[" _ elements:ElementList? _ "]" {
-      return {
-        type: 'ArrayExpression',
-        elements: elements || []
-      };
-    }
-
-ElementList
-  = head:Expression tail:(_ "," _ Expression)* {
-      return [head].concat(tail.map(t => t[3]));
-    }
 
 
 

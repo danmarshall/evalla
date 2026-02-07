@@ -47,7 +47,13 @@ interface ExpressionInput {
 }
 ```
 
-You must provide either `expr` or `value` per item. The `value` property allows you to pass objects directly without stringifying them into expressions.
+You must provide either `expr` or `value` per item. The `value` property allows you to pass objects and arrays directly without stringifying them into expressions.
+
+**Important Type Restrictions:**
+- **Objects and arrays can ONLY be provided via `value` property**
+- Expressions cannot create or return objects/arrays (only `Decimal`, `boolean`, or `null`)
+- Objects/arrays from `value` are stored in context for property access but **not included in output values**
+- This ensures clean output types: `Record<string, Decimal | boolean | null>`
 
 **Using expressions:**
 ```typescript
@@ -114,19 +120,22 @@ console.log(result.order); // ['a', 'b', 'c', 'd']
 console.log(result.values.d.toString()); // "90"
 ```
 
-### Array Literals
+### Arrays and Objects (via value property)
 
-Arrays can be created directly in expressions:
+**Important**: Arrays and objects can ONLY be supplied via the `value` property. They cannot be created in expressions.
+
+Arrays passed via `value` can be accessed with computed property syntax:
 
 ```typescript
 const result = await evalla([
-  { name: 'data', expr: '[10, 20, 30, 40, 50]' },
+  { name: 'data', value: [10, 20, 30, 40, 50] },
   { name: 'first', expr: 'data[0]' },
   { name: 'sum', expr: 'data[0] + data[1] + data[2]' }
 ]);
 
 console.log(result.values.first.toString()); // "10"
 console.log(result.values.sum.toString());   // "60"
+// Note: result.values.data is undefined (arrays from value property are not in output)
 ```
 
 ### Object Property Access (via value property)
@@ -143,9 +152,23 @@ const result = await evalla([
 
 console.log(result.values.resultX.toString()); // "15"
 console.log(result.values.resultY.toString()); // "30"
+// Note: result.values.point and result.values.offset are undefined (objects from value property are not in output)
 ```
 
-**Note:** Objects cannot be created within expressions (`{x: 10}` syntax not allowed). Use the `value` property to pass objects, then access properties with dot notation.
+**Special Property Names**: Use string literals in computed property access for property names with special characters:
+
+```typescript
+const result = await evalla([
+  { name: 'obj', value: { 'y-y': 20, 'prop name': 42 } },
+  { name: 'hyphen', expr: 'obj["y-y"]' },      // String literal for hyphenated property
+  { name: 'space', expr: 'obj["prop name"]' }  // String literal for property with space
+]);
+
+console.log(result.values.hyphen.toString()); // "20"
+console.log(result.values.space.toString());  // "42"
+```
+
+**Note:** Objects and arrays cannot be created within expressions. Use the `value` property to pass them, then access properties/elements in expressions.
 
 ### Nested Property Access
 

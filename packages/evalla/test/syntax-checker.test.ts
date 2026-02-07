@@ -72,16 +72,23 @@ describe('checkSyntax - Expression Syntax Validation', () => {
       expect(checkSyntax('{}').valid).toBe(false);
     });
 
-    test('array literals ARE allowed', () => {
-      expect(checkSyntax('[1, 2, 3]').valid).toBe(true);
-      expect(checkSyntax('[[1, 2], [3, 4]]').valid).toBe(true);
-      expect(checkSyntax('[]').valid).toBe(true);
+    test('array literals are NOT allowed', () => {
+      expect(checkSyntax('[1, 2, 3]').valid).toBe(false);
+      expect(checkSyntax('[[1, 2], [3, 4]]').valid).toBe(false);
+      expect(checkSyntax('[]').valid).toBe(false);
     });
 
-    test('string literals not allowed', () => {
-      // String literals are not valid in expressions
+    test('string literals not allowed as standalone', () => {
+      // String literals are not valid as standalone expressions
       expect(checkSyntax('"hello"').valid).toBe(false);
       expect(checkSyntax("'world'").valid).toBe(false);
+    });
+
+    test('string literals allowed in computed property access', () => {
+      // String literals ARE allowed for computed property access (special property names)
+      expect(checkSyntax('obj["prop-name"]').valid).toBe(true);
+      expect(checkSyntax('data["y-y"][0]').valid).toBe(true);
+      expect(checkSyntax('config["display width"]').valid).toBe(true);
     });
 
     test('boolean and null literals', () => {

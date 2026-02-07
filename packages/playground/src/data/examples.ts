@@ -2,6 +2,8 @@ export interface Expression {
   name: string;
   expr?: string;
   value?: any;
+  valueRaw?: string;  // Raw string for value mode textarea (before parsing)
+  mode?: 'expr' | 'value';
 }
 
 export interface Example {
@@ -13,43 +15,52 @@ export const examples: Record<string, Example> = {
   circle: {
     name: 'Circle calculations',
     expressions: [
-      { name: 'radius', expr: '5' },
-      { name: 'pi', expr: '$math.PI' },
-      { name: 'circumference', expr: '2 * pi * radius' },
-      { name: 'area', expr: 'pi * radius * radius' }
+      { name: 'radius', expr: '5', mode: 'expr' as const },
+      { name: 'pi', expr: '$math.PI', mode: 'expr' as const },
+      { name: 'circumference', expr: '2 * pi * radius', mode: 'expr' as const },
+      { name: 'area', expr: 'pi * radius * radius', mode: 'expr' as const }
     ]
   },
   arrayLiterals: {
-    name: 'Array literals',
+    name: 'Arrays via value property',
     expressions: [
-      { name: 'data', expr: '[10, 20, 30, 40, 50]' },
-      { name: 'first', expr: 'data[0]' },
-      { name: 'last', expr: 'data[4]' },
-      { name: 'sum', expr: 'data[0] + data[1] + data[2] + data[3] + data[4]' },
-      { name: 'average', expr: 'sum / 5' }
+      { name: 'data', value: [10, 20, 30, 40, 50], mode: 'value' as const },
+      { name: 'first', expr: 'data[0]', mode: 'expr' as const },
+      { name: 'last', expr: 'data[4]', mode: 'expr' as const },
+      { name: 'sum', expr: 'data[0] + data[1] + data[2] + data[3] + data[4]', mode: 'expr' as const },
+      { name: 'average', expr: 'sum / 5', mode: 'expr' as const }
     ]
   },
   objectProperties: {
-    name: 'Object properties (requires value input UI)',
+    name: 'Object properties with dot notation',
     expressions: [
-      // Temporary: decomposed variables until value input UI is added
-      { name: 'x', expr: '10' },
-      { name: 'y', expr: '20' },
-      { name: 'scaledX', expr: 'x * 2' },
-      { name: 'scaledY', expr: 'y * 2' },
-      { name: 'distance', expr: '$math.sqrt(x**2 + y**2)' }
+      { 
+        name: 'point', 
+        value: { x: 10, y: 20 }, 
+        mode: 'value' as const
+      },
+      { name: 'scaledX', expr: 'point.x * 2', mode: 'expr' as const },
+      { name: 'scaledY', expr: 'point.y * 2', mode: 'expr' as const },
+      { name: 'distance', expr: '$math.sqrt(point.x**2 + point.y**2)', mode: 'expr' as const }
     ]
   },
   nestedObjects: {
-    name: 'Nested objects (requires value input UI)',
+    name: 'Nested objects with dot notation',
     expressions: [
-      // Temporary: decomposed variables until value input UI is added
-      { name: 'width', expr: '1920' },
-      { name: 'height', expr: '1080' },
-      { name: 'scale', expr: '2' },
-      { name: 'scaledWidth', expr: 'width / scale' },
-      { name: 'scaledHeight', expr: 'height / scale' },
-      { name: 'aspectRatio', expr: 'scaledWidth / scaledHeight' }
+      { 
+        name: 'config', 
+        value: {
+          display: {
+            width: 1920,
+            height: 1080
+          },
+          scale: 2
+        }, 
+        mode: 'value' as const
+      },
+      { name: 'scaledWidth', expr: 'config.display.width / config.scale', mode: 'expr' as const },
+      { name: 'scaledHeight', expr: 'config.display.height / config.scale', mode: 'expr' as const },
+      { name: 'aspectRatio', expr: 'config.display.width / config.display.height', mode: 'expr' as const }
     ]
   },
   precision: {
@@ -104,10 +115,10 @@ export const examples: Record<string, Example> = {
   mathMinMax: {
     name: '$math - Min/Max with arrays',
     expressions: [
-      { name: 'values', expr: '[42, 17, 99, 8]' },
-      { name: 'minVal', expr: '$math.min(values[0], values[1], values[2], values[3])' },
-      { name: 'maxVal', expr: '$math.max(values[0], values[1], values[2], values[3])' },
-      { name: 'range', expr: 'maxVal - minVal' }
+      { name: 'values', value: [42, 17, 99, 8], mode: 'value' as const },
+      { name: 'minVal', expr: '$math.min(values[0], values[1], values[2], values[3])', mode: 'expr' as const },
+      { name: 'maxVal', expr: '$math.max(values[0], values[1], values[2], values[3])', mode: 'expr' as const },
+      { name: 'range', expr: 'maxVal - minVal', mode: 'expr' as const }
     ]
   },
   trigAdvanced: {
@@ -177,11 +188,11 @@ export const examples: Record<string, Example> = {
   nestedArrays: {
     name: 'Nested arrays (matrices)',
     expressions: [
-      { name: 'matrix', expr: '[[1, 2, 3], [4, 5, 6], [7, 8, 9]]' },
-      { name: 'topLeft', expr: 'matrix[0][0]' },
-      { name: 'center', expr: 'matrix[1][1]' },
-      { name: 'bottomRight', expr: 'matrix[2][2]' },
-      { name: 'diagonal', expr: 'topLeft + center + bottomRight' }
+      { name: 'matrix', value: [[1, 2, 3], [4, 5, 6], [7, 8, 9]], mode: 'value' as const },
+      { name: 'topLeft', expr: 'matrix[0][0]', mode: 'expr' as const },
+      { name: 'center', expr: 'matrix[1][1]', mode: 'expr' as const },
+      { name: 'bottomRight', expr: 'matrix[2][2]', mode: 'expr' as const },
+      { name: 'diagonal', expr: 'topLeft + center + bottomRight', mode: 'expr' as const }
     ]
   },
   stressDependencies: {

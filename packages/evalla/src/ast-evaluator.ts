@@ -103,13 +103,6 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       }
       throw new EvaluationError(`Unsupported logical operator: ${node.operator}`);
       
-    case 'ArrayExpression':
-      const array = [];
-      for (const element of node.elements) {
-        array.push(await evaluateAST(element, context));
-      }
-      return array;
-      
     default:
       throw new EvaluationError(`Unsupported node type: ${node.type}`);
   }

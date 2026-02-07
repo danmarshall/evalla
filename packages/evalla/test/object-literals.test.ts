@@ -90,17 +90,12 @@ describe('Objects via value property', () => {
 });
 
 describe('Arrays in expressions', () => {
-  test('array literals with numeric values', async () => {
-    const result = await evalla([
-      { name: 'data', expr: '[1, 2, 3, 4, 5]' },
-      { name: 'first', expr: 'data[0]' },
-      { name: 'third', expr: 'data[2]' },
-      { name: 'sum', expr: 'data[0] + data[1] + data[2]' }
-    ]);
-    
-    expect((result.values.first as Decimal).toString()).toBe('1');
-    expect((result.values.third as Decimal).toString()).toBe('3');
-    expect((result.values.sum as Decimal).toString()).toBe('6');
+  test('array literals are not allowed in expressions', async () => {
+    await expect(async () => {
+      await evalla([
+        { name: 'data', expr: '[1, 2, 3, 4, 5]' }
+      ]);
+    }).rejects.toThrow();
   });
 
   test('array access via value property', async () => {
@@ -126,4 +121,90 @@ describe('Arrays in expressions', () => {
     expect((result.values.center as Decimal).toString()).toBe('5');
     expect((result.values.corner as Decimal).toString()).toBe('9');
   });
+
+  test('arrays from value property are not included in output', async () => {
+    const result = await evalla([
+      { name: 'data', value: [10, 20, 30] },
+      { name: 'first', expr: 'data[0]' }
+    ]);
+    
+    // data should not be in values (only in context)
+    expect(result.values.data).toBeUndefined();
+    // first should be in values
+    expect((result.values.first as Decimal).toString()).toBe('10');
+  });
+
+  test('objects from value property are not included in output', async () => {
+    const result = await evalla([
+      { name: 'point', value: {x: 5, y: 10} },
+      { name: 'sum', expr: 'point.x + point.y' }
+    ]);
+    
+    // point should not be in values (only in context)
+    expect(result.values.point).toBeUndefined();
+    // sum should be in values
+    expect((result.values.sum as Decimal).toString()).toBe('15');
+  });
+
+  test('string literals for computed property access with special characters', async () => {
+    const result = await evalla([
+      { name: 'obj', value: { 'y-y': [20, 9], 'prop name': 42 } },
+      { name: 'hyphenProp', expr: 'obj["y-y"][0]' },
+      { name: 'spaceProp', expr: 'obj["prop name"]' }
+    ]);
+    
+    expect((result.values.hyphenProp as Decimal).toString()).toBe('20');
+    expect((result.values.spaceProp as Decimal).toString()).toBe('42');
+  });
+
+  test('computed property with undefined variable should fail', async () => {
+    await expect(async () => {
+      await evalla([
+        { name: 'point', value: { x: 10 } },
+        { name: 'result', expr: 'point[x]' }  // x is undefined
+      ]);
+    }).rejects.toThrow('Undefined variable: x');
+  });
+
+  test('computed property with numeric index should work', async () => {
+    const result = await evalla([
+      { name: 'arr', value: [10, 20, 30] },
+      { name: 'idx', expr: '1' },
+      { name: 'val', expr: 'arr[idx]' }
+    ]);
+    
+    expect((result.values.val as Decimal).toString()).toBe('20');
+  });
+
+  test('string literals in computed access are used as property names, not returned', async () => {
+    // String literal in computed access should access the property, not return the string
+    const result = await evalla([
+      { name: 'obj', value: { key: 42 } },
+      { name: 'val', expr: 'obj["key"]' }
+    ]);
+    
+    // Should return the property value (42), not the string "key"
+    expect((result.values.val as Decimal).toString()).toBe('42');
+  });
+
+  test('accessing non-existent property returns null', async () => {
+    const result = await evalla([
+      { name: 'point', value: { x: 10, y: 20 } },
+      { name: 'fakeProp', expr: 'point.fakeprop' }
+    ]);
+    
+    // Non-existent property should return null (undefined -> null)
+    expect(result.values.fakeProp).toBe(null);
+  });
+
+  test('accessing non-existent nested property returns null', async () => {
+    const result = await evalla([
+      { name: 'obj', value: { a: { b: 5 } } },
+      { name: 'missing', expr: 'obj.a.missing' }
+    ]);
+    
+    // Non-existent nested property should return null
+    expect(result.values.missing).toBe(null);
+  });
 });
+

@@ -43,19 +43,48 @@ export const evaluateExpression = async (
       );
     }
     
+    // Type restriction: expressions cannot return objects, arrays, or strings
+    // Objects, arrays, and strings can only be provided via the value property
+    if (typeof result === 'object' && result !== null && !(result instanceof Decimal)) {
+      if (Array.isArray(result)) {
+        throw new EvaluationError(
+          'Expressions cannot return arrays - arrays must be provided via the value property'
+        );
+      } else {
+        throw new EvaluationError(
+          'Expressions cannot return objects - objects must be provided via the value property'
+        );
+      }
+    }
+    
+    // Reject string results (except when converting numeric strings to Decimal)
+    if (typeof result === 'string') {
+      // Try to convert numeric strings to Decimal
+      if (!isNaN(Number(result))) {
+        return new Decimal(result);
+      }
+      // Non-numeric strings are not allowed
+      throw new EvaluationError(
+        'Expressions cannot return strings - strings must be provided via the value property'
+      );
+    }
+    
     // Convert numeric results to Decimal for precision
     if (result instanceof Decimal) {
       return result;
     } else if (typeof result === 'number') {
       return new Decimal(result);
-    } else if (typeof result === 'string' && !isNaN(Number(result))) {
-      return new Decimal(result);
     } else if (typeof result === 'boolean' || result === null) {
       // Boolean and null values pass through
       return result;
+    } else if (result === undefined) {
+      // Convert undefined to null (e.g., accessing non-existent property)
+      return null;
     } else {
-      // Return as-is for objects, arrays, etc.
-      return result;
+      // This should not be reached due to the checks above
+      throw new EvaluationError(
+        `Unsupported expression result type: ${typeof result}`
+      );
     }
   } catch (error) {
     // Re-throw our custom error types directly

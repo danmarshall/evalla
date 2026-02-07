@@ -143,6 +143,46 @@ export default function PlaygroundApp() {
 
       debounceTimeouts.current.set(index, timeout);
     }
+
+    // Check JSON syntax for value field in real-time with debouncing (only for value mode)
+    if (field === 'value' && newExpressions[index].mode === 'value') {
+      // Clear existing timeout for this value field
+      const existingTimeout = debounceTimeouts.current.get(index);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      if (!value.trim()) {
+        // Clear syntax error when value is cleared
+        const newSyntaxErrors = new Map(syntaxErrors);
+        newSyntaxErrors.delete(index);
+        setSyntaxErrors(newSyntaxErrors);
+        return;
+      }
+
+      // Debounce JSON validation (300ms delay)
+      const timeout = setTimeout(() => {
+        try {
+          // Try to parse the JSON
+          JSON.parse(value);
+          // Valid JSON - clear any errors
+          setSyntaxErrors(prev => {
+            const newSyntaxErrors = new Map(prev);
+            newSyntaxErrors.delete(index);
+            return newSyntaxErrors;
+          });
+        } catch (e) {
+          // Invalid JSON - show error
+          setSyntaxErrors(prev => {
+            const newSyntaxErrors = new Map(prev);
+            newSyntaxErrors.set(index, e instanceof Error ? e.message : 'Invalid JSON');
+            return newSyntaxErrors;
+          });
+        }
+      }, 300);
+
+      debounceTimeouts.current.set(index, timeout);
+    }
   };
 
   const addExpression = (mode: 'expr' | 'value' = 'expr') => {

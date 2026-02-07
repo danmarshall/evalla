@@ -32,6 +32,11 @@ export default function PlaygroundApp() {
     });
   }, []);
 
+  // Helper function to format textarea value for display
+  const getTextareaValue = (value: any): string => {
+    return typeof value === 'string' ? value : (value ? JSON.stringify(value, null, 2) : '');
+  };
+
   // Helper function to get input field styling based on error state
   const getInputClassName = (hasValidationError: boolean, index: number) => {
     const baseClasses = 'w-full px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2';
@@ -339,7 +344,7 @@ export default function PlaygroundApp() {
                       <>
                         <textarea
                           rows={3}
-                          value={typeof expr.value === 'string' ? expr.value : (expr.value ? JSON.stringify(expr.value, null, 2) : '')}
+                          value={getTextareaValue(expr.value)}
                           onChange={(e) => updateExpression(index, 'value', e.target.value)}
                           className={getInputClassName(hasSyntaxError, index)}
                           placeholder='{"x": 10, "y": 20}'
@@ -403,7 +408,7 @@ export default function PlaygroundApp() {
                           <>
                             <textarea
                               rows={3}
-                              value={typeof expr.value === 'string' ? expr.value : (expr.value ? JSON.stringify(expr.value, null, 2) : '')}
+                              value={getTextareaValue(expr.value)}
                               onChange={(e) => updateExpression(index, 'value', e.target.value)}
                               className={getInputClassName(hasSyntaxError, index)}
                               placeholder='{"x": 10, "y": 20}'

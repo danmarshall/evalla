@@ -35,7 +35,7 @@ export const examples: Record<string, Example> = {
     expressions: [
       { 
         name: 'point', 
-        value: {x: 10, y: 20}, 
+        value: { x: 10, y: 20 }, 
         mode: 'value' as const
       },
       { name: 'scaledX', expr: 'point.x * 2', mode: 'expr' as const },

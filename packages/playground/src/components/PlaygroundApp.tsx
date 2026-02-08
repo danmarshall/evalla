@@ -42,14 +42,18 @@ export default function PlaygroundApp() {
     return expr.value ? JSON.stringify(expr.value, null, 2) : '';
   };
 
-  // Helper function to get input field styling based on error state
-  const getInputClassName = (hasValidationError: boolean, index: number) => {
+  // Helper function to get input field styling based on error state and mode
+  const getInputClassName = (hasValidationError: boolean, index: number, mode?: 'expr' | 'value', isValueField?: boolean) => {
     const baseClasses = 'w-full px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2';
     if (hasValidationError) {
       return `${baseClasses} border-orange-400 bg-orange-50 focus:ring-orange-500`;
     }
     if (errorIndex === index) {
       return `${baseClasses} border-red-300 bg-white focus:ring-blue-500`;
+    }
+    // Value mode textareas get purple border to indicate they won't appear in results
+    if (mode === 'value' && isValueField) {
+      return `${baseClasses} border-purple-400 bg-white focus:ring-purple-500`;
     }
     return `${baseClasses} border-gray-300 bg-white focus:ring-blue-500`;
   };
@@ -299,7 +303,8 @@ export default function PlaygroundApp() {
           if (e.mode === 'value') {
             return e.value !== undefined && e.value !== '';
           } else {
-            return e.expr && e.expr.trim();
+            // Allow blank expr (will return null), just ensure expr field exists
+            return e.expr !== undefined;
           }
         })
         .map(e => {
@@ -307,7 +312,7 @@ export default function PlaygroundApp() {
             // Value mode: pass value property
             return { name: e.name, value: e.value };
           } else {
-            // Expression mode: pass expr property
+            // Expression mode: pass expr property (even if blank)
             return { name: e.name, expr: e.expr || '' };
           }
         });
@@ -392,7 +397,7 @@ export default function PlaygroundApp() {
                         rows={3}
                         value={getTextareaValue(expr)}
                         onChange={(e) => updateExpression(index, 'value', e.target.value)}
-                        className={getInputClassName(hasSyntaxError, index)}
+                        className={getInputClassName(hasSyntaxError, index, expr.mode, true)}
                         placeholder='{"x": 10, "y": 20}'
                       />
                     ) : (
@@ -446,7 +451,7 @@ export default function PlaygroundApp() {
                             rows={3}
                             value={getTextareaValue(expr)}
                             onChange={(e) => updateExpression(index, 'value', e.target.value)}
-                            className={getInputClassName(hasSyntaxError, index)}
+                            className={getInputClassName(hasSyntaxError, index, expr.mode, true)}
                             placeholder='{"x": 10, "y": 20}'
                           />
                         ) : (
@@ -548,6 +553,14 @@ export default function PlaygroundApp() {
               </table>
               <div className="mt-4 text-gray-600 text-xs sm:text-sm italic">
                 Evaluation order: {result.order.join(' → ')}
+              </div>
+              <div className="mt-3 pt-3 border-t border-green-200">
+                <div className="flex items-start gap-2 text-xs sm:text-sm">
+                  <span className="inline-block w-3 h-3 border-2 border-purple-400 rounded mt-0.5 flex-shrink-0"></span>
+                  <span className="text-gray-600">
+                    Variables with <span className="text-purple-600 font-medium">purple borders</span> use the <strong>value property</strong> (JSON objects/arrays). These values are used for computations but do not appear in the results table.
+                  </span>
+                </div>
               </div>
             </>
           ) : (

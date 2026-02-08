@@ -177,23 +177,22 @@ describe('Malformed Expression Handling', () => {
   });
 
   describe('Edge Cases', () => {
-    test('empty expression throws ValidationError', async () => {
-      // Empty string is caught by validation before parsing
-      await expect(
-        evalla([{ name: 'test', expr: '' }])
-      ).rejects.toThrow(ValidationError);
+    test('empty expression returns null', async () => {
+      // Empty expressions now return null instead of throwing error
+      const result = await evalla([{ name: 'test', expr: '' }]);
+      expect(result.values.test).toBe(null);
     });
 
-    test('only whitespace', async () => {
-      await expect(
-        evalla([{ name: 'test', expr: '   ' }])
-      ).rejects.toThrow(EvaluationError);
+    test('only whitespace returns null', async () => {
+      // Whitespace-only expressions are trimmed, resulting in blank expression that returns null
+      const result = await evalla([{ name: 'test', expr: '   ' }]);
+      expect(result.values.test).toBe(null);
     });
 
-    test('only newlines', async () => {
-      await expect(
-        evalla([{ name: 'test', expr: '\n\n' }])
-      ).rejects.toThrow(EvaluationError);
+    test('only newlines returns null', async () => {
+      // Newline-only expressions are trimmed, resulting in blank expression that returns null
+      const result = await evalla([{ name: 'test', expr: '\n\n' }]);
+      expect(result.values.test).toBe(null);
     });
 
     test('null character', async () => {

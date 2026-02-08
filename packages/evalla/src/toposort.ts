@@ -38,8 +38,8 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
   for (const input of inputs) {
     names.add(input.name);
     
-    // Parse expression if it exists
-    if (input.expr) {
+    // Parse expression if it exists and is not blank/whitespace-only
+    if (input.expr && input.expr.trim()) {
       try {
         const ast = parseExpression(input.expr);
         asts.set(input.name, ast);
@@ -66,8 +66,8 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
   
   // Then build dependency graph using parsed ASTs
   for (const input of inputs) {
-    // If no expr, there are no dependencies from expressions
-    if (!input.expr) {
+    // If no expr or blank expr, there are no dependencies from expressions
+    if (!input.expr || !input.expr.trim()) {
       graph.set(input.name, []);
       continue;
     }

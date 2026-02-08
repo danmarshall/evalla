@@ -42,14 +42,22 @@ export default function PlaygroundApp() {
     return expr.value ? JSON.stringify(expr.value, null, 2) : '';
   };
 
-  // Helper function to get input field styling based on error state
-  const getInputClassName = (hasValidationError: boolean, index: number) => {
+  // Helper function to get input field styling based on error state and mode
+  const getInputClassName = (hasValidationError: boolean, index: number, mode?: 'expr' | 'value', isValueField?: boolean, isNameField?: boolean) => {
     const baseClasses = 'w-full px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2';
     if (hasValidationError) {
       return `${baseClasses} border-orange-400 bg-orange-50 focus:ring-orange-500`;
     }
     if (errorIndex === index) {
       return `${baseClasses} border-red-300 bg-white focus:ring-blue-500`;
+    }
+    // Value mode fields get purple border to indicate they won't appear in results
+    if (mode === 'value' && (isValueField || isNameField)) {
+      return `${baseClasses} border-purple-400 bg-white focus:ring-purple-500`;
+    }
+    // Expression mode fields get teal border to match Add Expression button
+    if (mode === 'expr' || (!mode && !isValueField)) {
+      return `${baseClasses} border-teal-400 bg-white focus:ring-teal-500`;
     }
     return `${baseClasses} border-gray-300 bg-white focus:ring-blue-500`;
   };
@@ -287,6 +295,24 @@ export default function PlaygroundApp() {
     setError(null);
     setErrorIndex(null);
 
+    // Check if there are any syntax errors before evaluating
+    if (syntaxErrors.size > 0) {
+      const firstErrorIndex = Array.from(syntaxErrors.keys())[0];
+      const errorMessage = syntaxErrors.get(firstErrorIndex);
+      setError(`Cannot evaluate: ${errorMessage}`);
+      setErrorIndex(firstErrorIndex);
+      return;
+    }
+
+    // Check if there are any name errors before evaluating
+    if (nameErrors.size > 0) {
+      const firstErrorIndex = Array.from(nameErrors.keys())[0];
+      const errorMessage = nameErrors.get(firstErrorIndex);
+      setError(`Cannot evaluate: ${errorMessage}`);
+      setErrorIndex(firstErrorIndex);
+      return;
+    }
+
     try {
       // Dynamic import to avoid SSR issues
       const { evalla } = await import('evalla');
@@ -299,7 +325,8 @@ export default function PlaygroundApp() {
           if (e.mode === 'value') {
             return e.value !== undefined && e.value !== '';
           } else {
-            return e.expr && e.expr.trim();
+            // Allow blank expr (will return null), just ensure expr field exists
+            return e.expr !== undefined;
           }
         })
         .map(e => {
@@ -307,7 +334,7 @@ export default function PlaygroundApp() {
             // Value mode: pass value property
             return { name: e.name, value: e.value };
           } else {
-            // Expression mode: pass expr property
+            // Expression mode: pass expr property (even if blank)
             return { name: e.name, expr: e.expr || '' };
           }
         });
@@ -378,7 +405,7 @@ export default function PlaygroundApp() {
                       placeholder="e.g. radius"
                       value={expr.name}
                       onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                      className={getInputClassName(hasNameError, index)}
+                      className={getInputClassName(hasNameError, index, expr.mode, false, true)}
                     />
                     {hasNameError && (
                       <div className="text-orange-600 text-xs mt-1 font-mono">
@@ -392,7 +419,7 @@ export default function PlaygroundApp() {
                         rows={3}
                         value={getTextareaValue(expr)}
                         onChange={(e) => updateExpression(index, 'value', e.target.value)}
-                        className={getInputClassName(hasSyntaxError, index)}
+                        className={getInputClassName(hasSyntaxError, index, expr.mode, true)}
                         placeholder='{"x": 10, "y": 20}'
                       />
                     ) : (
@@ -401,7 +428,7 @@ export default function PlaygroundApp() {
                         placeholder="e.g. a + b"
                         value={expr.expr || ''}
                         onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                        className={getInputClassName(hasSyntaxError, index)}
+                        className={getInputClassName(hasSyntaxError, index, expr.mode, false, false)}
                       />
                     )}
                     {hasSyntaxError && (
@@ -429,7 +456,7 @@ export default function PlaygroundApp() {
                           placeholder="e.g. radius"
                           value={expr.name}
                           onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                          className={getInputClassName(hasNameError, index)}
+                          className={getInputClassName(hasNameError, index, expr.mode, false, true)}
                         />
                         {hasNameError && (
                           <div className="text-orange-600 text-xs mt-1 font-mono">
@@ -446,7 +473,7 @@ export default function PlaygroundApp() {
                             rows={3}
                             value={getTextareaValue(expr)}
                             onChange={(e) => updateExpression(index, 'value', e.target.value)}
-                            className={getInputClassName(hasSyntaxError, index)}
+                            className={getInputClassName(hasSyntaxError, index, expr.mode, true)}
                             placeholder='{"x": 10, "y": 20}'
                           />
                         ) : (
@@ -455,7 +482,7 @@ export default function PlaygroundApp() {
                             placeholder="e.g. a + b"
                             value={expr.expr || ''}
                             onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                            className={getInputClassName(hasSyntaxError, index)}
+                            className={getInputClassName(hasSyntaxError, index, expr.mode, false, false)}
                           />
                         )}
                         {hasSyntaxError && (
@@ -479,14 +506,14 @@ export default function PlaygroundApp() {
           <div className="flex justify-end gap-2 mt-3">
             <button
               onClick={() => addExpression('expr')}
-              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
             >
               <Plus size={16} />
               <span>Add Expression</span>
             </button>
             <button
               onClick={() => addExpression('value')}
-              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
             >
               <Plus size={16} />
               <span>Add Value</span>
@@ -548,6 +575,14 @@ export default function PlaygroundApp() {
               </table>
               <div className="mt-4 text-gray-600 text-xs sm:text-sm italic">
                 Evaluation order: {result.order.join(' → ')}
+              </div>
+              <div className="mt-3 pt-3 border-t border-green-200">
+                <div className="flex items-start gap-2 text-xs sm:text-sm">
+                  <span className="inline-block w-3 h-3 border-2 border-purple-400 rounded mt-0.5 flex-shrink-0"></span>
+                  <span className="text-gray-600">
+                    Variables with <span className="text-purple-600 font-medium">purple borders</span> use the <strong>value property</strong> (JSON objects/arrays). These values are used for computations but do not appear in the results table.
+                  </span>
+                </div>
               </div>
             </>
           ) : (

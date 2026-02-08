@@ -29,7 +29,9 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
       );
     }
     
-    if (!input.expr && input.value === undefined) {
+    // Allow blank/empty expr (will evaluate to null)
+    // But require at least one of expr or value to be present
+    if (input.expr === undefined && input.value === undefined) {
       throw new ValidationError(
         `Each input must have either "expr" or "value": ${input.name}`,
         input.name
@@ -78,9 +80,11 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
       // Otherwise, evaluate the expression using the pre-parsed AST
       const ast = asts.get(name);
       if (!ast) {
-        throw new Error(`No expression or value found for: ${name}`);
+        // No AST means blank/empty expression - return null
+        result = null;
+      } else {
+        result = await evaluateExpression(ast, context);
       }
-      result = await evaluateExpression(ast, context);
     }
     
     // Store result - can be Decimal, boolean, or null

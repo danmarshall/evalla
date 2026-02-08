@@ -295,6 +295,24 @@ export default function PlaygroundApp() {
     setError(null);
     setErrorIndex(null);
 
+    // Check if there are any syntax errors before evaluating
+    if (syntaxErrors.size > 0) {
+      const firstErrorIndex = Array.from(syntaxErrors.keys())[0];
+      const errorMessage = syntaxErrors.get(firstErrorIndex);
+      setError(`Cannot evaluate: ${errorMessage}`);
+      setErrorIndex(firstErrorIndex);
+      return;
+    }
+
+    // Check if there are any name errors before evaluating
+    if (nameErrors.size > 0) {
+      const firstErrorIndex = Array.from(nameErrors.keys())[0];
+      const errorMessage = nameErrors.get(firstErrorIndex);
+      setError(`Cannot evaluate: ${errorMessage}`);
+      setErrorIndex(firstErrorIndex);
+      return;
+    }
+
     try {
       // Dynamic import to avoid SSR issues
       const { evalla } = await import('evalla');

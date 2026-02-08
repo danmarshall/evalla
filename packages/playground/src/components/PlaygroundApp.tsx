@@ -55,6 +55,10 @@ export default function PlaygroundApp() {
     if (mode === 'value' && (isValueField || isNameField)) {
       return `${baseClasses} border-purple-400 bg-white focus:ring-purple-500`;
     }
+    // Expression mode fields get teal border to match Add Expression button
+    if (mode === 'expr' || (!mode && !isValueField)) {
+      return `${baseClasses} border-teal-400 bg-white focus:ring-teal-500`;
+    }
     return `${baseClasses} border-gray-300 bg-white focus:ring-blue-500`;
   };
 
@@ -406,7 +410,7 @@ export default function PlaygroundApp() {
                         placeholder="e.g. a + b"
                         value={expr.expr || ''}
                         onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                        className={getInputClassName(hasSyntaxError, index)}
+                        className={getInputClassName(hasSyntaxError, index, expr.mode, false, false)}
                       />
                     )}
                     {hasSyntaxError && (
@@ -460,7 +464,7 @@ export default function PlaygroundApp() {
                             placeholder="e.g. a + b"
                             value={expr.expr || ''}
                             onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                            className={getInputClassName(hasSyntaxError, index)}
+                            className={getInputClassName(hasSyntaxError, index, expr.mode, false, false)}
                           />
                         )}
                         {hasSyntaxError && (

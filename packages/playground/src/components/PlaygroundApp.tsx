@@ -43,7 +43,7 @@ export default function PlaygroundApp() {
   };
 
   // Helper function to get input field styling based on error state and mode
-  const getInputClassName = (hasValidationError: boolean, index: number, mode?: 'expr' | 'value', isValueField?: boolean) => {
+  const getInputClassName = (hasValidationError: boolean, index: number, mode?: 'expr' | 'value', isValueField?: boolean, isNameField?: boolean) => {
     const baseClasses = 'w-full px-3 py-2 text-sm border rounded font-mono focus:outline-none focus:ring-2';
     if (hasValidationError) {
       return `${baseClasses} border-orange-400 bg-orange-50 focus:ring-orange-500`;
@@ -51,8 +51,8 @@ export default function PlaygroundApp() {
     if (errorIndex === index) {
       return `${baseClasses} border-red-300 bg-white focus:ring-blue-500`;
     }
-    // Value mode textareas get purple border to indicate they won't appear in results
-    if (mode === 'value' && isValueField) {
+    // Value mode fields get purple border to indicate they won't appear in results
+    if (mode === 'value' && (isValueField || isNameField)) {
       return `${baseClasses} border-purple-400 bg-white focus:ring-purple-500`;
     }
     return `${baseClasses} border-gray-300 bg-white focus:ring-blue-500`;
@@ -383,7 +383,7 @@ export default function PlaygroundApp() {
                       placeholder="e.g. radius"
                       value={expr.name}
                       onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                      className={getInputClassName(hasNameError, index)}
+                      className={getInputClassName(hasNameError, index, expr.mode, false, true)}
                     />
                     {hasNameError && (
                       <div className="text-orange-600 text-xs mt-1 font-mono">
@@ -434,7 +434,7 @@ export default function PlaygroundApp() {
                           placeholder="e.g. radius"
                           value={expr.name}
                           onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                          className={getInputClassName(hasNameError, index)}
+                          className={getInputClassName(hasNameError, index, expr.mode, false, true)}
                         />
                         {hasNameError && (
                           <div className="text-orange-600 text-xs mt-1 font-mono">
@@ -484,14 +484,14 @@ export default function PlaygroundApp() {
           <div className="flex justify-end gap-2 mt-3">
             <button
               onClick={() => addExpression('expr')}
-              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
             >
               <Plus size={16} />
               <span>Add Expression</span>
             </button>
             <button
               onClick={() => addExpression('value')}
-              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
             >
               <Plus size={16} />
               <span>Add Value</span>

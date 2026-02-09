@@ -17,13 +17,13 @@ async function main() {
   ]);
   
   console.log('   Full precision:');
-  console.log(`   pi = ${result1.values.pi.toString()}`);
-  console.log(`   1/3 = ${result1.values.oneThird.toString()}`);
+  console.log(`   pi = ${(result1.values.pi as any).toString()}`);
+  console.log(`   1/3 = ${(result1.values.oneThird as any).toString()}`);
   
   const formatted1 = formatResults(result1, { decimalPlaces: 7 });
   console.log('   Formatted (7 decimal places):');
-  console.log(`   pi = ${formatted1.values.pi.toString()}`);
-  console.log(`   1/3 = ${formatted1.values.oneThird.toString()}\n`);
+  console.log(`   pi = ${(formatted1.values.pi as any).toString()}`);
+  console.log(`   1/3 = ${(formatted1.values.oneThird as any).toString()}\n`);
 
   // Example 2: Financial calculations
   console.log('2. Financial Calculation (2 decimal places):');
@@ -47,13 +47,13 @@ async function main() {
     { name: 'area', expr: '$math.PI * $math.pow(radius, 2)' }
   ]);
   
-  console.log(`   Full precision: ${result3.values.area.toString()}`);
+  console.log(`   Full precision: ${(result3.values.area as any).toString()}`);
   
   const formatted2 = formatResults(result3, { decimalPlaces: 2 });
-  console.log(`   2 decimal places: ${formatted2.values.area.toString()}`);
+  console.log(`   2 decimal places: ${(formatted2.values.area as any).toString()}`);
   
   const formatted6 = formatResults(result3, { decimalPlaces: 6 });
-  console.log(`   6 decimal places: ${formatted6.values.area.toString()}\n`);
+  console.log(`   6 decimal places: ${(formatted6.values.area as any).toString()}\n`);
 
   // Example 4: Preserving non-numeric values
   console.log('4. Mixed Value Types:');
@@ -65,10 +65,10 @@ async function main() {
   ]);
   
   const formatted4 = formatResults(result4, { decimalPlaces: 2 });
-  console.log(`   decimal:   ${formatted4.values.decimal.toString()} (formatted)`);
+  console.log(`   decimal:   ${(formatted4.values.decimal as any).toString()} (formatted)`);
   console.log(`   boolean:   ${formatted4.values.boolean} (preserved)`);
   console.log(`   null:      ${formatted4.values.nullValue} (preserved)`);
-  console.log(`   infinity:  ${formatted4.values.infinity.toString()} (preserved)\n`);
+  console.log(`   infinity:  ${(formatted4.values.infinity as any).toString()} (preserved)\n`);
 
   // Example 5: Maintaining precision in calculations
   console.log('5. Full Precision During Evaluation:');
@@ -78,8 +78,8 @@ async function main() {
   ]);
   
   const formatted5 = formatResults(result5, { decimalPlaces: 7 });
-  console.log(`   1/3 = ${formatted5.values.a.toString()} (displayed with 7 decimal places)`);
-  console.log(`   (1/3) * 3 = ${formatted5.values.b.toString()} (exactly 1!)`);
+  console.log(`   1/3 = ${(formatted5.values.a as any).toString()} (displayed with 7 decimal places)`);
+  console.log(`   (1/3) * 3 = ${(formatted5.values.b as any).toString()} (exactly 1!)`);
   console.log('   Note: Internal calculation used full precision, so b is exactly 1\n');
 
   console.log('=== Key Points ===');

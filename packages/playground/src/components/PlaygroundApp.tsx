@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, Play, Upload, Download, FileText } from 'lucide-react';
+import { Plus, Trash2, Play, Upload, Download, FileText, X } from 'lucide-react';
 import { examples, type Expression } from '../data/examples';
 
 export default function PlaygroundApp() {
@@ -276,6 +276,26 @@ export default function PlaygroundApp() {
     setNameErrors(adjustedNameErrors);
     debounceTimeouts.current = adjustedTimeouts;
     nameDebounceTimeouts.current = adjustedNameTimeouts;
+  };
+
+  const clearValues = () => {
+    // Remove all value mode expressions
+    setExpressions(prev => prev.filter(e => e.mode !== 'value'));
+    // Clear all errors and timeouts
+    setSyntaxErrors(new Map());
+    setNameErrors(new Map());
+    debounceTimeouts.current.clear();
+    nameDebounceTimeouts.current.clear();
+  };
+
+  const clearExpressions = () => {
+    // Remove all expression mode expressions
+    setExpressions(prev => prev.filter(e => e.mode === 'value'));
+    // Clear all errors and timeouts
+    setSyntaxErrors(new Map());
+    setNameErrors(new Map());
+    debounceTimeouts.current.clear();
+    nameDebounceTimeouts.current.clear();
   };
 
   // Upload/Download functions
@@ -672,6 +692,16 @@ export default function PlaygroundApp() {
             <p className="text-purple-700 text-sm italic text-center py-4">No values defined. Add values to use in your expressions.</p>
           )}
           <div className="flex justify-end gap-2 mt-3">
+            {valueExpressions.length > 0 && (
+              <button
+                onClick={clearValues}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+                title="Clear all values"
+              >
+                <X size={16} />
+                <span>Clear All</span>
+              </button>
+            )}
             <button
               onClick={() => addExpression('value')}
               className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
@@ -826,6 +856,16 @@ export default function PlaygroundApp() {
             <p className="text-teal-700 text-sm italic text-center py-4">No expressions defined. Add expressions to calculate results.</p>
           )}
           <div className="flex justify-end gap-2 mt-3">
+            {exprExpressions.length > 0 && (
+              <button
+                onClick={clearExpressions}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+                title="Clear all expressions"
+              >
+                <X size={16} />
+                <span>Clear All</span>
+              </button>
+            )}
             <button
               onClick={() => addExpression('expr')}
               className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"

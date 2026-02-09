@@ -578,6 +578,16 @@ export default function PlaygroundApp() {
                 <Upload size={14} />
                 <span>Upload</span>
               </button>
+              {valueExpressions.length > 0 && (
+                <button
+                  onClick={clearValues}
+                  className="px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs rounded transition-colors flex items-center gap-1"
+                  title="Clear all values"
+                >
+                  <X size={14} />
+                  <span>Clear All</span>
+                </button>
+              )}
             </div>
           </div>
           <p className="text-purple-800 text-xs sm:text-sm mb-3 italic">
@@ -699,16 +709,6 @@ export default function PlaygroundApp() {
               <Plus size={16} />
               <span>Add Value</span>
             </button>
-            {valueExpressions.length > 0 && (
-              <button
-                onClick={clearValues}
-                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
-                title="Clear all values"
-              >
-                <X size={16} />
-                <span>Clear All</span>
-              </button>
-            )}
           </div>
         </div>
 
@@ -742,6 +742,16 @@ export default function PlaygroundApp() {
                 <Download size={14} />
                 <span>Download</span>
               </button>
+              {exprExpressions.length > 0 && (
+                <button
+                  onClick={clearExpressions}
+                  className="px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs rounded transition-colors flex items-center gap-1"
+                  title="Clear all expressions"
+                >
+                  <X size={14} />
+                  <span>Clear All</span>
+                </button>
+              )}
             </div>
           </div>
           <p className="text-teal-800 text-xs sm:text-sm mb-3 italic">
@@ -863,16 +873,6 @@ export default function PlaygroundApp() {
               <Plus size={16} />
               <span>Add Expression</span>
             </button>
-            {exprExpressions.length > 0 && (
-              <button
-                onClick={clearExpressions}
-                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
-                title="Clear all expressions"
-              >
-                <X size={16} />
-                <span>Clear All</span>
-              </button>
-            )}
           </div>
 
         </div>

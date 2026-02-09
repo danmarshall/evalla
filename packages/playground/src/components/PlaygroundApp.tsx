@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, Play } from 'lucide-react';
+import { Plus, Trash2, Play, Upload, Download, FileText, X } from 'lucide-react';
 import { examples, type Expression } from '../data/examples';
 
 export default function PlaygroundApp() {
@@ -279,6 +279,172 @@ export default function PlaygroundApp() {
     nameDebounceTimeouts.current = adjustedNameTimeouts;
   };
 
+  const clearValues = () => {
+    // Remove all value mode expressions
+    setExpressions(prev => prev.filter(e => e.mode !== 'value'));
+    // Clear all errors and timeouts
+    setSyntaxErrors(new Map());
+    setNameErrors(new Map());
+    debounceTimeouts.current.clear();
+    nameDebounceTimeouts.current.clear();
+  };
+
+  const clearExpressions = () => {
+    // Remove all expression mode expressions
+    setExpressions(prev => prev.filter(e => e.mode === 'value'));
+    // Clear all errors and timeouts
+    setSyntaxErrors(new Map());
+    setNameErrors(new Map());
+    debounceTimeouts.current.clear();
+    nameDebounceTimeouts.current.clear();
+  };
+
+  // Upload/Download functions
+  const handleUploadJSON = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const json = JSON.parse(event.target?.result as string);
+            // Replace all value mode expressions with uploaded data
+            const newValues: Expression[] = [];
+            Object.entries(json).forEach(([key, value]) => {
+              newValues.push({ name: key, value, mode: 'value' as const });
+            });
+            // Keep only expression mode items, replace all values
+            setExpressions(prev => [
+              ...prev.filter(e => e.mode !== 'value'),
+              ...newValues
+            ]);
+          } catch (err) {
+            setError('Failed to parse JSON file: ' + (err instanceof Error ? err.message : 'Unknown error'));
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
+  const handlePasteJSON = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const json = JSON.parse(text);
+      // Import all key-value pairs as value mode expressions
+      Object.entries(json).forEach(([key, value]) => {
+        setExpressions(prev => [
+          ...prev,
+          { name: key, value, mode: 'value' as const }
+        ]);
+      });
+    } catch (err) {
+      setError('Failed to parse JSON from clipboard: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    }
+  };
+
+  const handleUploadExpressions = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,.txt';
+    input.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const content = event.target?.result as string;
+            const data = JSON.parse(content);
+            
+            const newExpressions: Expression[] = [];
+            
+            // Support both array format and object format
+            if (Array.isArray(data)) {
+              // Array of expression objects
+              data.forEach((item: any) => {
+                if (item.name && (item.expr !== undefined || item.value !== undefined)) {
+                  newExpressions.push({
+                    name: item.name,
+                    expr: item.expr,
+                    value: item.value,
+                    mode: item.mode || (item.value !== undefined ? 'value' : 'expr')
+                  });
+                }
+              });
+            } else {
+              // Object format: key = name, value = expression string
+              Object.entries(data).forEach(([key, value]) => {
+                newExpressions.push({ name: key, expr: String(value), mode: 'expr' as const });
+              });
+            }
+            
+            // Replace all expression mode items, keep only values
+            setExpressions(prev => [
+              ...prev.filter(e => e.mode === 'value'),
+              ...newExpressions
+            ]);
+          } catch (err) {
+            setError('Failed to parse expressions file: ' + (err instanceof Error ? err.message : 'Unknown error'));
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
+  const handlePasteExpressions = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const data = JSON.parse(text);
+      
+      // Support both array format and object format
+      if (Array.isArray(data)) {
+        // Array of expression objects
+        data.forEach((item: any) => {
+          if (item.name && (item.expr !== undefined || item.value !== undefined)) {
+            setExpressions(prev => [...prev, {
+              name: item.name,
+              expr: item.expr,
+              value: item.value,
+              mode: item.mode || (item.value !== undefined ? 'value' : 'expr')
+            }]);
+          }
+        });
+      } else {
+        // Object format: key = name, value = expression string
+        Object.entries(data).forEach(([key, value]) => {
+          setExpressions(prev => [
+            ...prev,
+            { name: key, expr: String(value), mode: 'expr' as const }
+          ]);
+        });
+      }
+    } catch (err) {
+      setError('Failed to parse expressions from clipboard: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    }
+  };
+
+  const handleDownloadExpressions = () => {
+    const exprOnly = expressions.filter(e => e.mode === 'expr');
+    const data = exprOnly.map(e => ({
+      name: e.name,
+      expr: e.expr || ''
+    }));
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'expressions.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
 
   const loadExample = (key: string) => {
     const example = examples[key];
@@ -366,6 +532,16 @@ export default function PlaygroundApp() {
     }
   };
 
+  // Separate values and expressions for display
+  const valueExpressions = expressions.filter(e => e.mode === 'value').map(e => ({ 
+    ...e, 
+    originalIndex: expressions.indexOf(e) 
+  }));
+  const exprExpressions = expressions.filter(e => e.mode !== 'value').map(e => ({ 
+    ...e, 
+    originalIndex: expressions.indexOf(e) 
+  }));
+
   return (
     <div className='content'>
       <div className="mb-6">
@@ -388,128 +564,314 @@ export default function PlaygroundApp() {
           </select>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
-          {/* Desktop header */}
-          <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 mb-2 text-sm font-medium text-gray-600">
-            <div>Name</div>
-            <div>Expression or Value</div>
-            <div className="w-[90px]"></div>
-          </div>
-          <div className="space-y-4 sm:space-y-2">
-            {expressions.map((expr, index) => {
-              const hasSyntaxError = syntaxErrors.has(index);
-              const hasNameError = nameErrors.has(index);
-              return (
-              <div
-                key={index}
-                className={`${errorIndex === index ? 'bg-red-50 -mx-2 px-2 py-1 rounded' : ''}`}
+        {/* VALUES SECTION */}
+        <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3 sm:p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-purple-900">Values (JSON)</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={handlePasteJSON}
+                className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded transition-colors flex items-center gap-1"
+                title="Paste JSON from clipboard"
               >
-                {/* Desktop layout */}
-                <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 items-start">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder="e.g. radius"
-                      value={expr.name}
-                      onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                      className={getInputClassName(hasNameError, index, expr.mode, false, true)}
-                    />
-                    {hasNameError && (
-                      <div className="text-orange-600 text-xs mt-1 font-mono">
-                        {nameErrors.get(index)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    {expr.mode === 'value' ? (
-                      <textarea
-                        rows={3}
-                        value={getTextareaValue(expr)}
-                        onChange={(e) => updateExpression(index, 'value', e.target.value)}
-                        className={getInputClassName(hasSyntaxError, index, expr.mode, true)}
-                        placeholder='{"x": 10, "y": 20}'
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        placeholder="e.g. a + b"
-                        value={expr.expr || ''}
-                        onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                        className={getInputClassName(hasSyntaxError, index, expr.mode, false, false)}
-                      />
-                    )}
-                    {hasSyntaxError && (
-                      <div className="text-orange-600 text-xs mt-1 font-mono">
-                        {syntaxErrors.get(index)}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => removeExpression(index)}
-                    className="w-24 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+                <FileText size={14} />
+                <span>Paste</span>
+              </button>
+              <button
+                onClick={handleUploadJSON}
+                className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded transition-colors flex items-center gap-1"
+                title="Upload JSON file"
+              >
+                <Upload size={14} />
+                <span>Upload</span>
+              </button>
+              {valueExpressions.length > 0 && (
+                <button
+                  onClick={clearValues}
+                  className="px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs rounded transition-colors flex items-center gap-1"
+                  title="Clear all values"
+                >
+                  <X size={14} />
+                  <span>Clear All</span>
+                </button>
+              )}
+            </div>
+          </div>
+          <p className="text-purple-800 text-xs sm:text-sm mb-3 italic">
+            Values are JSON objects/arrays that can be referenced in expressions but do not appear in the evaluation results.
+          </p>
+          
+          {valueExpressions.length > 0 ? (
+            <>
+              {/* Desktop header */}
+              <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 mb-2 text-sm font-medium text-purple-900">
+                <div>Name</div>
+                <div>JSON Value</div>
+                <div className="w-[90px]"></div>
+              </div>
+              <div className="space-y-4 sm:space-y-2">
+                {valueExpressions.map(({ originalIndex, ...expr }) => {
+                  const hasSyntaxError = syntaxErrors.has(originalIndex);
+                  const hasNameError = nameErrors.has(originalIndex);
+                  return (
+                  <div
+                    key={originalIndex}
+                    className={`${errorIndex === originalIndex ? 'bg-red-50 -mx-2 px-2 py-1 rounded' : ''}`}
                   >
-                    <Trash2 size={16} />
-                    <span>Remove</span>
-                  </button>
-                </div>
-                {/* Mobile layout */}
-                <div className="sm:hidden flex gap-2">
-                  <div className="flex-1 space-y-1">
-                    <div className="flex gap-2 items-center">
-                      <label className="text-xs font-medium text-gray-600 w-12">Name</label>
+                    {/* Desktop layout */}
+                    <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 items-start">
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          placeholder="e.g. point"
+                          value={expr.name}
+                          onChange={(e) => updateExpression(originalIndex, 'name', e.target.value)}
+                          className={getInputClassName(hasNameError, originalIndex, expr.mode, false, true)}
+                        />
+                        {hasNameError && (
+                          <div className="text-orange-600 text-xs mt-1 font-mono">
+                            {nameErrors.get(originalIndex)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <textarea
+                          rows={3}
+                          value={getTextareaValue(expr)}
+                          onChange={(e) => updateExpression(originalIndex, 'value', e.target.value)}
+                          className={getInputClassName(hasSyntaxError, originalIndex, expr.mode, true)}
+                          placeholder='{"x": 10, "y": 20}'
+                        />
+                        {hasSyntaxError && (
+                          <div className="text-orange-600 text-xs mt-1 font-mono">
+                            {syntaxErrors.get(originalIndex)}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => removeExpression(originalIndex)}
+                        className="w-24 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+                      >
+                        <Trash2 size={16} />
+                        <span>Remove</span>
+                      </button>
+                    </div>
+                    {/* Mobile layout */}
+                    <div className="sm:hidden flex gap-2">
+                      <div className="flex-1 space-y-1">
+                        <div className="flex gap-2 items-center">
+                          <label className="text-xs font-medium text-purple-900 w-12">Name</label>
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              placeholder="e.g. point"
+                              value={expr.name}
+                              onChange={(e) => updateExpression(originalIndex, 'name', e.target.value)}
+                              className={getInputClassName(hasNameError, originalIndex, expr.mode, false, true)}
+                            />
+                            {hasNameError && (
+                              <div className="text-orange-600 text-xs mt-1 font-mono">
+                                {nameErrors.get(originalIndex)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-start">
+                          <label className="text-xs font-medium text-purple-900 w-12 mt-2">Value</label>
+                          <div className="flex-1">
+                            <textarea
+                              rows={3}
+                              value={getTextareaValue(expr)}
+                              onChange={(e) => updateExpression(originalIndex, 'value', e.target.value)}
+                              className={getInputClassName(hasSyntaxError, originalIndex, expr.mode, true)}
+                              placeholder='{"x": 10, "y": 20}'
+                            />
+                            {hasSyntaxError && (
+                              <div className="text-orange-600 text-xs mt-1 font-mono">
+                                {syntaxErrors.get(originalIndex)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeExpression(originalIndex)}
+                        className="p-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors self-center"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )})}
+              </div>
+            </>
+          ) : (
+            <p className="text-purple-700 text-sm italic text-center py-4">No values defined. Add values to use in your expressions.</p>
+          )}
+          <div className="flex justify-end gap-2 mt-3">
+            <button
+              onClick={() => addExpression('value')}
+              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+            >
+              <Plus size={16} />
+              <span>Add Value</span>
+            </button>
+          </div>
+        </div>
+
+        {/* EXPRESSIONS SECTION */}
+        <div className="bg-teal-50 border-2 border-teal-200 rounded-lg p-3 sm:p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-teal-900">Expressions</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={handlePasteExpressions}
+                className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs rounded transition-colors flex items-center gap-1"
+                title="Paste expressions from clipboard"
+              >
+                <FileText size={14} />
+                <span>Paste</span>
+              </button>
+              <button
+                onClick={handleUploadExpressions}
+                className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs rounded transition-colors flex items-center gap-1"
+                title="Upload expressions file"
+              >
+                <Upload size={14} />
+                <span>Upload</span>
+              </button>
+              <button
+                onClick={handleDownloadExpressions}
+                className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs rounded transition-colors flex items-center gap-1"
+                title="Download expressions"
+                disabled={exprExpressions.length === 0}
+              >
+                <Download size={14} />
+                <span>Download</span>
+              </button>
+              {exprExpressions.length > 0 && (
+                <button
+                  onClick={clearExpressions}
+                  className="px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs rounded transition-colors flex items-center gap-1"
+                  title="Clear all expressions"
+                >
+                  <X size={14} />
+                  <span>Clear All</span>
+                </button>
+              )}
+            </div>
+          </div>
+          <p className="text-teal-800 text-xs sm:text-sm mb-3 italic">
+            Expressions are mathematical formulas that will be evaluated and appear in the results.
+          </p>
+          
+          {exprExpressions.length > 0 ? (
+            <>
+              {/* Desktop header */}
+              <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 mb-2 text-sm font-medium text-teal-900">
+                <div>Name</div>
+                <div>Expression</div>
+                <div className="w-[90px]"></div>
+              </div>
+              <div className="space-y-4 sm:space-y-2">
+                {exprExpressions.map(({ originalIndex, ...expr }) => {
+                  const hasSyntaxError = syntaxErrors.has(originalIndex);
+                  const hasNameError = nameErrors.has(originalIndex);
+                  return (
+                  <div
+                    key={originalIndex}
+                    className={`${errorIndex === originalIndex ? 'bg-red-50 -mx-2 px-2 py-1 rounded' : ''}`}
+                  >
+                    {/* Desktop layout */}
+                    <div className="hidden sm:grid sm:grid-cols-[150px_1fr_auto] gap-2 items-start">
                       <div className="flex-1">
                         <input
                           type="text"
                           placeholder="e.g. radius"
                           value={expr.name}
-                          onChange={(e) => updateExpression(index, 'name', e.target.value)}
-                          className={getInputClassName(hasNameError, index, expr.mode, false, true)}
+                          onChange={(e) => updateExpression(originalIndex, 'name', e.target.value)}
+                          className={getInputClassName(hasNameError, originalIndex, expr.mode, false, true)}
                         />
                         {hasNameError && (
                           <div className="text-orange-600 text-xs mt-1 font-mono">
-                            {nameErrors.get(index)}
+                            {nameErrors.get(originalIndex)}
                           </div>
                         )}
                       </div>
-                    </div>
-                    <div className="flex gap-2 items-start">
-                      <label className="text-xs font-medium text-gray-600 w-12 mt-2">{expr.mode === 'value' ? 'Value' : 'Expr'}</label>
                       <div className="flex-1">
-                        {expr.mode === 'value' ? (
-                          <textarea
-                            rows={3}
-                            value={getTextareaValue(expr)}
-                            onChange={(e) => updateExpression(index, 'value', e.target.value)}
-                            className={getInputClassName(hasSyntaxError, index, expr.mode, true)}
-                            placeholder='{"x": 10, "y": 20}'
-                          />
-                        ) : (
-                          <input
-                            type="text"
-                            placeholder="e.g. a + b"
-                            value={expr.expr || ''}
-                            onChange={(e) => updateExpression(index, 'expr', e.target.value)}
-                            className={getInputClassName(hasSyntaxError, index, expr.mode, false, false)}
-                          />
-                        )}
+                        <input
+                          type="text"
+                          placeholder="e.g. a + b"
+                          value={expr.expr || ''}
+                          onChange={(e) => updateExpression(originalIndex, 'expr', e.target.value)}
+                          className={getInputClassName(hasSyntaxError, originalIndex, expr.mode, false, false)}
+                        />
                         {hasSyntaxError && (
                           <div className="text-orange-600 text-xs mt-1 font-mono">
-                            {syntaxErrors.get(index)}
+                            {syntaxErrors.get(originalIndex)}
                           </div>
                         )}
                       </div>
+                      <button
+                        onClick={() => removeExpression(originalIndex)}
+                        className="w-24 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors flex items-center gap-1.5 justify-center"
+                      >
+                        <Trash2 size={16} />
+                        <span>Remove</span>
+                      </button>
+                    </div>
+                    {/* Mobile layout */}
+                    <div className="sm:hidden flex gap-2">
+                      <div className="flex-1 space-y-1">
+                        <div className="flex gap-2 items-center">
+                          <label className="text-xs font-medium text-teal-900 w-12">Name</label>
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              placeholder="e.g. radius"
+                              value={expr.name}
+                              onChange={(e) => updateExpression(originalIndex, 'name', e.target.value)}
+                              className={getInputClassName(hasNameError, originalIndex, expr.mode, false, true)}
+                            />
+                            {hasNameError && (
+                              <div className="text-orange-600 text-xs mt-1 font-mono">
+                                {nameErrors.get(originalIndex)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-start">
+                          <label className="text-xs font-medium text-teal-900 w-12 mt-2">Expr</label>
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              placeholder="e.g. a + b"
+                              value={expr.expr || ''}
+                              onChange={(e) => updateExpression(originalIndex, 'expr', e.target.value)}
+                              className={getInputClassName(hasSyntaxError, originalIndex, expr.mode, false, false)}
+                            />
+                            {hasSyntaxError && (
+                              <div className="text-orange-600 text-xs mt-1 font-mono">
+                                {syntaxErrors.get(originalIndex)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeExpression(originalIndex)}
+                        className="p-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors self-center"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
-                  <button
-                    onClick={() => removeExpression(index)}
-                    className="p-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors self-center"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+                )})}
               </div>
-            )})}
-          </div>
+            </>
+          ) : (
+            <p className="text-teal-700 text-sm italic text-center py-4">No expressions defined. Add expressions to calculate results.</p>
+          )}
           <div className="flex justify-end gap-2 mt-3">
             <button
               onClick={() => addExpression('expr')}
@@ -517,13 +879,6 @@ export default function PlaygroundApp() {
             >
               <Plus size={16} />
               <span>Add Expression</span>
-            </button>
-            <button
-              onClick={() => addExpression('value')}
-              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
-            >
-              <Plus size={16} />
-              <span>Add Value</span>
             </button>
           </div>
 
@@ -601,14 +956,6 @@ export default function PlaygroundApp() {
               </table>
               <div className="mt-4 text-gray-600 text-xs sm:text-sm italic">
                 Evaluation order: {result.order.join(' → ')}
-              </div>
-              <div className="mt-3 pt-3 border-t border-green-200">
-                <div className="flex items-start gap-2 text-xs sm:text-sm">
-                  <span className="inline-block w-3 h-3 border-2 border-purple-400 rounded mt-0.5 flex-shrink-0"></span>
-                  <span className="text-gray-600">
-                    Variables with <span className="text-purple-600 font-medium">purple borders</span> use the <strong>value property</strong> (JSON objects/arrays). These values are used for computations but do not appear in the results table.
-                  </span>
-                </div>
               </div>
             </>
           ) : (

@@ -4,41 +4,42 @@
 
 This directory contains a complete analysis and proposal for adding configurable decimal places to evalla.
 
-## 🎯 The Proposal
+## 🎯 The Proposal (REVISED)
 
-Add an optional `decimalPlaces` parameter to control output formatting:
+**New approach**: Separate formatting function instead of options parameter
 
 ```typescript
-// Current behavior (full precision)
+// Evaluate with full precision (evalla unchanged)
 const result = await evalla([{ name: 'pi', expr: '3.14159265358979323846' }]);
-console.log(result.values.pi.toString()); // "3.14159265358979323846"
 
-// Proposed behavior (formatted)
-const result = await evalla(
-  [{ name: 'pi', expr: '3.14159265358979323846' }],
-  { decimalPlaces: 7 }
-);
-console.log(result.values.pi.toString()); // "3.1415927"
+// Format for display using new function
+const formatted = formatResults(result, { decimalPlaces: 7 });
+console.log(formatted.values.pi.toString()); // "3.1415927"
 ```
 
-**Your stated preference**: 7 decimal places as default
+**Original proposal**: Pass `decimalPlaces` as option to `evalla()`
+**Revised proposal**: New `formatResults()` function for better separation of concerns
 
-**My recommendation**: Start with unlimited (non-breaking), consider 7 in v1.0.0
+**Your feedback**: "maybe its not an input parameter then (since its not used until display) - perhaps we have a new function roundResults?"
+
+This makes sense! Formatting is purely for display, not evaluation logic.
 
 ## 📚 Documentation
 
 ### Quick Start
-1. **[START HERE: QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - 5-minute overview
-2. **[RUN THIS: `node decimal-places-poc.js`](./decimal-places-poc.js)** - See it in action
+1. **[START HERE: REVISED_PROPOSAL.md](./REVISED_PROPOSAL.md)** - Updated design with separate function
+2. **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - 5-minute overview (updated)
+3. **[RUN THIS: `node decimal-places-poc.js`](./decimal-places-poc.js)** - See it in action
 
 ### Decision Making
-3. **[DECISION_MATRIX.md](./DECISION_MATRIX.md)** - Decision checklist and scenarios
-4. **[DECISION_POINTS.md](./DECISION_POINTS.md)** - Detailed design trade-offs
+3. **[REVISED_PROPOSAL.md](./REVISED_PROPOSAL.md)** - Updated API design (separate function)
+4. **[DECISION_MATRIX.md](./DECISION_MATRIX.md)** - Decision checklist and scenarios
+5. **[DECISION_POINTS.md](./DECISION_POINTS.md)** - Detailed design trade-offs
 
 ### Technical Details  
-5. **[DECIMAL_PLACES_PROPOSAL.md](./DECIMAL_PLACES_PROPOSAL.md)** - Complete analysis
-6. **[VISUAL_COMPARISON.md](./VISUAL_COMPARISON.md)** - Side-by-side examples
-7. **[API_MOCKUP.ts](./API_MOCKUP.ts)** - Exact implementation preview
+6. **[DECIMAL_PLACES_PROPOSAL.md](./DECIMAL_PLACES_PROPOSAL.md)** - Original proposal (options parameter)
+7. **[VISUAL_COMPARISON.md](./VISUAL_COMPARISON.md)** - Side-by-side examples
+8. **[API_MOCKUP.ts](./API_MOCKUP.ts)** - Implementation preview (to be updated)
 
 ## 🧪 Try It Yourself
 

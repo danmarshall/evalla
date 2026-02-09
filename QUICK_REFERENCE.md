@@ -17,15 +17,15 @@ Users must manually format:
 console.log(result.values.pi.toFixed(7));  // "3.1415927"
 ```
 
-## Proposed Behavior
+## Proposed Behavior (REVISED)
+
+**New approach**: Separate function for formatting (better separation of concerns)
 
 ```typescript
-const result = await evalla(
-  [{ name: 'pi', expr: '3.14159265358979323846' }],
-  { decimalPlaces: 7 }
-);
-console.log(result.values.pi.toString());
-// Output: "3.1415927" (automatically formatted)
+const result = await evalla([{ name: 'pi', expr: '3.14159265358979323846' }]);
+const formatted = formatResults(result, { decimalPlaces: 7 });
+console.log(formatted.values.pi.toString());
+// Output: "3.1415927" (formatted for display)
 ```
 
 ## Key Documents
@@ -63,20 +63,22 @@ This shows:
 
 **Recommendation**: Non-breaking initially (v0.2.x), breaking later if desired (v1.0.0)
 
-### 3. Implementation Approach
-- Apply formatting at output stage only
-- Keep full precision during internal calculations
+### 3. Implementation Approach (REVISED)
+- **New**: Separate `formatResults()` function instead of options parameter
+- Better separation of concerns (evaluation vs presentation)
+- Apply formatting after evaluation, not during
 - Check `.isFinite()` before formatting (handles Infinity)
 
-## API Design (Proposed)
+## API Design (REVISED)
+
+**New approach**: Separate `formatResults()` function
 
 ```typescript
-// Unlimited precision (current behavior, backward compatible)
-await evalla(inputs);
-await evalla(inputs, { decimalPlaces: undefined });
+// Evaluate with full precision (no change to evalla)
+const result = await evalla(inputs);
 
-// 7 decimal places (proposed default)
-await evalla(inputs, { decimalPlaces: 7 });
+// Format for display with 7 decimal places
+const formatted = formatResults(result, { decimalPlaces: 7 });
 
 // Custom precision
 await evalla(inputs, { decimalPlaces: 2 });  // Financial

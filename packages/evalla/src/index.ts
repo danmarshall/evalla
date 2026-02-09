@@ -124,3 +124,4 @@ export {
 } from './errors.js';
 export { checkSyntax, SyntaxCheckResult } from './syntax-checker.js';
 export { checkVariableName, VariableNameCheckResult } from './variable-name-checker.js';
+export { formatResults } from './format-results.js';

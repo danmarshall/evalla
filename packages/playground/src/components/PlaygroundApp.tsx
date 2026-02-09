@@ -692,6 +692,13 @@ export default function PlaygroundApp() {
             <p className="text-purple-700 text-sm italic text-center py-4">No values defined. Add values to use in your expressions.</p>
           )}
           <div className="flex justify-end gap-2 mt-3">
+            <button
+              onClick={() => addExpression('value')}
+              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+            >
+              <Plus size={16} />
+              <span>Add Value</span>
+            </button>
             {valueExpressions.length > 0 && (
               <button
                 onClick={clearValues}
@@ -702,13 +709,6 @@ export default function PlaygroundApp() {
                 <span>Clear All</span>
               </button>
             )}
-            <button
-              onClick={() => addExpression('value')}
-              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
-            >
-              <Plus size={16} />
-              <span>Add Value</span>
-            </button>
           </div>
         </div>
 
@@ -856,6 +856,13 @@ export default function PlaygroundApp() {
             <p className="text-teal-700 text-sm italic text-center py-4">No expressions defined. Add expressions to calculate results.</p>
           )}
           <div className="flex justify-end gap-2 mt-3">
+            <button
+              onClick={() => addExpression('expr')}
+              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
+            >
+              <Plus size={16} />
+              <span>Add Expression</span>
+            </button>
             {exprExpressions.length > 0 && (
               <button
                 onClick={clearExpressions}
@@ -866,13 +873,6 @@ export default function PlaygroundApp() {
                 <span>Clear All</span>
               </button>
             )}
-            <button
-              onClick={() => addExpression('expr')}
-              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm rounded transition-colors flex items-center gap-1.5"
-            >
-              <Plus size={16} />
-              <span>Add Expression</span>
-            </button>
           </div>
 
         </div>

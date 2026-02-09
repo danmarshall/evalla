@@ -539,33 +539,33 @@ export default function PlaygroundApp() {
       <div className="mb-6">
         <div className="bg-green-50 rounded-lg p-4">
           <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3">Results</h3>
-          <div className="flex flex-col sm:flex-row gap-2 mb-4">
+          <div className="mb-3 flex items-center gap-2">
+            <label htmlFor="decimal-places" className="text-sm text-gray-600 whitespace-nowrap">
+              Decimal places:
+            </label>
+            <select
+              id="decimal-places"
+              value={decimalPlaces}
+              onChange={(e) => setDecimalPlaces(e.target.value)}
+              className="px-2 py-1.5 text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All</option>
+              <option value="0">0</option>
+              <option value="2">2</option>
+              <option value="4">4</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+          <div className="flex gap-2 mb-4">
             <button
               onClick={evaluate}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded font-semibold transition-colors flex items-center justify-center gap-1.5"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded font-semibold transition-colors flex items-center gap-1.5"
             >
               <Play size={18} />
               <span>Evaluate</span>
             </button>
-            <div className="flex items-center gap-2">
-              <label htmlFor="decimal-places" className="text-sm text-gray-600 whitespace-nowrap">
-                Decimal places:
-              </label>
-              <select
-                id="decimal-places"
-                value={decimalPlaces}
-                onChange={(e) => setDecimalPlaces(e.target.value)}
-                className="px-2 py-1.5 text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All</option>
-                <option value="0">0</option>
-                <option value="2">2</option>
-                <option value="4">4</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="10">10</option>
-              </select>
-            </div>
             {result && (
               <button
                 onClick={() => setResult(null)}

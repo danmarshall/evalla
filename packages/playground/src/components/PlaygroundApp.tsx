@@ -290,13 +290,16 @@ export default function PlaygroundApp() {
         reader.onload = (event) => {
           try {
             const json = JSON.parse(event.target?.result as string);
-            // Import all key-value pairs as value mode expressions
+            // Replace all value mode expressions with uploaded data
+            const newValues: Expression[] = [];
             Object.entries(json).forEach(([key, value]) => {
-              setExpressions(prev => [
-                ...prev,
-                { name: key, value, mode: 'value' as const }
-              ]);
+              newValues.push({ name: key, value, mode: 'value' as const });
             });
+            // Keep only expression mode items, replace all values
+            setExpressions(prev => [
+              ...prev.filter(e => e.mode !== 'value'),
+              ...newValues
+            ]);
           } catch (err) {
             setError('Failed to parse JSON file: ' + (err instanceof Error ? err.message : 'Unknown error'));
           }
@@ -336,28 +339,33 @@ export default function PlaygroundApp() {
             const content = event.target?.result as string;
             const data = JSON.parse(content);
             
+            const newExpressions: Expression[] = [];
+            
             // Support both array format and object format
             if (Array.isArray(data)) {
               // Array of expression objects
               data.forEach((item: any) => {
                 if (item.name && (item.expr !== undefined || item.value !== undefined)) {
-                  setExpressions(prev => [...prev, {
+                  newExpressions.push({
                     name: item.name,
                     expr: item.expr,
                     value: item.value,
                     mode: item.mode || (item.value !== undefined ? 'value' : 'expr')
-                  }]);
+                  });
                 }
               });
             } else {
               // Object format: key = name, value = expression string
               Object.entries(data).forEach(([key, value]) => {
-                setExpressions(prev => [
-                  ...prev,
-                  { name: key, expr: String(value), mode: 'expr' as const }
-                ]);
+                newExpressions.push({ name: key, expr: String(value), mode: 'expr' as const });
               });
             }
+            
+            // Replace all expression mode items, keep only values
+            setExpressions(prev => [
+              ...prev.filter(e => e.mode === 'value'),
+              ...newExpressions
+            ]);
           } catch (err) {
             setError('Failed to parse expressions file: ' + (err instanceof Error ? err.message : 'Unknown error'));
           }

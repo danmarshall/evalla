@@ -43,21 +43,21 @@ export function formatResults(
   }
   
   // Create new values object with formatted Decimals
-  const formattedValues: Record<string, Decimal | boolean | null> = {};
+  const values: Record<string, Decimal | boolean | null> = {};
   
   for (const [name, value] of Object.entries(result.values)) {
     if (value instanceof Decimal && value.isFinite()) {
       // Format finite Decimal values
-      formattedValues[name] = value.toDecimalPlaces(decimalPlaces);
+      values[name] = value.toDecimalPlaces(decimalPlaces);
     } else {
       // Preserve boolean, null, and Infinity unchanged
-      formattedValues[name] = value;
+      values[name] = value;
     }
   }
   
   // Return new result object (immutable)
   return {
-    values: formattedValues,
+    values,
     order: result.order
   };
 }

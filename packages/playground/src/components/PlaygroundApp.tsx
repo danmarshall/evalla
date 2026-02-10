@@ -14,6 +14,7 @@ export default function PlaygroundApp() {
   const [syntaxErrors, setSyntaxErrors] = useState<Map<number, string>>(new Map());
   const [nameErrors, setNameErrors] = useState<Map<number, string>>(new Map());
   const [nextVarNumber, setNextVarNumber] = useState<number>(4); // Counter for unique variable names
+  const [decimalPlaces, setDecimalPlaces] = useState<string>('all'); // 'all' or number as string
   
   // Store debounce timeouts per expression index
   const debounceTimeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
@@ -481,7 +482,7 @@ export default function PlaygroundApp() {
 
     try {
       // Dynamic import to avoid SSR issues
-      const { evalla } = await import('evalla');
+      const { evalla, formatResults } = await import('evalla');
 
       // Format inputs for evalla based on mode
       const validInputs = expressions
@@ -511,7 +512,13 @@ export default function PlaygroundApp() {
       }
 
       const evalResult = await evalla(validInputs);
-      setResult(evalResult);
+      
+      // Apply decimal places formatting if not 'all'
+      const finalResult = decimalPlaces === 'all' 
+        ? evalResult 
+        : formatResults(evalResult, { decimalPlaces: parseInt(decimalPlaces) });
+      
+      setResult(finalResult);
     } catch (err: any) {
       setError(err.message);
       setResult(null);
@@ -887,6 +894,25 @@ export default function PlaygroundApp() {
       <div className="mb-6">
         <div className="bg-green-50 rounded-lg p-4">
           <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3">Results</h3>
+          <div className="mb-3 flex items-center gap-2">
+            <label htmlFor="decimal-places" className="text-sm text-gray-600 whitespace-nowrap">
+              Decimal places:
+            </label>
+            <select
+              id="decimal-places"
+              value={decimalPlaces}
+              onChange={(e) => setDecimalPlaces(e.target.value)}
+              className="px-2 py-1.5 text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All</option>
+              <option value="0">0</option>
+              <option value="2">2</option>
+              <option value="4">4</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="10">10</option>
+            </select>
+          </div>
           <div className="flex gap-2 mb-4">
             <button
               onClick={evaluate}

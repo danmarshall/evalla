@@ -21,6 +21,7 @@ console.log(result.order);               // ['c', 'a', 'b']
 ## Features
 
 - ✅ **Decimal Precision**: Uses [decimal.js](https://mikemcl.github.io/decimal.js/) internally for accurate arithmetic
+- ✅ **Result Formatting**: Optional `formatResults()` function to format output to specific decimal places
 - ✅ **Decimal, Boolean & Null Output**: Results can be `Decimal`, `boolean`, or `null` for natural mathematical expressions
 - ✅ **Variable References**: Support dependencies between expressions
 - ✅ **Dot-Traversal**: Reference nested properties (e.g., `point.x`, `offset.y`)
@@ -296,6 +297,45 @@ console.log(result.values.test); // true
 ```
 
 **No loose vs. strict:** Unlike JavaScript, there's no distinction between `=` and `==` in evalla. Both `=` and `==` perform the same strict equality check. Use whichever feels more natural.
+
+## Formatting Results
+
+By default, evalla returns full-precision Decimal values. For display purposes, you can format results to a specific number of decimal places using the `formatResults()` function:
+
+```typescript
+import { evalla, formatResults } from 'evalla';
+
+// Evaluate with full precision
+const result = await evalla([
+  { name: 'pi', expr: '3.14159265358979323846' },
+  { name: 'oneThird', expr: '1/3' }
+]);
+
+// Format for display
+const formatted = formatResults(result, { decimalPlaces: 7 });
+
+console.log(formatted.values.pi.toString());       // "3.1415927"
+console.log(formatted.values.oneThird.toString()); // "0.3333333"
+```
+
+**Key points:**
+- `formatResults()` returns a new result object (doesn't mutate the original)
+- Internal calculations always use full precision to maintain accuracy
+- Boolean and null values are preserved unchanged
+- Infinity values are preserved unchanged
+- You can format the same result multiple times with different precision levels
+
+**Common use cases:**
+```typescript
+// Financial precision (2 decimal places)
+const financial = formatResults(result, { decimalPlaces: 2 });
+
+// Engineering precision (6-7 decimal places)
+const engineering = formatResults(result, { decimalPlaces: 6 });
+
+// Scientific precision (custom)
+const scientific = formatResults(result, { decimalPlaces: 10 });
+```
 
 ## Namespaces
 

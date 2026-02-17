@@ -21,5 +21,8 @@
   "dependencies": {
     "highlight.js": "^11.11.1",
     "marked": "^17.0.1"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }

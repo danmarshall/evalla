@@ -4,7 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
 import '../styles/content.css';
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
 
 const title = "evalla Home";
 const description = "Safe math evaluator with variables, dependencies, and precision";
@@ -23,7 +23,7 @@ const description = "Safe math evaluator with variables, dependencies, and preci
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Borel&display=swap" rel="stylesheet">
-  <ViewTransitions />
+  <ClientRouter />
 </head>
 <body class="min-h-screen bg-white">
   <Header currentPage="home" />

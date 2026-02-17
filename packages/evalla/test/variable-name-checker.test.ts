@@ -1,4 +1,10 @@
-import { checkVariableName, VariableNameCheckResult } from '../src/index';
+import { 
+  checkVariableName, 
+  VariableNameCheckResult, 
+  isValidName, 
+  VALID_NAME_PATTERN,
+  RESERVED_VALUES
+} from '../src/index';
 
 describe('checkVariableName - Variable Name Validation', () => {
   describe('Valid variable names', () => {
@@ -186,5 +192,111 @@ describe('checkVariableName - Variable Name Validation', () => {
       expect(result.valid).toBe(false);
       expect(typeof result.error).toBe('string');
     });
+  });
+});
+
+describe('isValidName - Simple Boolean Validation', () => {
+  it('should return true for valid names', () => {
+    expect(isValidName('myVar')).toBe(true);
+    expect(isValidName('variable1')).toBe(true);
+    expect(isValidName('_private')).toBe(true);
+    expect(isValidName('my$var')).toBe(true);
+  });
+
+  it('should return false for names starting with $', () => {
+    expect(isValidName('$myVar')).toBe(false);
+    expect(isValidName('$math')).toBe(false);
+  });
+
+  it('should return false for names starting with __', () => {
+    expect(isValidName('__private')).toBe(false);
+    expect(isValidName('__proto__')).toBe(false);
+  });
+
+  it('should return false for reserved values', () => {
+    expect(isValidName('true')).toBe(false);
+    expect(isValidName('false')).toBe(false);
+    expect(isValidName('null')).toBe(false);
+    expect(isValidName('Infinity')).toBe(false);
+  });
+
+  it('should return false for invalid characters', () => {
+    expect(isValidName('a.b')).toBe(false);
+    expect(isValidName('a-b')).toBe(false);
+    expect(isValidName('123abc')).toBe(false);
+  });
+});
+
+describe('VALID_NAME_PATTERN - Regex Pattern', () => {
+  it('should match valid variable names', () => {
+    expect(VALID_NAME_PATTERN.test('myVar')).toBe(true);
+    expect(VALID_NAME_PATTERN.test('variable1')).toBe(true);
+    expect(VALID_NAME_PATTERN.test('_private')).toBe(true);
+    expect(VALID_NAME_PATTERN.test('camelCase')).toBe(true);
+    expect(VALID_NAME_PATTERN.test('snake_case')).toBe(true);
+  });
+
+  it('should match names with dollar signs in middle or end', () => {
+    expect(VALID_NAME_PATTERN.test('my$var')).toBe(true);
+    expect(VALID_NAME_PATTERN.test('var$')).toBe(true);
+    expect(VALID_NAME_PATTERN.test('$var$123')).toBe(false); // starts with $
+  });
+
+  it('should NOT match names starting with $', () => {
+    expect(VALID_NAME_PATTERN.test('$myVar')).toBe(false);
+    expect(VALID_NAME_PATTERN.test('$math')).toBe(false);
+  });
+
+  it('should NOT match names starting with __', () => {
+    expect(VALID_NAME_PATTERN.test('__private')).toBe(false);
+    expect(VALID_NAME_PATTERN.test('__proto__')).toBe(false);
+    expect(VALID_NAME_PATTERN.test('__')).toBe(false);
+  });
+
+  it('should NOT match names starting with numbers', () => {
+    expect(VALID_NAME_PATTERN.test('123abc')).toBe(false);
+    expect(VALID_NAME_PATTERN.test('9invalid')).toBe(false);
+  });
+
+  it('should NOT match names with dots', () => {
+    expect(VALID_NAME_PATTERN.test('a.b')).toBe(false);
+    expect(VALID_NAME_PATTERN.test('obj.prop')).toBe(false);
+  });
+
+  it('should NOT match names with invalid characters', () => {
+    expect(VALID_NAME_PATTERN.test('a-b')).toBe(false);
+    expect(VALID_NAME_PATTERN.test('a+b')).toBe(false);
+    expect(VALID_NAME_PATTERN.test('a b')).toBe(false);
+    expect(VALID_NAME_PATTERN.test('a@b')).toBe(false);
+  });
+
+  it('should match reserved values (but they should be filtered separately)', () => {
+    // The pattern matches these structurally, but they should be checked against RESERVED_VALUES
+    expect(VALID_NAME_PATTERN.test('true')).toBe(true);
+    expect(VALID_NAME_PATTERN.test('false')).toBe(true);
+    expect(VALID_NAME_PATTERN.test('null')).toBe(true);
+    expect(VALID_NAME_PATTERN.test('Infinity')).toBe(true);
+  });
+
+  it('should NOT match empty string', () => {
+    expect(VALID_NAME_PATTERN.test('')).toBe(false);
+  });
+});
+
+describe('RESERVED_VALUES - Reserved Value Names', () => {
+  it('should contain the correct reserved values', () => {
+    expect(RESERVED_VALUES).toEqual(['true', 'false', 'null', 'Infinity']);
+  });
+
+  it('should be readonly array', () => {
+    expect(Array.isArray(RESERVED_VALUES)).toBe(true);
+  });
+
+  it('should work with includes check', () => {
+    expect(RESERVED_VALUES.includes('true')).toBe(true);
+    expect(RESERVED_VALUES.includes('false')).toBe(true);
+    expect(RESERVED_VALUES.includes('null')).toBe(true);
+    expect(RESERVED_VALUES.includes('Infinity')).toBe(true);
+    expect(RESERVED_VALUES.includes('myVar' as any)).toBe(false);
   });
 });

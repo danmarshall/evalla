@@ -592,6 +592,125 @@ try {
 - `ParseError` extends `EvaluationError`, so catch `ParseError` first if you want to handle syntax errors differently from runtime errors.
 - Use `checkSyntax()` for pre-flight validation (e.g., real-time feedback as user types). Use `evalla()` for complete validation and evaluation.
 
+### `checkVariableName(name: string): VariableNameCheckResult`
+
+Checks if a variable name is valid according to evalla's naming rules. Useful for text editors to validate variable names before evaluation and provide helpful error messages.
+
+**Parameters:**
+- `name`: The variable name to check
+
+**Returns:**
+- Object with the following properties:
+  - `valid`: boolean - Whether the variable name is valid
+  - `error?`: string - Detailed error message if the name is invalid
+
+**Example:**
+```typescript
+import { checkVariableName } from 'evalla';
+
+// Valid variable name
+const result1 = checkVariableName('myVar');
+console.log(result1.valid); // true
+
+// Invalid - starts with $
+const result2 = checkVariableName('$myVar');
+console.log(result2.valid); // false
+console.log(result2.error); // "Variable names cannot start with $ (reserved for system namespaces)"
+
+// Invalid - reserved value name
+const result3 = checkVariableName('true');
+console.log(result3.valid); // false
+console.log(result3.error); // "Variable name cannot be a reserved value: true"
+```
+
+### `isValidName(name: string): boolean`
+
+Simple boolean check for variable name validity. This is a simpler alternative to `checkVariableName()` when you don't need detailed error messages.
+
+**Parameters:**
+- `name`: The variable name to check
+
+**Returns:**
+- `true` if the name is valid, `false` otherwise
+
+**Example:**
+```typescript
+import { isValidName } from 'evalla';
+
+isValidName('myVar');      // true
+isValidName('$myVar');     // false (starts with $)
+isValidName('__private');  // false (starts with __)
+isValidName('true');       // false (reserved value)
+```
+
+### `VALID_NAME_PATTERN: RegExp`
+
+Regular expression pattern for valid variable names. Useful when you need to validate names in your own code or UI.
+
+**Pattern:** `/^(?![_$]{2})[a-zA-Z_][a-zA-Z0-9_$]*$/`
+
+**Matches names that:**
+- Start with a letter or single underscore (not `__` or `$`)
+- Followed by letters, digits, underscores, or `$`
+- Do not contain dots
+
+**Note:** This pattern does not check for reserved value names (`true`, `false`, `null`, `Infinity`). Use `isValidName()` or `checkVariableName()` for complete validation.
+
+**Example:**
+```typescript
+import { VALID_NAME_PATTERN } from 'evalla';
+
+VALID_NAME_PATTERN.test('myVar');     // true
+VALID_NAME_PATTERN.test('var123');    // true
+VALID_NAME_PATTERN.test('_private');  // true
+VALID_NAME_PATTERN.test('my$var');    // true
+VALID_NAME_PATTERN.test('$invalid');  // false (starts with $)
+VALID_NAME_PATTERN.test('__proto__'); // false (starts with __)
+VALID_NAME_PATTERN.test('123abc');    // false (starts with number)
+VALID_NAME_PATTERN.test('a.b');       // false (contains dot)
+VALID_NAME_PATTERN.test('true');      // true (pattern matches, but it's reserved - use isValidName())
+```
+
+### `RESERVED_VALUES: readonly ['true', 'false', 'null', 'Infinity']`
+
+Array of reserved value names that cannot be used as variable names. Frozen at runtime to prevent mutation.
+
+**Example:**
+```typescript
+import { RESERVED_VALUES } from 'evalla';
+
+RESERVED_VALUES.includes('true');  // true
+RESERVED_VALUES.includes('myVar'); // false
+
+// Array is frozen - cannot be mutated
+RESERVED_VALUES.push('newValue'); // throws TypeError
+```
+
+### `formatResults(result: EvaluationResult, decimalPlaces: number): EvaluationResult`
+
+Format numeric results to a specific number of decimal places. This is a presentation utility - evaluation always uses full precision internally.
+
+**Parameters:**
+- `result`: The evaluation result from `evalla()`
+- `decimalPlaces`: Number of decimal places (0 or greater)
+
+**Returns:**
+- New `EvaluationResult` with formatted values (non-numeric values unchanged)
+
+**Example:**
+```typescript
+import { evalla, formatResults } from 'evalla';
+
+const result = await evalla([
+  { name: 'pi', expr: '$math.PI' },
+  { name: 'area', expr: 'pi * 10 * 10' }
+]);
+
+const formatted = formatResults(result, 2);
+console.log(formatted.values.pi.toString());   // "3.14"
+console.log(formatted.values.area.toString()); // "314.16"
+```
+
 ## Philosophy
 
 - **Minimal**: Bare minimum dependencies and code

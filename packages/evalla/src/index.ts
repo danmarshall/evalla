@@ -123,5 +123,11 @@ export {
   ParseError
 } from './errors.js';
 export { checkSyntax, SyntaxCheckResult } from './syntax-checker.js';
-export { checkVariableName, VariableNameCheckResult } from './variable-name-checker.js';
+export { 
+  checkVariableName, 
+  VariableNameCheckResult,
+  isValidName,
+  VALID_NAME_PATTERN,
+  RESERVED_VALUES
+} from './variable-name-checker.js';
 export { formatResults } from './format-results.js';

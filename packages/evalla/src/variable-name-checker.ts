@@ -1,4 +1,36 @@
 /**
+ * Regex pattern for valid variable names.
+ * 
+ * Matches names that:
+ * - Start with a letter or single underscore (not `__` or `$`)
+ * - Followed by letters, digits, underscores, or `$`
+ * - Do not contain dots
+ * 
+ * Note: This pattern does not check for reserved value names (true, false, null, Infinity).
+ * Use `isValidName()` or `checkVariableName()` for complete validation.
+ * 
+ * @example
+ * ```typescript
+ * VALID_NAME_PATTERN.test('myVar');     // true
+ * VALID_NAME_PATTERN.test('var123');    // true
+ * VALID_NAME_PATTERN.test('_private');  // true
+ * VALID_NAME_PATTERN.test('my$var');    // true
+ * VALID_NAME_PATTERN.test('$invalid');  // false (starts with $)
+ * VALID_NAME_PATTERN.test('__proto__'); // false (starts with __)
+ * VALID_NAME_PATTERN.test('123abc');    // false (starts with number)
+ * VALID_NAME_PATTERN.test('a.b');       // false (contains dot)
+ * VALID_NAME_PATTERN.test('true');      // true (pattern matches, but it's reserved - use isValidName())
+ * ```
+ */
+export const VALID_NAME_PATTERN = /^(?![_$]{2})[a-zA-Z_][a-zA-Z0-9_$]*$/;
+
+/**
+ * Reserved value names that cannot be used as variable names.
+ * Frozen to prevent runtime mutation by dependents.
+ */
+export const RESERVED_VALUES = Object.freeze(['true', 'false', 'null', 'Infinity'] as const);
+
+/**
  * Result of checking a variable name
  */
 export interface VariableNameCheckResult {
@@ -66,8 +98,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   }
 
   // Check for reserved value names
-  const reservedValues = ['true', 'false', 'null', 'Infinity'];
-  if (reservedValues.includes(name)) {
+  if (RESERVED_VALUES.includes(name as any)) {
     return {
       valid: false,
       error: `Variable name cannot be a reserved value: ${name}`
@@ -90,9 +121,9 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
     };
   }
 
-  // Check if name is a valid identifier (must match: [a-zA-Z_$][a-zA-Z0-9_$]*)
+  // Check if name matches the valid pattern
   // This ensures the name can be referenced in expressions (catch-all for invalid characters)
-  if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name)) {
+  if (!VALID_NAME_PATTERN.test(name)) {
     return {
       valid: false,
       error: 'Variable name contains invalid characters (only letters, digits, underscore, or $ allowed)'
@@ -101,4 +132,25 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
 
   // All checks passed
   return { valid: true };
+};
+
+/**
+ * Check if a variable name is valid (simple boolean check).
+ * This is a simpler alternative to `checkVariableName()` when you don't need detailed error messages.
+ * 
+ * @param name - The variable name to check
+ * @returns `true` if the name is valid, `false` otherwise
+ * 
+ * @example
+ * ```typescript
+ * isValidName('myVar');      // true
+ * isValidName('$myVar');     // false (starts with $)
+ * isValidName('__private');  // false (starts with __)
+ * isValidName('true');       // false (reserved value)
+ * isValidName('123abc');     // false (starts with number)
+ * isValidName('a.b');        // false (contains dot)
+ * ```
+ */
+export const isValidName = (name: string): boolean => {
+  return checkVariableName(name).valid;
 };

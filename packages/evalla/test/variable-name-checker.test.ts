@@ -299,4 +299,20 @@ describe('RESERVED_VALUES - Reserved Value Names', () => {
     expect(RESERVED_VALUES.includes('Infinity')).toBe(true);
     expect(RESERVED_VALUES.includes('myVar' as any)).toBe(false);
   });
+
+  it('should be frozen to prevent mutation', () => {
+    expect(Object.isFrozen(RESERVED_VALUES)).toBe(true);
+  });
+
+  it('should not allow adding elements', () => {
+    expect(() => {
+      (RESERVED_VALUES as any).push('newValue');
+    }).toThrow();
+  });
+
+  it('should not allow modifying elements', () => {
+    expect(() => {
+      (RESERVED_VALUES as any)[0] = 'modified';
+    }).toThrow();
+  });
 });

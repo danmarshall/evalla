@@ -673,7 +673,7 @@ VALID_NAME_PATTERN.test('true');      // true (pattern matches, but it's reserve
 
 ### `RESERVED_VALUES: readonly ['true', 'false', 'null', 'Infinity']`
 
-Array of reserved value names that cannot be used as variable names.
+Array of reserved value names that cannot be used as variable names. Frozen at runtime to prevent mutation.
 
 **Example:**
 ```typescript
@@ -681,6 +681,9 @@ import { RESERVED_VALUES } from 'evalla';
 
 RESERVED_VALUES.includes('true');  // true
 RESERVED_VALUES.includes('myVar'); // false
+
+// Array is frozen - cannot be mutated
+RESERVED_VALUES.push('newValue'); // throws TypeError
 ```
 
 ### `formatResults(result: EvaluationResult, decimalPlaces: number): EvaluationResult`

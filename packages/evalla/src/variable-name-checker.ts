@@ -25,9 +25,10 @@
 export const VALID_NAME_PATTERN = /^(?![_$]{2})[a-zA-Z_][a-zA-Z0-9_$]*$/;
 
 /**
- * Reserved value names that cannot be used as variable names
+ * Reserved value names that cannot be used as variable names.
+ * Frozen to prevent runtime mutation by dependents.
  */
-export const RESERVED_VALUES = ['true', 'false', 'null', 'Infinity'] as const;
+export const RESERVED_VALUES = Object.freeze(['true', 'false', 'null', 'Infinity'] as const);
 
 /**
  * Result of checking a variable name

@@ -22,7 +22,7 @@
   "scripts": {
     "prebuild": "peggy --output src/parser.js --format es src/grammar.pegjs",
     "build": "tsc && cpx src/parser.js dist",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "keywords": [
     "formula",

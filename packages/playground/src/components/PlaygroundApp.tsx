@@ -98,7 +98,7 @@ export default function PlaygroundApp() {
           return; // checkVariableName not loaded yet
         }
 
-        const nameResult = checkVariableNameFn.current(value.trim());
+        const nameResult = checkVariableNameFn.current(value);
         
         setNameErrors(prev => {
           const newNameErrors = new Map(prev);

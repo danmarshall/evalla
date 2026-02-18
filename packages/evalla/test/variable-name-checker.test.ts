@@ -116,6 +116,32 @@ describe('checkVariableName - Variable Name Validation', () => {
       expect(result.valid).toBe(false);
       expect(result.error).toBe('Variable name cannot be empty');
     });
+
+    it('should reject whitespace-only strings', () => {
+      expect(checkVariableName(' ').valid).toBe(false);
+      expect(checkVariableName('  ').valid).toBe(false);
+      expect(checkVariableName('\t').valid).toBe(false);
+      expect(checkVariableName('\n').valid).toBe(false);
+      expect(checkVariableName(' \t\n ').valid).toBe(false);
+    });
+
+    it('should reject names with leading whitespace', () => {
+      const result = checkVariableName(' name');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe('Variable name cannot have leading or trailing whitespace');
+    });
+
+    it('should reject names with trailing whitespace', () => {
+      const result = checkVariableName('name ');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe('Variable name cannot have leading or trailing whitespace');
+    });
+
+    it('should reject names with both leading and trailing whitespace', () => {
+      const result = checkVariableName(' name ');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe('Variable name cannot have leading or trailing whitespace');
+    });
   });
 
   describe('Invalid variable names - type validation', () => {

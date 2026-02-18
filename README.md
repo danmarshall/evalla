@@ -712,6 +712,31 @@ console.log(formatted.values.pi.toString());   // "3.14"
 console.log(formatted.values.area.toString()); // "314.16"
 ```
 
+### Error Handling
+
+evalla throws typed errors with programmatic enum keys. Error messages are **enum keys** (e.g., `UNDEFINED_VARIABLE`), with context available via error properties.
+
+**Error Types:**
+- `ValidationError` - Invalid input (bad variable names, missing fields)
+- `EvaluationError` - Runtime errors (undefined variables, type mismatches)
+- `SecurityError` - Dangerous property access attempts
+- `ParseError` - Syntax errors in expressions
+- `CircularDependencyError` - Circular dependencies detected
+
+**Error Keys:** See [`ErrorMessage` enum](src/error-messages.ts) for all 48 error keys.
+
+**Example:**
+```typescript
+try {
+  await evalla([{ name: 'y', expr: 'x + 1' }]);
+} catch (error) {
+  console.log(error.message);      // "UNDEFINED_VARIABLE"
+  console.log(error.variableName); // "x"
+}
+```
+
+**Optional i18n:** Use `formatErrorMessage(key, lang, params)` to get human-readable messages.
+
 ## Philosophy
 
 - **Minimal**: Bare minimum dependencies and code

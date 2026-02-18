@@ -13,6 +13,8 @@ export interface SyntaxCheckResult {
   line?: number;
   /** Column number where error occurred (1-indexed) */
   column?: number;
+  /** Parser error message (for use in formatting) */
+  message?: string;
 }
 
 /**
@@ -72,14 +74,16 @@ export const checkSyntax = (expr: string): SyntaxCheckResult => {
         valid: false,
         error: ErrorMessage.PARSE_ERROR_AT_LOCATION,
         line,
-        column
+        column,
+        message: error.message || ''
       };
     }
     
     // Handle other parsing errors without location
     return {
       valid: false,
-      error: ErrorMessage.PARSE_ERROR
+      error: ErrorMessage.PARSE_ERROR,
+      message: error.message || ''
     };
   }
 };

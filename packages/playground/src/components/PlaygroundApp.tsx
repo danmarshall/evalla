@@ -127,7 +127,7 @@ export default function PlaygroundApp() {
           if (!syntaxResult.valid) {
             const errorKey = syntaxResult.error || 'Syntax error';
             const errorMsg = Object.values(ErrorMessage).includes(errorKey as ErrorMessage)
-              ? formatErrorMessage(errorKey as ErrorMessage, 'en')
+              ? formatErrorMessage(errorKey as ErrorMessage, 'en', syntaxResult)
               : errorKey;
             newSyntaxErrors.set(index, errorMsg);
           } else {

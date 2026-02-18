@@ -1,4 +1,4 @@
-import { checkSyntax, SyntaxCheckResult, ErrorMessage } from '../src/index';
+import { checkSyntax, SyntaxCheckResult, ErrorMessage, formatErrorMessage } from '../src/index';
 
 describe('checkSyntax - Expression Syntax Validation', () => {
   describe('Valid Expressions', () => {
@@ -274,6 +274,37 @@ describe('checkSyntax - Expression Syntax Validation', () => {
       const result = checkSyntax('a +');
       expect(result.valid).toBe(false);
       expect(result.error).toBe(ErrorMessage.PARSE_ERROR_AT_LOCATION);
+    });
+
+    test('provides parser error message for formatting (issue: "a b")', () => {
+      const result = checkSyntax('a b');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe(ErrorMessage.PARSE_ERROR_AT_LOCATION);
+      expect(result.line).toBe(1);
+      expect(result.column).toBe(3);
+      expect(result.message).toBeDefined();
+      expect(result.message).toContain('Expected');
+    });
+  });
+
+  describe('Formatted Error Messages', () => {
+    test('formatted error should have all placeholders replaced', () => {
+      const result = checkSyntax('a b');
+      expect(result.valid).toBe(false);
+      
+      const formatted = formatErrorMessage(result.error as ErrorMessage, 'en', result);
+      
+      // Should not contain any placeholder braces
+      expect(formatted).not.toContain('{line}');
+      expect(formatted).not.toContain('{column}');
+      expect(formatted).not.toContain('{message}');
+      
+      // Should contain actual values
+      expect(formatted).toContain('line');
+      expect(formatted).toContain('1');
+      expect(formatted).toContain('column');
+      expect(formatted).toContain('3');
+      expect(formatted).toContain('Expected');
     });
   });
 

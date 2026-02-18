@@ -73,11 +73,19 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
     };
   }
 
-  // Empty check
-  if (name === '') {
+  // Empty or whitespace-only check
+  if (name.trim() === '') {
     return {
       valid: false,
       error: 'Variable name cannot be empty'
+    };
+  }
+
+  // Check for leading or trailing whitespace
+  if (name !== name.trim()) {
+    return {
+      valid: false,
+      error: 'Variable name cannot have leading or trailing whitespace'
     };
   }
 

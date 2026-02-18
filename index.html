@@ -406,14 +406,15 @@ Playground
 <li>Object with the following properties:
 <ul>
 <li><code>valid</code>: boolean - Whether the syntax is valid</li>
-<li><code>error?</code>: string - Error message if syntax is invalid</li>
+<li><code>error?</code>: string - Error message enum key (e.g., <code>"PARSE_ERROR_AT_LOCATION"</code>)</li>
 <li><code>line?</code>: number - Line number where error occurred (1-indexed)</li>
 <li><code>column?</code>: number - Column number where error occurred (1-indexed)</li>
+<li><code>message?</code>: string - Raw parser error message for formatting</li>
 </ul>
 </li>
 </ul>
 <p><strong>Example:</strong></p>
-<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { checkSyntax } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'evalla'</span><span style="color:#24292E">;</span></span>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { checkSyntax, formatErrorMessage } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'evalla'</span><span style="color:#24292E">;</span></span>
 <span class="line"></span>
 <span class="line"><span style="color:#6A737D">// Valid expression</span></span>
 <span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result1</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> checkSyntax</span><span style="color:#24292E">(</span><span style="color:#032F62">'a + b * 2'</span><span style="color:#24292E">);</span></span>
@@ -422,9 +423,37 @@ Playground
 <span class="line"><span style="color:#6A737D">// Invalid expression - missing closing parenthesis</span></span>
 <span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result2</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> checkSyntax</span><span style="color:#24292E">(</span><span style="color:#032F62">'(a + b'</span><span style="color:#24292E">);</span></span>
 <span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result2.valid); </span><span style="color:#6A737D">// false</span></span>
-<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result2.error); </span><span style="color:#6A737D">// "Parse error at line 1, column 7: Expected..."</span></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result2.error); </span><span style="color:#6A737D">// "PARSE_ERROR_AT_LOCATION"</span></span>
 <span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result2.line); </span><span style="color:#6A737D">// 1</span></span>
-<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result2.column); </span><span style="color:#6A737D">// 7</span></span></code></pre>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(result2.column); </span><span style="color:#6A737D">// 7</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Get human-readable error message</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> formatted</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> formatErrorMessage</span><span style="color:#24292E">(result2.error, </span><span style="color:#032F62">'en'</span><span style="color:#24292E">, result2);</span></span>
+<span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(formatted);</span></span>
+<span class="line"><span style="color:#6A737D">// "Parse error at line 1, column 7: Expected ")", "+", "-", "*", "/", "%", "**", ".", "[", "?", "??", "&#x26;&#x26;", "||", "=", "==", "!=", "&#x3C;", ">", "&#x3C;=", ">=", or end of input but end of input found."</span></span></code></pre>
+<p><strong>Formatting Error Messages:</strong></p>
+<p>The <code>error</code> field contains an enum key. To get a human-readable message with placeholders filled in, use <code>formatErrorMessage()</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { checkSyntax, formatErrorMessage, ErrorMessage } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'evalla'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> checkSyntax</span><span style="color:#24292E">(</span><span style="color:#032F62">'a b'</span><span style="color:#24292E">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">result.valid) {</span></span>
+<span class="line"><span style="color:#6A737D">  // Option 1: Get formatted error message</span></span>
+<span class="line"><span style="color:#D73A49">  const</span><span style="color:#005CC5"> message</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> formatErrorMessage</span><span style="color:#24292E">(result.error </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> ErrorMessage</span><span style="color:#24292E">, </span><span style="color:#032F62">'en'</span><span style="color:#24292E">, result);</span></span>
+<span class="line"><span style="color:#24292E">  console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(message);</span></span>
+<span class="line"><span style="color:#6A737D">  // "Parse error at line 1, column 3: Expected "!=", "&#x26;&#x26;", "(", "**", ".", "&#x3C;=", "=", "==", ">=", "?", "??", "[", "||", [%*/], [+\-], [&#x3C;>], or end of input but "b" found."</span></span>
+<span class="line"><span style="color:#24292E">  </span></span>
+<span class="line"><span style="color:#6A737D">  // Option 2: Use individual fields for custom formatting</span></span>
+<span class="line"><span style="color:#24292E">  console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(</span><span style="color:#032F62">`Error at ${</span><span style="color:#24292E">result</span><span style="color:#032F62">.</span><span style="color:#24292E">line</span><span style="color:#032F62">}:${</span><span style="color:#24292E">result</span><span style="color:#032F62">.</span><span style="color:#24292E">column</span><span style="color:#032F62">}: ${</span><span style="color:#24292E">result</span><span style="color:#032F62">.</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6A737D">  // "Error at 1:3: Expected "!=", "&#x26;&#x26;", ... but "b" found."</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>The result object contains all the data needed for proper formatting:</p>
+<ul>
+<li><code>error</code>: The error key (e.g., <code>PARSE_ERROR_AT_LOCATION</code>)</li>
+<li><code>line</code>, <code>column</code>: Location information</li>
+<li><code>message</code>: The raw parser error message</li>
+</ul>
+<p>Pass the entire result object to <code>formatErrorMessage()</code> as the third parameter to replace all placeholders (<code>{line}</code>, <code>{column}</code>, <code>{message}</code>) with actual values.</p>
 <p><strong>Usage Patterns:</strong></p>
 <p>When to use <code>checkSyntax()</code> vs just calling <code>evalla()</code>:</p>
 <pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { checkSyntax, evalla, EvaluationError } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'evalla'</span><span style="color:#24292E">;</span></span>

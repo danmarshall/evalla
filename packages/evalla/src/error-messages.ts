@@ -53,13 +53,16 @@
  */
 
 // Re-export the enum from its dedicated file
-export { ErrorMessage } from './error-message-keys';
+export { ErrorMessage } from './error-message-keys.js';
 
 // Import for use in this file
-import { ErrorMessage } from './error-message-keys';
+import { ErrorMessage } from './error-message-keys.js';
 
 // Import language dictionaries
-import { messages_en } from './messages/en';
+import { messages_en } from './messages/en.js';
+
+// Import error types
+import { ValidationError } from './errors.js';
 
 /**
  * Format an error message key into a human-readable message in the specified language.
@@ -69,35 +72,58 @@ import { messages_en } from './messages/en';
  * 
  * @param key - The error message enum value
  * @param lang - Language code (currently only 'en' supported)
- * @param params - Optional parameters to substitute in the message
+ * @param paramsOrError - Optional parameters object or an Error object with properties
  * @returns The formatted, human-readable error message
  * 
  * @example
  * ```typescript
- * // Get English message
+ * // Get English message with params
  * formatErrorMessage(ErrorMessage.UNDEFINED_VARIABLE, 'en', { name: 'x' })
  * // Returns: "Undefined variable: x"
  * 
- * // With location info
- * formatErrorMessage(ErrorMessage.PARSE_ERROR_AT_LOCATION, 'en', { 
- *   line: 1, 
- *   column: 5, 
- *   message: 'Unexpected token' 
- * })
- * // Returns: "Parse error at line 1, column 5: Unexpected token"
+ * // Pass error object directly
+ * try { ... } catch (err) {
+ *   formatErrorMessage(err.message, 'en', err)
+ * }
  * ```
  */
 export function formatErrorMessage(
   key: ErrorMessage, 
-  lang: 'en' = 'en',
-  params?: Record<string, any>
+  lang: string = 'en',
+  paramsOrError?: Record<string, any> | Error
 ): string {
-  // Currently only English is supported
-  // To add more languages, import their dictionaries and add to this switch
-  const dictionary = messages_en;
+  // To add more languages, import their dictionaries and add cases here
+  let dictionary: Record<ErrorMessage, string>;
+  switch (lang) {
+    case 'en':
+      dictionary = messages_en;
+      break;
+    default:
+      throw new ValidationError(ErrorMessage.UNSUPPORTED_LANGUAGE, lang);
+  }
   let message = dictionary[key];
   
-  if (params) {
+  if (paramsOrError) {
+    // Extract parameters from object (works for both plain objects and Error instances)
+    const params: Record<string, any> = {};
+    for (const key of Object.keys(paramsOrError)) {
+      const value = (paramsOrError as any)[key];
+      if (key === 'context' && typeof value === 'object' && value !== null) {
+        // Spread context properties into params
+        Object.assign(params, value);
+      } else if (Array.isArray(value)) {
+        params[key] = value.join(' -> ');
+      } else if (value !== undefined && value !== null) {
+        params[key] = value;
+      }
+    }
+    
+    // Special handling: map originalMessage to message for placeholder replacement
+    // This allows error templates to use {message} while errors store it as originalMessage
+    if (params.originalMessage !== undefined && params.message === undefined) {
+      params.message = params.originalMessage;
+    }
+    
     // Replace {param} placeholders with actual values
     for (const [param, value] of Object.entries(params)) {
       message = message.replace(new RegExp(`\\{${param}\\}`, 'g'), String(value));

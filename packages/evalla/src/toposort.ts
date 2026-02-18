@@ -2,7 +2,7 @@ import * as parser from './parser.js';
 import { ExpressionInput } from './types.js';
 import { extractVariablesFromAST } from './ast-variables.js';
 import { CircularDependencyError, EvaluationError, ParseError } from './errors.js';
-import { ErrorMessage } from './error-messages.js';
+import { ErrorMessage, formatErrorMessage } from './error-messages.js';
 
 // Parse an expression and return the AST
 // Uses Peggy parser which allows keywords as identifiers
@@ -15,10 +15,18 @@ export const parseExpression = (expr: string): any => {
       const { line, column } = error.location.start;
       throw new ParseError(
         ErrorMessage.PARSE_ERROR_AT_LOCATION,
-        { line, column, expression: expr }
+        { 
+          line, 
+          column, 
+          expression: expr,
+          originalMessage: error.message // Store Peggy's message
+        }
       );
     }
-    throw new ParseError(ErrorMessage.PARSE_ERROR, { expression: expr });
+    throw new ParseError(ErrorMessage.PARSE_ERROR, { 
+      expression: expr,
+      originalMessage: error.message || String(error)
+    });
   }
 };
 
@@ -47,6 +55,8 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
       } catch (error) {
         // Re-throw with variable name if it's a ParseError
         if (error instanceof ParseError) {
+          // Format the inner error message with its context
+          const innerMessage = formatErrorMessage(error.message as ErrorMessage, 'en', error);
           throw new ParseError(
             ErrorMessage.PARSE_ERROR_FOR_VARIABLE,
             {
@@ -54,7 +64,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
               expression: input.expr,
               line: error.line,
               column: error.column,
-              originalMessage: error.message
+              originalMessage: innerMessage
             }
           );
         }

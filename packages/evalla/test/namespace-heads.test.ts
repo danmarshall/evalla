@@ -1,3 +1,4 @@
+import { ErrorMessage } from '../src/error-messages.js';
 import { evalla, EvaluationError } from '../src/index';
 import Decimal from 'decimal.js';
 
@@ -14,7 +15,7 @@ describe('Namespace Heads', () => {
         evalla([
           { name: 'a', expr: '$math' }
         ])
-      ).rejects.toThrow('Cannot use namespace head as a value');
+      ).rejects.toThrow(ErrorMessage.NAMESPACE_HEAD_AS_VALUE);
     });
 
     test('$angle namespace head should throw error', async () => {
@@ -28,7 +29,7 @@ describe('Namespace Heads', () => {
         evalla([
           { name: 'a', expr: '$angle' }
         ])
-      ).rejects.toThrow('Cannot use namespace head as a value');
+      ).rejects.toThrow(ErrorMessage.NAMESPACE_HEAD_AS_VALUE);
     });
 
     test('$unit namespace head should throw error', async () => {
@@ -42,7 +43,7 @@ describe('Namespace Heads', () => {
         evalla([
           { name: 'a', expr: '$unit' }
         ])
-      ).rejects.toThrow('Cannot use namespace head as a value');
+      ).rejects.toThrow(ErrorMessage.NAMESPACE_HEAD_AS_VALUE);
     });
   });
 
@@ -60,7 +61,7 @@ describe('Namespace Heads', () => {
           { name: 'a', value: 5 },
           { name: 'b', expr: 'a < $math' }
         ])
-      ).rejects.toThrow('Cannot use namespace head in operations');
+      ).rejects.toThrow(ErrorMessage.NAMESPACE_HEAD_IN_OPERATION);
     });
 
     test('namespace head in greater-than comparison', async () => {

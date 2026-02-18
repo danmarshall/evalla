@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js';
 import { EvaluationResult } from './types.js';
-import { getErrorMessage } from './error-messages.js';
+import { ErrorMessage } from './error-messages.js';
 
 /**
  * Format Decimal values in evaluation results to specified decimal places.
@@ -40,7 +40,7 @@ export function formatResults(
   
   // Validate input
   if (typeof decimalPlaces !== 'number' || decimalPlaces < 0 || !Number.isInteger(decimalPlaces)) {
-    throw new Error(getErrorMessage('DECIMAL_PLACES_INVALID'));
+    throw new Error(ErrorMessage.DECIMAL_PLACES_INVALID);
   }
   
   // Create new values object with formatted Decimals

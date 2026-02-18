@@ -1,3 +1,4 @@
+import { ErrorMessage } from '../src/error-messages.js';
 import { evalla, SecurityError, CircularDependencyError, ValidationError, EvaluationError } from '../src/index';
 
 describe('Error Type Differentiation', () => {
@@ -28,7 +29,7 @@ describe('Error Type Differentiation', () => {
       expect(error).toBeInstanceOf(CircularDependencyError);
       if (error instanceof Error) {
         expect(error.name).toBe('CircularDependencyError');
-        expect(error.message).toContain('Circular dependency');
+        expect(error.message).toContain(ErrorMessage.CIRCULAR_DEPENDENCY);
       }
     }
   });
@@ -43,7 +44,7 @@ describe('Error Type Differentiation', () => {
       expect(error).toBeInstanceOf(ValidationError);
       if (error instanceof Error) {
         expect(error.name).toBe('ValidationError');
-        expect(error.message).toContain('cannot start with $');
+        expect(error.message).toContain(ErrorMessage.VARIABLE_NAME_DOLLAR_PREFIX);
       }
     }
   });
@@ -58,7 +59,7 @@ describe('Error Type Differentiation', () => {
       expect(error).toBeInstanceOf(EvaluationError);
       if (error instanceof Error) {
         expect(error.name).toBe('EvaluationError');
-        expect(error.message).toContain('Undefined variable');
+        expect(error.message).toContain(ErrorMessage.UNDEFINED_VARIABLE);
       }
     }
   });

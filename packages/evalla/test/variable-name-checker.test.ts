@@ -3,7 +3,8 @@ import {
   VariableNameCheckResult, 
   isValidName, 
   VALID_NAME_PATTERN,
-  RESERVED_VALUES
+  RESERVED_VALUES,
+  ErrorMessage
 } from '../src/index';
 
 describe('checkVariableName - Variable Name Validation', () => {
@@ -32,7 +33,7 @@ describe('checkVariableName - Variable Name Validation', () => {
     it('should reject names starting with $', () => {
       const result = checkVariableName('$myVar');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable names cannot start with $ (reserved for system namespaces)');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_DOLLAR_PREFIX);
     });
 
     it('should reject system namespace names', () => {
@@ -46,7 +47,7 @@ describe('checkVariableName - Variable Name Validation', () => {
     it('should reject names starting with __', () => {
       const result = checkVariableName('__private');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable names cannot start with __ (reserved for security reasons)');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_DOUBLE_UNDERSCORE);
     });
 
     it('should reject __ prefix with any continuation', () => {
@@ -59,25 +60,29 @@ describe('checkVariableName - Variable Name Validation', () => {
     it('should reject "true"', () => {
       const result = checkVariableName('true');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable name cannot be a reserved value: true');
+      expect(result.error).toContain(ErrorMessage.VARIABLE_NAME_RESERVED);
+      expect(result.error).toContain('true');
     });
 
     it('should reject "false"', () => {
       const result = checkVariableName('false');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable name cannot be a reserved value: false');
+      expect(result.error).toContain(ErrorMessage.VARIABLE_NAME_RESERVED);
+      expect(result.error).toContain('false');
     });
 
     it('should reject "null"', () => {
       const result = checkVariableName('null');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable name cannot be a reserved value: null');
+      expect(result.error).toContain(ErrorMessage.VARIABLE_NAME_RESERVED);
+      expect(result.error).toContain('null');
     });
 
     it('should reject "Infinity"', () => {
       const result = checkVariableName('Infinity');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable name cannot be a reserved value: Infinity');
+      expect(result.error).toContain(ErrorMessage.VARIABLE_NAME_RESERVED);
+      expect(result.error).toContain('Infinity');
     });
   });
 
@@ -85,7 +90,7 @@ describe('checkVariableName - Variable Name Validation', () => {
     it('should reject names starting with digits', () => {
       const result = checkVariableName('9invalid');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable names cannot start with a number');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_STARTS_WITH_NUMBER);
     });
 
     it('should reject various number prefixes', () => {
@@ -99,7 +104,7 @@ describe('checkVariableName - Variable Name Validation', () => {
     it('should reject names with dots', () => {
       const result = checkVariableName('obj.prop');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable names cannot contain dots (dots are only for property access in expressions)');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_CONTAINS_DOT);
     });
 
     it('should reject various dot patterns', () => {
@@ -114,7 +119,7 @@ describe('checkVariableName - Variable Name Validation', () => {
     it('should reject empty string', () => {
       const result = checkVariableName('');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable name cannot be empty');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_EMPTY);
     });
 
     it('should reject whitespace-only strings', () => {
@@ -128,33 +133,33 @@ describe('checkVariableName - Variable Name Validation', () => {
     it('should reject names with leading whitespace', () => {
       const result = checkVariableName(' name');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable name cannot have leading or trailing whitespace');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_WHITESPACE);
     });
 
     it('should reject names with trailing whitespace', () => {
       const result = checkVariableName('name ');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable name cannot have leading or trailing whitespace');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_WHITESPACE);
     });
 
     it('should reject names with both leading and trailing whitespace', () => {
       const result = checkVariableName(' name ');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable name cannot have leading or trailing whitespace');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_WHITESPACE);
     });
 
     it('should reject names with whitespace in the middle', () => {
       const result1 = checkVariableName('my var');
       expect(result1.valid).toBe(false);
-      expect(result1.error).toBe('Variable name contains invalid characters (only letters, digits, underscore, or $ allowed)');
+      expect(result1.error).toBe(ErrorMessage.VARIABLE_NAME_INVALID_CHARS);
       
       const result2 = checkVariableName('test\ttab');
       expect(result2.valid).toBe(false);
-      expect(result2.error).toBe('Variable name contains invalid characters (only letters, digits, underscore, or $ allowed)');
+      expect(result2.error).toBe(ErrorMessage.VARIABLE_NAME_INVALID_CHARS);
       
       const result3 = checkVariableName('my\nvar');
       expect(result3.valid).toBe(false);
-      expect(result3.error).toBe('Variable name contains invalid characters (only letters, digits, underscore, or $ allowed)');
+      expect(result3.error).toBe(ErrorMessage.VARIABLE_NAME_INVALID_CHARS);
     });
   });
 
@@ -162,7 +167,7 @@ describe('checkVariableName - Variable Name Validation', () => {
     it('should reject non-string inputs', () => {
       const result = checkVariableName(123 as any);
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable name must be a string');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_MUST_BE_STRING);
     });
 
     it('should reject various non-string types', () => {
@@ -197,7 +202,7 @@ describe('checkVariableName - Variable Name Validation', () => {
     it('should reject names with special characters like @', () => {
       const result = checkVariableName('&&@c');
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Variable name contains invalid characters (only letters, digits, underscore, or $ allowed)');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_INVALID_CHARS);
     });
 
     it('should reject names with various invalid characters', () => {

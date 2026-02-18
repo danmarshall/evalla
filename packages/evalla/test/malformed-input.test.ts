@@ -1,3 +1,4 @@
+import { ErrorMessage } from '../src/error-messages.js';
 import { evalla, EvaluationError, ValidationError } from '../src/index';
 import Decimal from 'decimal.js';
 

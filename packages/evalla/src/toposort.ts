@@ -2,7 +2,7 @@ import * as parser from './parser.js';
 import { ExpressionInput } from './types.js';
 import { extractVariablesFromAST } from './ast-variables.js';
 import { CircularDependencyError, EvaluationError, ParseError } from './errors.js';
-import { getErrorMessage } from './error-messages.js';
+import { ErrorMessage } from './error-messages.js';
 
 // Parse an expression and return the AST
 // Uses Peggy parser which allows keywords as identifiers
@@ -14,11 +14,11 @@ export const parseExpression = (expr: string): any => {
     if (error.location) {
       const { line, column } = error.location.start;
       throw new ParseError(
-        getErrorMessage('PARSE_ERROR_AT_LOCATION', { line, column, message: error.message }),
+        `${ErrorMessage.PARSE_ERROR_AT_LOCATION}: line ${line}, column ${column}: ${error.message}`,
         { line, column, expression: expr }
       );
     }
-    throw new ParseError(getErrorMessage('PARSE_ERROR', { message: error.message }), { expression: expr });
+    throw new ParseError(`${ErrorMessage.PARSE_ERROR}: ${error.message}`, { expression: expr });
   }
 };
 
@@ -48,7 +48,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
         // Re-throw with variable name if it's a ParseError
         if (error instanceof ParseError) {
           throw new ParseError(
-            getErrorMessage('PARSE_ERROR_FOR_VARIABLE', { name: input.name, message: error.message }),
+            `${ErrorMessage.PARSE_ERROR_FOR_VARIABLE}: "${input.name}": ${error.message}`,
             {
               variableName: input.name,
               expression: input.expr,
@@ -58,7 +58,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
           );
         }
         throw new ParseError(
-          getErrorMessage('PARSE_ERROR_FOR_VARIABLE', { name: input.name, message: error instanceof Error ? error.message : String(error) }),
+          `${ErrorMessage.PARSE_ERROR_FOR_VARIABLE}: "${input.name}": ${error instanceof Error ? error.message : String(error)}`,
           { variableName: input.name, expression: input.expr }
         );
       }
@@ -75,7 +75,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
     
     const ast = asts.get(input.name);
     if (!ast) {
-      throw new EvaluationError(getErrorMessage('NO_AST_FOUND', { name: input.name }));
+      throw new EvaluationError(`${ErrorMessage.NO_AST_FOUND}: ${input.name}`);
     }
     
     const deps = extractDependencies(ast);
@@ -95,7 +95,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
       // Circular dependency detected
       const cycle = [...path, name];
       throw new CircularDependencyError(
-        getErrorMessage('CIRCULAR_DEPENDENCY', { cycle: cycle.join(' -> ') }),
+        `${ErrorMessage.CIRCULAR_DEPENDENCY}: ${cycle.join(' -> ')}`,
         cycle
       );
     }

@@ -2,7 +2,7 @@ import Decimal from 'decimal.js';
 import { createNamespaces, isNamespaceHead } from './namespaces.js';
 import { evaluateAST } from './ast-evaluator.js';
 import { EvallaError, SecurityError, EvaluationError } from './errors.js';
-import { getErrorMessage } from './error-messages.js';
+import { ErrorMessage } from './error-messages.js';
 
 // Safe expression evaluator - no arbitrary code execution
 // Accepts a pre-parsed AST for efficiency (no double parsing)
@@ -32,7 +32,7 @@ export const evaluateExpression = async (
     // Namespace heads like $math, $angle should never be used as standalone values
     if (isNamespaceHead(result)) {
       throw new EvaluationError(
-        getErrorMessage('NAMESPACE_HEAD_AS_VALUE')
+        ErrorMessage.NAMESPACE_HEAD_AS_VALUE
       );
     }
     
@@ -40,7 +40,7 @@ export const evaluateExpression = async (
     // Functions from namespaces must be called, not assigned to variables
     if (typeof result === 'function') {
       throw new SecurityError(
-        getErrorMessage('FUNCTION_ALIASING_DENIED')
+        ErrorMessage.FUNCTION_ALIASING_DENIED
       );
     }
     
@@ -49,11 +49,11 @@ export const evaluateExpression = async (
     if (typeof result === 'object' && result !== null && !(result instanceof Decimal)) {
       if (Array.isArray(result)) {
         throw new EvaluationError(
-          getErrorMessage('EXPRESSION_CANNOT_RETURN_ARRAY')
+          ErrorMessage.EXPRESSION_CANNOT_RETURN_ARRAY
         );
       } else {
         throw new EvaluationError(
-          getErrorMessage('EXPRESSION_CANNOT_RETURN_OBJECT')
+          ErrorMessage.EXPRESSION_CANNOT_RETURN_OBJECT
         );
       }
     }
@@ -66,7 +66,7 @@ export const evaluateExpression = async (
       }
       // Non-numeric strings are not allowed
       throw new EvaluationError(
-        getErrorMessage('EXPRESSION_CANNOT_RETURN_STRING')
+        ErrorMessage.EXPRESSION_CANNOT_RETURN_STRING
       );
     }
     
@@ -84,7 +84,7 @@ export const evaluateExpression = async (
     } else {
       // This should not be reached due to the checks above
       throw new EvaluationError(
-        getErrorMessage('UNSUPPORTED_RESULT_TYPE', { type: typeof result })
+        `${ErrorMessage.UNSUPPORTED_RESULT_TYPE}: ${typeof result}`
       );
     }
   } catch (error) {
@@ -93,6 +93,6 @@ export const evaluateExpression = async (
       throw error;
     }
     // Wrap other errors
-    throw new Error(getErrorMessage('FAILED_TO_EVALUATE', { message: error instanceof Error ? error.message : String(error) }));
+    throw new Error(`${ErrorMessage.FAILED_TO_EVALUATE}: ${error instanceof Error ? error.message : String(error)}`);
   }
 };

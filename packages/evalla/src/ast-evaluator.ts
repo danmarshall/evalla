@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
 import { SecurityError, EvaluationError } from './errors.js';
 import { isNamespaceHead } from './namespaces.js';
-import { getErrorMessage } from './error-messages.js';
+import { ErrorMessage } from './error-messages.js';
 
 // Dangerous properties that should never be accessible
 const DANGEROUS_PROPERTIES = new Set([
@@ -36,14 +36,14 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       
     case 'Identifier':
       if (!(node.name in context)) {
-        throw new EvaluationError(getErrorMessage('UNDEFINED_VARIABLE', { name: node.name }));
+        throw new EvaluationError(`${ErrorMessage.UNDEFINED_VARIABLE}: ${node.name}`);
       }
       return context[node.name];
       
     case 'MemberExpression':
       const object = await evaluateAST(node.object, context);
       if (object === null || object === undefined) {
-        throw new EvaluationError(getErrorMessage('CANNOT_ACCESS_PROPERTY', { value: object }));
+        throw new EvaluationError(`${ErrorMessage.CANNOT_ACCESS_PROPERTY}: ${object}`);
       }
       
       let propertyName: string;
@@ -57,7 +57,7 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       // Security check: block dangerous property access
       if (!isSafeProperty(propertyName)) {
         throw new SecurityError(
-          getErrorMessage('PROPERTY_ACCESS_DENIED', { property: propertyName }),
+          `${ErrorMessage.PROPERTY_ACCESS_DENIED}: "${propertyName}"`,
           propertyName
         );
       }
@@ -80,7 +80,7 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
         args.push(await evaluateAST(arg, context));
       }
       if (typeof callee !== 'function') {
-        throw new EvaluationError(getErrorMessage('CALLEE_NOT_FUNCTION'));
+        throw new EvaluationError(ErrorMessage.CALLEE_NOT_FUNCTION);
       }
       // Get the correct 'this' context for method calls
       let thisArg = null;
@@ -102,10 +102,10 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       } else if (node.operator === '??') {
         return leftLog != null ? leftLog : await evaluateAST(node.right, context);
       }
-      throw new EvaluationError(getErrorMessage('UNSUPPORTED_LOGICAL_OPERATOR', { operator: node.operator }));
+      throw new EvaluationError(`${ErrorMessage.UNSUPPORTED_LOGICAL_OPERATOR}: ${node.operator}`);
       
     default:
-      throw new EvaluationError(getErrorMessage('UNSUPPORTED_NODE_TYPE', { type: node.type }));
+      throw new EvaluationError(`${ErrorMessage.UNSUPPORTED_NODE_TYPE}: ${node.type}`);
   }
 };
 
@@ -115,7 +115,7 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
   // Check for namespace heads in binary operations
   if (isNamespaceHead(left) || isNamespaceHead(right)) {
     throw new EvaluationError(
-      getErrorMessage('NAMESPACE_HEAD_IN_OPERATION')
+      ErrorMessage.NAMESPACE_HEAD_IN_OPERATION
     );
   }
   
@@ -127,34 +127,34 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
     // Check left operand
     if (typeof left === 'string') {
       throw new EvaluationError(
-        getErrorMessage('STRING_IN_OPERATION', { operator })
+        `${ErrorMessage.STRING_IN_OPERATION}: ${operator}`
       );
     }
     if (typeof left === 'object' && left !== null && !(left instanceof Decimal) && !Array.isArray(left)) {
       throw new EvaluationError(
-        getErrorMessage('OBJECT_IN_OPERATION', { operator })
+        `${ErrorMessage.OBJECT_IN_OPERATION}: ${operator}`
       );
     }
     if (Array.isArray(left)) {
       throw new EvaluationError(
-        getErrorMessage('ARRAY_IN_OPERATION', { operator })
+        `${ErrorMessage.ARRAY_IN_OPERATION}: ${operator}`
       );
     }
     
     // Check right operand
     if (typeof right === 'string') {
       throw new EvaluationError(
-        getErrorMessage('STRING_IN_OPERATION', { operator })
+        `${ErrorMessage.STRING_IN_OPERATION}: ${operator}`
       );
     }
     if (typeof right === 'object' && right !== null && !(right instanceof Decimal) && !Array.isArray(right)) {
       throw new EvaluationError(
-        getErrorMessage('OBJECT_IN_OPERATION', { operator })
+        `${ErrorMessage.OBJECT_IN_OPERATION}: ${operator}`
       );
     }
     if (Array.isArray(right)) {
       throw new EvaluationError(
-        getErrorMessage('ARRAY_IN_OPERATION', { operator })
+        `${ErrorMessage.ARRAY_IN_OPERATION}: ${operator}`
       );
     }
   }
@@ -206,7 +206,7 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
     case '>=':
       return toDecimal(left).gte(toDecimal(right));
     default:
-      throw new EvaluationError(getErrorMessage('UNSUPPORTED_BINARY_OPERATOR', { operator }));
+      throw new EvaluationError(`${ErrorMessage.UNSUPPORTED_BINARY_OPERATOR}: ${operator}`);
   }
 };
 
@@ -218,17 +218,17 @@ const evaluateUnaryOp = (operator: string, argument: any): any => {
       // Type validation for unary arithmetic operators
       if (typeof argument === 'string') {
         throw new EvaluationError(
-          getErrorMessage('STRING_WITH_UNARY', { operator })
+          `${ErrorMessage.STRING_WITH_UNARY}: ${operator}`
         );
       }
       if (typeof argument === 'object' && argument !== null && !(argument instanceof Decimal) && !Array.isArray(argument)) {
         throw new EvaluationError(
-          getErrorMessage('OBJECT_WITH_UNARY', { operator })
+          `${ErrorMessage.OBJECT_WITH_UNARY}: ${operator}`
         );
       }
       if (Array.isArray(argument)) {
         throw new EvaluationError(
-          getErrorMessage('ARRAY_WITH_UNARY', { operator })
+          `${ErrorMessage.ARRAY_WITH_UNARY}: ${operator}`
         );
       }
       
@@ -246,6 +246,6 @@ const evaluateUnaryOp = (operator: string, argument: any): any => {
     case '!':
       return !argument;
     default:
-      throw new EvaluationError(getErrorMessage('UNSUPPORTED_UNARY_OPERATOR', { operator }));
+      throw new EvaluationError(`${ErrorMessage.UNSUPPORTED_UNARY_OPERATOR}: ${operator}`);
   }
 };

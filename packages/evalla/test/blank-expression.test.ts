@@ -1,3 +1,4 @@
+import { ErrorMessage } from '../src/error-messages.js';
 import { evalla } from '../src/index';
 import Decimal from 'decimal.js';
 
@@ -63,7 +64,7 @@ describe('Blank Expression Handling', () => {
     // Still require either expr or value to be present
     await expect(
       evalla([{ name: 'test' } as any])
-    ).rejects.toThrow('Each input must have either "expr" or "value"');
+    ).rejects.toThrow(ErrorMessage.INPUT_EXPR_OR_VALUE_REQUIRED);
   });
 
   test('expr can be empty string but not undefined', async () => {
@@ -74,6 +75,6 @@ describe('Blank Expression Handling', () => {
     // expr: undefined with no value is invalid
     await expect(
       evalla([{ name: 'y' } as any])
-    ).rejects.toThrow('Each input must have either "expr" or "value"');
+    ).rejects.toThrow(ErrorMessage.INPUT_EXPR_OR_VALUE_REQUIRED);
   });
 });

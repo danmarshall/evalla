@@ -40,7 +40,7 @@ export interface VariableNameCheckResult {
   error?: string;
 }
 
-import { getErrorMessage } from './error-messages.js';
+import { ErrorMessage } from './error-messages.js';
 
 /**
  * Check if a variable name is valid according to evalla's naming rules.
@@ -71,7 +71,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   if (typeof name !== 'string') {
     return {
       valid: false,
-      error: getErrorMessage('VARIABLE_NAME_MUST_BE_STRING')
+      error: ErrorMessage.VARIABLE_NAME_MUST_BE_STRING
     };
   }
 
@@ -79,7 +79,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   if (name.trim() === '') {
     return {
       valid: false,
-      error: getErrorMessage('VARIABLE_NAME_EMPTY')
+      error: ErrorMessage.VARIABLE_NAME_EMPTY
     };
   }
 
@@ -87,7 +87,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   if (name !== name.trim()) {
     return {
       valid: false,
-      error: getErrorMessage('VARIABLE_NAME_WHITESPACE')
+      error: ErrorMessage.VARIABLE_NAME_WHITESPACE
     };
   }
 
@@ -95,7 +95,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   if (name.startsWith('$')) {
     return {
       valid: false,
-      error: getErrorMessage('VARIABLE_NAME_DOLLAR_PREFIX')
+      error: ErrorMessage.VARIABLE_NAME_DOLLAR_PREFIX
     };
   }
 
@@ -103,7 +103,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   if (name.startsWith('__')) {
     return {
       valid: false,
-      error: getErrorMessage('VARIABLE_NAME_DOUBLE_UNDERSCORE')
+      error: ErrorMessage.VARIABLE_NAME_DOUBLE_UNDERSCORE
     };
   }
 
@@ -111,7 +111,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   if (RESERVED_VALUES.includes(name as any)) {
     return {
       valid: false,
-      error: getErrorMessage('VARIABLE_NAME_RESERVED', { name })
+      error: `${ErrorMessage.VARIABLE_NAME_RESERVED}: ${name}`
     };
   }
 
@@ -119,7 +119,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   if (/^\d/.test(name)) {
     return {
       valid: false,
-      error: getErrorMessage('VARIABLE_NAME_STARTS_WITH_NUMBER')
+      error: ErrorMessage.VARIABLE_NAME_STARTS_WITH_NUMBER
     };
   }
 
@@ -127,7 +127,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   if (name.includes('.')) {
     return {
       valid: false,
-      error: getErrorMessage('VARIABLE_NAME_CONTAINS_DOT')
+      error: ErrorMessage.VARIABLE_NAME_CONTAINS_DOT
     };
   }
 
@@ -136,7 +136,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   if (!VALID_NAME_PATTERN.test(name)) {
     return {
       valid: false,
-      error: getErrorMessage('VARIABLE_NAME_INVALID_CHARS')
+      error: ErrorMessage.VARIABLE_NAME_INVALID_CHARS
     };
   }
 

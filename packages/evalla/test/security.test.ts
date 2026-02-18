@@ -1,3 +1,4 @@
+import { ErrorMessage } from '../src/error-messages.js';
 import { evalla, SecurityError } from '../src/index';
 import Decimal from 'decimal.js';
 

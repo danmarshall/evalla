@@ -62,6 +62,22 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
         );
       }
       
+      // For namespace heads, validate that the property exists
+      if (isNamespaceHead(object)) {
+        if (!(propertyName in object)) {
+          // Get the namespace name from the object identifier
+          let namespaceName = '$unknown';
+          if (node.object.type === 'Identifier' && node.object.name) {
+            namespaceName = node.object.name;
+          }
+          throw new EvaluationError(
+            ErrorMessage.UNDEFINED_NAMESPACE_PROPERTY,
+            undefined,
+            { property: propertyName, namespace: namespaceName }
+          );
+        }
+      }
+      
       return object[propertyName];
       
     case 'BinaryExpression':

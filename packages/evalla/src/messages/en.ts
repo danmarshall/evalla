@@ -30,6 +30,7 @@ export const messages_en: Record<ErrorMessage, string> = {
   
   // Evaluation errors
   [ErrorMessage.UNDEFINED_VARIABLE]: 'Undefined variable: {variableName}',
+  [ErrorMessage.UNDEFINED_NAMESPACE_PROPERTY]: 'Undefined property "{property}" in namespace {namespace}',
   [ErrorMessage.CANNOT_ACCESS_PROPERTY]: 'Cannot access property of {value}',
   [ErrorMessage.CALLEE_NOT_FUNCTION]: 'Callee is not a function',
   [ErrorMessage.UNSUPPORTED_LOGICAL_OPERATOR]: 'Unsupported logical operator: {operator}',

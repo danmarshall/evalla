@@ -118,6 +118,12 @@ export function formatErrorMessage(
       }
     }
     
+    // Special handling: map originalMessage to message for placeholder replacement
+    // This allows error templates to use {message} while errors store it as originalMessage
+    if (params.originalMessage !== undefined && params.message === undefined) {
+      params.message = params.originalMessage;
+    }
+    
     // Replace {param} placeholders with actual values
     for (const [param, value] of Object.entries(params)) {
       message = message.replace(new RegExp(`\\{${param}\\}`, 'g'), String(value));

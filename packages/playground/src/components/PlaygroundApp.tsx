@@ -92,21 +92,13 @@ export default function PlaygroundApp() {
         clearTimeout(existingTimeout);
       }
 
-      if (!value.trim()) {
-        // Clear name error when name is cleared
-        const newNameErrors = new Map(nameErrors);
-        newNameErrors.delete(index);
-        setNameErrors(newNameErrors);
-        return;
-      }
-
       // Debounce name check (300ms delay)
       const timeout = setTimeout(() => {
         if (!checkVariableNameFn.current) {
           return; // checkVariableName not loaded yet
         }
 
-        const nameResult = checkVariableNameFn.current(value);
+        const nameResult = checkVariableNameFn.current(value.trim());
         
         setNameErrors(prev => {
           const newNameErrors = new Map(prev);

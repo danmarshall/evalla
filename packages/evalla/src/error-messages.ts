@@ -6,6 +6,54 @@
  * - Easy internationalization
  * - Better maintainability
  * - Type safety for error messages
+ * 
+ * ## Adding a New Error Message
+ * 
+ * 1. Add a new key to `ErrorMessageKey`:
+ * ```typescript
+ * export const ErrorMessageKey = {
+ *   // ... existing keys
+ *   MY_NEW_ERROR: 'MY_NEW_ERROR',
+ * };
+ * ```
+ * 
+ * 2. Add the message to `ErrorMessages_en`:
+ * ```typescript
+ * export const ErrorMessages_en: Record<ErrorMessageKey, string> = {
+ *   // ... existing messages
+ *   MY_NEW_ERROR: 'This is my new error message with {param}',
+ * };
+ * ```
+ * 
+ * 3. Use it in your code:
+ * ```typescript
+ * throw new ValidationError(getErrorMessage('MY_NEW_ERROR', { param: 'value' }));
+ * ```
+ * 
+ * ## Adding Support for a New Language
+ * 
+ * To add support for a new language (e.g., Spanish):
+ * 
+ * 1. Create a new dictionary:
+ * ```typescript
+ * export const ErrorMessages_es: Record<ErrorMessageKey, string> = {
+ *   INPUT_MUST_BE_ARRAY: 'La entrada debe ser un array',
+ *   // ... translate all messages
+ * };
+ * ```
+ * 
+ * 2. Update `getErrorMessage()` to accept a language parameter:
+ * ```typescript
+ * export function getErrorMessage(
+ *   key: ErrorMessageKey, 
+ *   params?: Record<string, any>,
+ *   lang: 'en' | 'es' = 'en'
+ * ): string {
+ *   const dictionary = lang === 'es' ? ErrorMessages_es : ErrorMessages_en;
+ *   let message = dictionary[key];
+ *   // ... rest of implementation
+ * }
+ * ```
  */
 
 /**

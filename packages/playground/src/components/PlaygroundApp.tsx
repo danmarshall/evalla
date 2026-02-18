@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Plus, Trash2, Play, Upload, Download, FileText, X } from 'lucide-react';
 import { examples, type Expression } from '../data/examples';
+import { evalla, formatResults, checkSyntax, checkVariableName } from 'evalla';
 
 export default function PlaygroundApp() {
   const [expressions, setExpressions] = useState<Expression[]>([
@@ -19,19 +20,6 @@ export default function PlaygroundApp() {
   // Store debounce timeouts per expression index
   const debounceTimeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
   const nameDebounceTimeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
-  // Store check functions in ref to avoid module-level state
-  const checkSyntaxFn = useRef<((expr: string) => { valid: boolean; error?: string }) | null>(null);
-  const checkVariableNameFn = useRef<((name: string) => { valid: boolean; error?: string }) | null>(null);
-
-  // Load check functions on mount
-  useEffect(() => {
-    import('evalla').then(({ checkSyntax, checkVariableName }) => {
-      checkSyntaxFn.current = checkSyntax;
-      checkVariableNameFn.current = checkVariableName;
-    }).catch(err => {
-      console.error('Failed to load validation functions:', err);
-    });
-  }, []);
 
   // Helper function to format textarea value for display
   const getTextareaValue = (expr: Expression): string => {
@@ -94,11 +82,7 @@ export default function PlaygroundApp() {
 
       // Debounce name check (300ms delay)
       const timeout = setTimeout(() => {
-        if (!checkVariableNameFn.current) {
-          return; // checkVariableName not loaded yet
-        }
-
-        const nameResult = checkVariableNameFn.current(value);
+        const nameResult = checkVariableName(value);
         
         setNameErrors(prev => {
           const newNameErrors = new Map(prev);
@@ -132,11 +116,7 @@ export default function PlaygroundApp() {
 
       // Debounce syntax check (300ms delay)
       const timeout = setTimeout(() => {
-        if (!checkSyntaxFn.current) {
-          return; // checkSyntax not loaded yet
-        }
-
-        const syntaxResult = checkSyntaxFn.current(value);
+        const syntaxResult = checkSyntax(value);
         
         setSyntaxErrors(prev => {
           const newSyntaxErrors = new Map(prev);
@@ -473,9 +453,6 @@ export default function PlaygroundApp() {
     }
 
     try {
-      // Dynamic import to avoid SSR issues
-      const { evalla, formatResults } = await import('evalla');
-
       // Format inputs for evalla based on mode
       const validInputs = expressions
         .filter(e => {

@@ -41,7 +41,7 @@ describe('Error Message Enum', () => {
   });
 
   it('should format error message with single parameter', () => {
-    const message = formatErrorMessage(ErrorMessage.UNDEFINED_VARIABLE, 'en', { name: 'myVar' });
+    const message = formatErrorMessage(ErrorMessage.UNDEFINED_VARIABLE, 'en', { variableName: 'myVar' });
     expect(message).toBe('Undefined variable: myVar');
   });
 

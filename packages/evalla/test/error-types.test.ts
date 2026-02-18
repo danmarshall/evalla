@@ -11,9 +11,10 @@ describe('Error Type Differentiation', () => {
       fail('Should have thrown SecurityError');
     } catch (error) {
       expect(error).toBeInstanceOf(SecurityError);
-      if (error instanceof Error) {
+      if (error instanceof SecurityError) {
         expect(error.name).toBe('SecurityError');
-        expect(error.message).toContain('prototype');
+        expect(error.message).toBe(ErrorMessage.PROPERTY_ACCESS_DENIED);
+        expect(error.property).toBe('prototype');
       }
     }
   });

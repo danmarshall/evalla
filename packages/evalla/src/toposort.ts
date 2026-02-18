@@ -14,11 +14,11 @@ export const parseExpression = (expr: string): any => {
     if (error.location) {
       const { line, column } = error.location.start;
       throw new ParseError(
-        `${ErrorMessage.PARSE_ERROR_AT_LOCATION}: line ${line}, column ${column}: ${error.message}`,
+        ErrorMessage.PARSE_ERROR_AT_LOCATION,
         { line, column, expression: expr }
       );
     }
-    throw new ParseError(`${ErrorMessage.PARSE_ERROR}: ${error.message}`, { expression: expr });
+    throw new ParseError(ErrorMessage.PARSE_ERROR, { expression: expr });
   }
 };
 
@@ -48,7 +48,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
         // Re-throw with variable name if it's a ParseError
         if (error instanceof ParseError) {
           throw new ParseError(
-            `${ErrorMessage.PARSE_ERROR_FOR_VARIABLE}: "${input.name}": ${error.message}`,
+            ErrorMessage.PARSE_ERROR_FOR_VARIABLE,
             {
               variableName: input.name,
               expression: input.expr,
@@ -58,7 +58,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
           );
         }
         throw new ParseError(
-          `${ErrorMessage.PARSE_ERROR_FOR_VARIABLE}: "${input.name}": ${error instanceof Error ? error.message : String(error)}`,
+          ErrorMessage.PARSE_ERROR_FOR_VARIABLE,
           { variableName: input.name, expression: input.expr }
         );
       }
@@ -75,7 +75,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
     
     const ast = asts.get(input.name);
     if (!ast) {
-      throw new EvaluationError(`${ErrorMessage.NO_AST_FOUND}: ${input.name}`);
+      throw new EvaluationError(ErrorMessage.NO_AST_FOUND, input.name);
     }
     
     const deps = extractDependencies(ast);
@@ -95,7 +95,7 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
       // Circular dependency detected
       const cycle = [...path, name];
       throw new CircularDependencyError(
-        `${ErrorMessage.CIRCULAR_DEPENDENCY}: ${cycle.join(' -> ')}`,
+        ErrorMessage.CIRCULAR_DEPENDENCY,
         cycle
       );
     }

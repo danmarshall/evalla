@@ -34,13 +34,13 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
     // But require at least one of expr or value to be present
     if (input.expr === undefined && input.value === undefined) {
       throw new ValidationError(
-        `${ErrorMessage.INPUT_EXPR_OR_VALUE_REQUIRED}: ${input.name}`,
+        ErrorMessage.INPUT_EXPR_OR_VALUE_REQUIRED,
         input.name
       );
     }
     if (input.expr !== undefined && typeof input.expr !== 'string') {
       throw new ValidationError(
-        `${ErrorMessage.INPUT_EXPR_MUST_BE_STRING}: ${input.name}`,
+        ErrorMessage.INPUT_EXPR_MUST_BE_STRING,
         input.name
       );
     }
@@ -50,7 +50,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
   const nameSet = new Set<string>();
   for (const input of inputs) {
     if (nameSet.has(input.name)) {
-      throw new ValidationError(`${ErrorMessage.DUPLICATE_NAME}: ${input.name}`, input.name);
+      throw new ValidationError(ErrorMessage.DUPLICATE_NAME, input.name);
     }
     nameSet.add(input.name);
   }

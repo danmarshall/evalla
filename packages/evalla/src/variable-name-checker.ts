@@ -111,7 +111,7 @@ export const checkVariableName = (name: string): VariableNameCheckResult => {
   if (RESERVED_VALUES.includes(name as any)) {
     return {
       valid: false,
-      error: `${ErrorMessage.VARIABLE_NAME_RESERVED}: ${name}`
+      error: ErrorMessage.VARIABLE_NAME_RESERVED
     };
   }
 

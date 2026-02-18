@@ -273,8 +273,7 @@ describe('checkSyntax - Expression Syntax Validation', () => {
     test('error message includes location', () => {
       const result = checkSyntax('a +');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('line');
-      expect(result.error).toContain('column');
+      expect(result.error).toBe(ErrorMessage.PARSE_ERROR_AT_LOCATION);
     });
   });
 

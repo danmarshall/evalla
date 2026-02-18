@@ -70,7 +70,7 @@ export const checkSyntax = (expr: string): SyntaxCheckResult => {
       const { line, column } = error.location.start;
       return {
         valid: false,
-        error: `${ErrorMessage.PARSE_ERROR_AT_LOCATION}: line ${line}, column ${column}: ${error.message}`,
+        error: ErrorMessage.PARSE_ERROR_AT_LOCATION,
         line,
         column
       };
@@ -79,7 +79,7 @@ export const checkSyntax = (expr: string): SyntaxCheckResult => {
     // Handle other parsing errors without location
     return {
       valid: false,
-      error: `${ErrorMessage.PARSE_ERROR}: ${error.message || String(error)}`
+      error: ErrorMessage.PARSE_ERROR
     };
   }
 };

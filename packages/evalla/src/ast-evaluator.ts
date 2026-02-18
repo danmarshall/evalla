@@ -36,14 +36,14 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       
     case 'Identifier':
       if (!(node.name in context)) {
-        throw new EvaluationError(`${ErrorMessage.UNDEFINED_VARIABLE}: ${node.name}`);
+        throw new EvaluationError(ErrorMessage.UNDEFINED_VARIABLE, node.name);
       }
       return context[node.name];
       
     case 'MemberExpression':
       const object = await evaluateAST(node.object, context);
       if (object === null || object === undefined) {
-        throw new EvaluationError(`${ErrorMessage.CANNOT_ACCESS_PROPERTY}: ${object}`);
+        throw new EvaluationError(ErrorMessage.CANNOT_ACCESS_PROPERTY);
       }
       
       let propertyName: string;
@@ -57,7 +57,7 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       // Security check: block dangerous property access
       if (!isSafeProperty(propertyName)) {
         throw new SecurityError(
-          `${ErrorMessage.PROPERTY_ACCESS_DENIED}: "${propertyName}"`,
+          ErrorMessage.PROPERTY_ACCESS_DENIED,
           propertyName
         );
       }
@@ -102,10 +102,10 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       } else if (node.operator === '??') {
         return leftLog != null ? leftLog : await evaluateAST(node.right, context);
       }
-      throw new EvaluationError(`${ErrorMessage.UNSUPPORTED_LOGICAL_OPERATOR}: ${node.operator}`);
+      throw new EvaluationError(ErrorMessage.UNSUPPORTED_LOGICAL_OPERATOR);
       
     default:
-      throw new EvaluationError(`${ErrorMessage.UNSUPPORTED_NODE_TYPE}: ${node.type}`);
+      throw new EvaluationError(ErrorMessage.UNSUPPORTED_NODE_TYPE);
   }
 };
 
@@ -126,36 +126,24 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
   if (arithmeticOps.includes(operator) || comparisonOps.includes(operator)) {
     // Check left operand
     if (typeof left === 'string') {
-      throw new EvaluationError(
-        `${ErrorMessage.STRING_IN_OPERATION}: ${operator}`
-      );
+      throw new EvaluationError(ErrorMessage.STRING_IN_OPERATION);
     }
     if (typeof left === 'object' && left !== null && !(left instanceof Decimal) && !Array.isArray(left)) {
-      throw new EvaluationError(
-        `${ErrorMessage.OBJECT_IN_OPERATION}: ${operator}`
-      );
+      throw new EvaluationError(ErrorMessage.OBJECT_IN_OPERATION);
     }
     if (Array.isArray(left)) {
-      throw new EvaluationError(
-        `${ErrorMessage.ARRAY_IN_OPERATION}: ${operator}`
-      );
+      throw new EvaluationError(ErrorMessage.ARRAY_IN_OPERATION);
     }
     
     // Check right operand
     if (typeof right === 'string') {
-      throw new EvaluationError(
-        `${ErrorMessage.STRING_IN_OPERATION}: ${operator}`
-      );
+      throw new EvaluationError(ErrorMessage.STRING_IN_OPERATION);
     }
     if (typeof right === 'object' && right !== null && !(right instanceof Decimal) && !Array.isArray(right)) {
-      throw new EvaluationError(
-        `${ErrorMessage.OBJECT_IN_OPERATION}: ${operator}`
-      );
+      throw new EvaluationError(ErrorMessage.OBJECT_IN_OPERATION);
     }
     if (Array.isArray(right)) {
-      throw new EvaluationError(
-        `${ErrorMessage.ARRAY_IN_OPERATION}: ${operator}`
-      );
+      throw new EvaluationError(ErrorMessage.ARRAY_IN_OPERATION);
     }
   }
   
@@ -206,7 +194,7 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
     case '>=':
       return toDecimal(left).gte(toDecimal(right));
     default:
-      throw new EvaluationError(`${ErrorMessage.UNSUPPORTED_BINARY_OPERATOR}: ${operator}`);
+      throw new EvaluationError(ErrorMessage.UNSUPPORTED_BINARY_OPERATOR);
   }
 };
 
@@ -217,19 +205,13 @@ const evaluateUnaryOp = (operator: string, argument: any): any => {
     case '+':
       // Type validation for unary arithmetic operators
       if (typeof argument === 'string') {
-        throw new EvaluationError(
-          `${ErrorMessage.STRING_WITH_UNARY}: ${operator}`
-        );
+        throw new EvaluationError(ErrorMessage.STRING_WITH_UNARY);
       }
       if (typeof argument === 'object' && argument !== null && !(argument instanceof Decimal) && !Array.isArray(argument)) {
-        throw new EvaluationError(
-          `${ErrorMessage.OBJECT_WITH_UNARY}: ${operator}`
-        );
+        throw new EvaluationError(ErrorMessage.OBJECT_WITH_UNARY);
       }
       if (Array.isArray(argument)) {
-        throw new EvaluationError(
-          `${ErrorMessage.ARRAY_WITH_UNARY}: ${operator}`
-        );
+        throw new EvaluationError(ErrorMessage.ARRAY_WITH_UNARY);
       }
       
       if (operator === '-') {
@@ -246,6 +228,6 @@ const evaluateUnaryOp = (operator: string, argument: any): any => {
     case '!':
       return !argument;
     default:
-      throw new EvaluationError(`${ErrorMessage.UNSUPPORTED_UNARY_OPERATOR}: ${operator}`);
+      throw new EvaluationError(ErrorMessage.UNSUPPORTED_UNARY_OPERATOR);
   }
 };

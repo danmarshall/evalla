@@ -99,8 +99,7 @@ describe('Error Messages in Practice', () => {
     it('should use VARIABLE_NAME_RESERVED message', () => {
       const result = checkVariableName('true');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain(ErrorMessage.VARIABLE_NAME_RESERVED);
-      expect(result.error).toContain('true');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_RESERVED);
     });
 
     it('should use VARIABLE_NAME_STARTS_WITH_NUMBER message', () => {

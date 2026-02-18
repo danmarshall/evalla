@@ -60,29 +60,25 @@ describe('checkVariableName - Variable Name Validation', () => {
     it('should reject "true"', () => {
       const result = checkVariableName('true');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain(ErrorMessage.VARIABLE_NAME_RESERVED);
-      expect(result.error).toContain('true');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_RESERVED);
     });
 
     it('should reject "false"', () => {
       const result = checkVariableName('false');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain(ErrorMessage.VARIABLE_NAME_RESERVED);
-      expect(result.error).toContain('false');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_RESERVED);
     });
 
     it('should reject "null"', () => {
       const result = checkVariableName('null');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain(ErrorMessage.VARIABLE_NAME_RESERVED);
-      expect(result.error).toContain('null');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_RESERVED);
     });
 
     it('should reject "Infinity"', () => {
       const result = checkVariableName('Infinity');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain(ErrorMessage.VARIABLE_NAME_RESERVED);
-      expect(result.error).toContain('Infinity');
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_RESERVED);
     });
   });
 

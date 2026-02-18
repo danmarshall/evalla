@@ -4,20 +4,21 @@ import { topologicalSort } from './toposort.js';
 import { evaluateExpression } from './evaluator.js';
 import { ValidationError } from './errors.js';
 import { checkVariableName } from './variable-name-checker.js';
+import { getErrorMessage } from './error-messages.js';
 
 // Main evalla function - minimal, modular, DRY, testable, safe, secure
 export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResult> => {
   // Input validation - security first
   if (!Array.isArray(inputs)) {
-    throw new ValidationError('Input must be an array');
+    throw new ValidationError(getErrorMessage('INPUT_MUST_BE_ARRAY'));
   }
   
   for (const input of inputs) {
     if (!input || typeof input !== 'object') {
-      throw new ValidationError('Each input must be an object');
+      throw new ValidationError(getErrorMessage('INPUT_MUST_BE_OBJECT'));
     }
     if (typeof input.name !== 'string' || !input.name) {
-      throw new ValidationError('Each input must have a non-empty string "name"');
+      throw new ValidationError(getErrorMessage('INPUT_NAME_REQUIRED'));
     }
     
     // Validate variable name using checkVariableName
@@ -33,13 +34,13 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
     // But require at least one of expr or value to be present
     if (input.expr === undefined && input.value === undefined) {
       throw new ValidationError(
-        `Each input must have either "expr" or "value": ${input.name}`,
+        getErrorMessage('INPUT_EXPR_OR_VALUE_REQUIRED', { name: input.name }),
         input.name
       );
     }
     if (input.expr !== undefined && typeof input.expr !== 'string') {
       throw new ValidationError(
-        `"expr" must be a string if provided: ${input.name}`,
+        getErrorMessage('INPUT_EXPR_MUST_BE_STRING', { name: input.name }),
         input.name
       );
     }
@@ -49,7 +50,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
   const nameSet = new Set<string>();
   for (const input of inputs) {
     if (nameSet.has(input.name)) {
-      throw new ValidationError(`Duplicate name: ${input.name}`, input.name);
+      throw new ValidationError(getErrorMessage('DUPLICATE_NAME', { name: input.name }), input.name);
     }
     nameSet.add(input.name);
   }

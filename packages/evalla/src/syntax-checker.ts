@@ -1,4 +1,5 @@
 import * as parser from './parser.js';
+import { getErrorMessage } from './error-messages.js';
 
 /**
  * Result of syntax checking an expression
@@ -45,7 +46,7 @@ export const checkSyntax = (expr: string): SyntaxCheckResult => {
   if (typeof expr !== 'string') {
     return {
       valid: false,
-      error: 'Expression must be a string'
+      error: getErrorMessage('EXPRESSION_MUST_BE_STRING')
     };
   }
 
@@ -53,7 +54,7 @@ export const checkSyntax = (expr: string): SyntaxCheckResult => {
   if (trimmed === '') {
     return {
       valid: false,
-      error: 'Expression cannot be empty'
+      error: getErrorMessage('EXPRESSION_EMPTY')
     };
   }
 
@@ -69,7 +70,7 @@ export const checkSyntax = (expr: string): SyntaxCheckResult => {
       const { line, column } = error.location.start;
       return {
         valid: false,
-        error: `Parse error at line ${line}, column ${column}: ${error.message}`,
+        error: getErrorMessage('PARSE_ERROR_AT_LOCATION', { line, column, message: error.message }),
         line,
         column
       };
@@ -78,7 +79,7 @@ export const checkSyntax = (expr: string): SyntaxCheckResult => {
     // Handle other parsing errors without location
     return {
       valid: false,
-      error: `Parse error: ${error.message || String(error)}`
+      error: getErrorMessage('PARSE_ERROR', { message: error.message || String(error) })
     };
   }
 };

@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js';
 import { SecurityError, EvaluationError } from './errors.js';
 import { isNamespaceHead } from './namespaces.js';
+import { getErrorMessage } from './error-messages.js';
 
 // Dangerous properties that should never be accessible
 const DANGEROUS_PROPERTIES = new Set([
@@ -35,14 +36,14 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       
     case 'Identifier':
       if (!(node.name in context)) {
-        throw new EvaluationError(`Undefined variable: ${node.name}`);
+        throw new EvaluationError(getErrorMessage('UNDEFINED_VARIABLE', { name: node.name }));
       }
       return context[node.name];
       
     case 'MemberExpression':
       const object = await evaluateAST(node.object, context);
       if (object === null || object === undefined) {
-        throw new EvaluationError(`Cannot access property of ${object}`);
+        throw new EvaluationError(getErrorMessage('CANNOT_ACCESS_PROPERTY', { value: object }));
       }
       
       let propertyName: string;
@@ -56,7 +57,7 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       // Security check: block dangerous property access
       if (!isSafeProperty(propertyName)) {
         throw new SecurityError(
-          `Access to property "${propertyName}" is not allowed for security reasons`,
+          getErrorMessage('PROPERTY_ACCESS_DENIED', { property: propertyName }),
           propertyName
         );
       }
@@ -79,7 +80,7 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
         args.push(await evaluateAST(arg, context));
       }
       if (typeof callee !== 'function') {
-        throw new EvaluationError('Callee is not a function');
+        throw new EvaluationError(getErrorMessage('CALLEE_NOT_FUNCTION'));
       }
       // Get the correct 'this' context for method calls
       let thisArg = null;
@@ -101,10 +102,10 @@ export const evaluateAST = async (node: any, context: Record<string, any>): Prom
       } else if (node.operator === '??') {
         return leftLog != null ? leftLog : await evaluateAST(node.right, context);
       }
-      throw new EvaluationError(`Unsupported logical operator: ${node.operator}`);
+      throw new EvaluationError(getErrorMessage('UNSUPPORTED_LOGICAL_OPERATOR', { operator: node.operator }));
       
     default:
-      throw new EvaluationError(`Unsupported node type: ${node.type}`);
+      throw new EvaluationError(getErrorMessage('UNSUPPORTED_NODE_TYPE', { type: node.type }));
   }
 };
 
@@ -114,7 +115,7 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
   // Check for namespace heads in binary operations
   if (isNamespaceHead(left) || isNamespaceHead(right)) {
     throw new EvaluationError(
-      'Cannot use namespace head in operations - namespace heads must be used with property access (e.g., $math.PI) or method calls (e.g., $math.abs(x))'
+      getErrorMessage('NAMESPACE_HEAD_IN_OPERATION')
     );
   }
   
@@ -126,34 +127,34 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
     // Check left operand
     if (typeof left === 'string') {
       throw new EvaluationError(
-        `Cannot use string in ${operator} operation - strings are not supported in mathematical expressions`
+        getErrorMessage('STRING_IN_OPERATION', { operator })
       );
     }
     if (typeof left === 'object' && left !== null && !(left instanceof Decimal) && !Array.isArray(left)) {
       throw new EvaluationError(
-        `Cannot use object in ${operator} operation - only numeric values are allowed`
+        getErrorMessage('OBJECT_IN_OPERATION', { operator })
       );
     }
     if (Array.isArray(left)) {
       throw new EvaluationError(
-        `Cannot use array in ${operator} operation - only numeric values are allowed`
+        getErrorMessage('ARRAY_IN_OPERATION', { operator })
       );
     }
     
     // Check right operand
     if (typeof right === 'string') {
       throw new EvaluationError(
-        `Cannot use string in ${operator} operation - strings are not supported in mathematical expressions`
+        getErrorMessage('STRING_IN_OPERATION', { operator })
       );
     }
     if (typeof right === 'object' && right !== null && !(right instanceof Decimal) && !Array.isArray(right)) {
       throw new EvaluationError(
-        `Cannot use object in ${operator} operation - only numeric values are allowed`
+        getErrorMessage('OBJECT_IN_OPERATION', { operator })
       );
     }
     if (Array.isArray(right)) {
       throw new EvaluationError(
-        `Cannot use array in ${operator} operation - only numeric values are allowed`
+        getErrorMessage('ARRAY_IN_OPERATION', { operator })
       );
     }
   }
@@ -205,7 +206,7 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
     case '>=':
       return toDecimal(left).gte(toDecimal(right));
     default:
-      throw new EvaluationError(`Unsupported binary operator: ${operator}`);
+      throw new EvaluationError(getErrorMessage('UNSUPPORTED_BINARY_OPERATOR', { operator }));
   }
 };
 
@@ -217,17 +218,17 @@ const evaluateUnaryOp = (operator: string, argument: any): any => {
       // Type validation for unary arithmetic operators
       if (typeof argument === 'string') {
         throw new EvaluationError(
-          `Cannot use string with unary ${operator} - strings are not supported in mathematical expressions`
+          getErrorMessage('STRING_WITH_UNARY', { operator })
         );
       }
       if (typeof argument === 'object' && argument !== null && !(argument instanceof Decimal) && !Array.isArray(argument)) {
         throw new EvaluationError(
-          `Cannot use object with unary ${operator} - only numeric values are allowed`
+          getErrorMessage('OBJECT_WITH_UNARY', { operator })
         );
       }
       if (Array.isArray(argument)) {
         throw new EvaluationError(
-          `Cannot use array with unary ${operator} - only numeric values are allowed`
+          getErrorMessage('ARRAY_WITH_UNARY', { operator })
         );
       }
       
@@ -245,6 +246,6 @@ const evaluateUnaryOp = (operator: string, argument: any): any => {
     case '!':
       return !argument;
     default:
-      throw new EvaluationError(`Unsupported unary operator: ${operator}`);
+      throw new EvaluationError(getErrorMessage('UNSUPPORTED_UNARY_OPERATOR', { operator }));
   }
 };

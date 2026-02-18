@@ -206,3 +206,239 @@ describe('Error Messages in Practice', () => {
     });
   });
 });
+
+describe('Error Message Placeholder Verification', () => {
+  describe('Validation error placeholders', () => {
+    it('should populate {variableName} in INPUT_EXPR_OR_VALUE_REQUIRED', async () => {
+      try {
+        await evalla([{ name: 'testVar' } as any]);
+      } catch (err: any) {
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('testVar');
+        expect(formatted).not.toContain('{variableName}');
+      }
+    });
+
+    it('should populate {variableName} in INPUT_EXPR_MUST_BE_STRING', async () => {
+      try {
+        await evalla([{ name: 'testVar', expr: 123 } as any]);
+      } catch (err: any) {
+        expect(err.message).toBe(ErrorMessage.INPUT_EXPR_MUST_BE_STRING);
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('testVar');
+        expect(formatted).not.toContain('{variableName}');
+      }
+    });
+
+    it('should populate {variableName} in DUPLICATE_NAME', async () => {
+      try {
+        await evalla([
+          { name: 'dupName', expr: '1' },
+          { name: 'dupName', expr: '2' }
+        ]);
+      } catch (err: any) {
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('dupName');
+        expect(formatted).not.toContain('{variableName}');
+      }
+    });
+
+    it('should populate {variableName} in VARIABLE_NAME_RESERVED', () => {
+      const result = checkVariableName('true');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe(ErrorMessage.VARIABLE_NAME_RESERVED);
+      if (result.error) {
+        const formatted = formatErrorMessage(result.error as ErrorMessage, 'en', { variableName: 'true' });
+        expect(formatted).toContain('true');
+        expect(formatted).not.toContain('{variableName}');
+      }
+    });
+  });
+
+  describe('Parse error placeholders', () => {
+    it('should populate {line}, {column}, {message} in PARSE_ERROR_AT_LOCATION', () => {
+      const result = checkSyntax('(a + b');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe(ErrorMessage.PARSE_ERROR_AT_LOCATION);
+      if (result.error && result.line !== undefined && result.column !== undefined) {
+        const formatted = formatErrorMessage(result.error as ErrorMessage, 'en', { 
+          line: result.line, 
+          column: result.column,
+          message: 'Expected )' 
+        });
+        expect(formatted).toMatch(/line \d+/);
+        expect(formatted).toMatch(/column \d+/);
+        expect(formatted).not.toContain('{line}');
+        expect(formatted).not.toContain('{column}');
+        expect(formatted).not.toContain('{message}');
+      }
+    });
+
+    it('should populate {variableName} and {message} in PARSE_ERROR_FOR_VARIABLE', async () => {
+      try {
+        await evalla([{ name: 'badVar', expr: '(unclosed' }]);
+      } catch (err: any) {
+        if (err.message === ErrorMessage.PARSE_ERROR_FOR_VARIABLE) {
+          const formatted = formatErrorMessage(err.message, 'en', {
+            variableName: err.variableName,
+            message: err.originalMessage || 'parse error'
+          });
+          expect(formatted).toContain('badVar');
+          expect(formatted).not.toContain('{variableName}');
+          expect(formatted).not.toContain('{message}');
+        }
+      }
+    });
+  });
+
+  describe('Evaluation error placeholders', () => {
+    it('should populate {variableName} in UNDEFINED_VARIABLE', async () => {
+      try {
+        await evalla([{ name: 'y', expr: 'undefinedVar + 1' }]);
+      } catch (err: any) {
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('undefinedVar');
+        expect(formatted).not.toContain('{variableName}');
+      }
+    });
+
+    it('should populate {property} and {namespace} in UNDEFINED_NAMESPACE_PROPERTY', async () => {
+      try {
+        await evalla([{ name: 'x', expr: '$math.nonExistent' }]);
+      } catch (err: any) {
+        expect(err.message).toBe(ErrorMessage.UNDEFINED_NAMESPACE_PROPERTY);
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('nonExistent');
+        expect(formatted).toContain('$math');
+        expect(formatted).not.toContain('{property}');
+        expect(formatted).not.toContain('{namespace}');
+      }
+    });
+
+    it('should populate {operator} in STRING_IN_OPERATION', async () => {
+      try {
+        await evalla([
+          { name: 'obj', value: { str: 'hello' } },
+          { name: 'result', expr: 'obj.str + 1' }
+        ]);
+      } catch (err: any) {
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('+');
+        expect(formatted).not.toContain('{operator}');
+      }
+    });
+
+    it('should populate {operator} in OBJECT_IN_OPERATION', async () => {
+      try {
+        await evalla([
+          { name: 'obj', value: { nested: {} } },
+          { name: 'result', expr: 'obj.nested * 2' }
+        ]);
+      } catch (err: any) {
+        expect(err.message).toBe(ErrorMessage.OBJECT_IN_OPERATION);
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('*');
+        expect(formatted).not.toContain('{operator}');
+      }
+    });
+
+    it('should populate {operator} in ARRAY_IN_OPERATION', async () => {
+      try {
+        await evalla([
+          { name: 'obj', value: { arr: [1, 2] } },
+          { name: 'result', expr: 'obj.arr - 1' }
+        ]);
+      } catch (err: any) {
+        expect(err.message).toBe(ErrorMessage.ARRAY_IN_OPERATION);
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('-');
+        expect(formatted).not.toContain('{operator}');
+      }
+    });
+
+    it('should populate {operator} in STRING_WITH_UNARY', async () => {
+      try {
+        await evalla([
+          { name: 'obj', value: { str: 'test' } },
+          { name: 'result', expr: '-obj.str' }
+        ]);
+      } catch (err: any) {
+        expect(err.message).toBe(ErrorMessage.STRING_WITH_UNARY);
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('-');
+        expect(formatted).not.toContain('{operator}');
+      }
+    });
+
+    it('should populate {operator} in OBJECT_WITH_UNARY', async () => {
+      try {
+        await evalla([
+          { name: 'obj', value: { nested: {} } },
+          { name: 'result', expr: '+obj.nested' }
+        ]);
+      } catch (err: any) {
+        expect(err.message).toBe(ErrorMessage.OBJECT_WITH_UNARY);
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('+');
+        expect(formatted).not.toContain('{operator}');
+      }
+    });
+
+    it('should populate {operator} in ARRAY_WITH_UNARY', async () => {
+      try {
+        await evalla([
+          { name: 'obj', value: { arr: [1] } },
+          { name: 'result', expr: '-obj.arr' }
+        ]);
+      } catch (err: any) {
+        expect(err.message).toBe(ErrorMessage.ARRAY_WITH_UNARY);
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('-');
+        expect(formatted).not.toContain('{operator}');
+      }
+    });
+
+    it('should populate {cycle} in CIRCULAR_DEPENDENCY', async () => {
+      try {
+        await evalla([
+          { name: 'a', expr: 'b' },
+          { name: 'b', expr: 'a' }
+        ]);
+      } catch (err: any) {
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('a');
+        expect(formatted).toContain('b');
+        expect(formatted).not.toContain('{cycle}');
+      }
+    });
+  });
+
+  describe('Security error placeholders', () => {
+    it('should populate {property} in PROPERTY_ACCESS_DENIED', async () => {
+      try {
+        await evalla([
+          { name: 'obj', value: { test: 'value' } },
+          { name: 'result', expr: 'obj.__proto__' }
+        ]);
+      } catch (err: any) {
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('__proto__');
+        expect(formatted).not.toContain('{property}');
+      }
+    });
+  });
+
+  describe('Internationalization error placeholders', () => {
+    it('should populate {lang} in UNSUPPORTED_LANGUAGE', () => {
+      try {
+        formatErrorMessage(ErrorMessage.INPUT_MUST_BE_ARRAY, 'fr');
+      } catch (err: any) {
+        expect(err.message).toBe(ErrorMessage.UNSUPPORTED_LANGUAGE);
+        // The variableName property holds the lang value
+        const formatted = formatErrorMessage(err.message, 'en', { lang: err.variableName });
+        expect(formatted).toContain('fr');
+        expect(formatted).not.toContain('{lang}');
+      }
+    });
+  });
+});

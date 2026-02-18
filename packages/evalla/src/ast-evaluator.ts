@@ -142,24 +142,24 @@ const evaluateBinaryOp = (operator: string, left: any, right: any): any => {
   if (arithmeticOps.includes(operator) || comparisonOps.includes(operator)) {
     // Check left operand
     if (typeof left === 'string') {
-      throw new EvaluationError(ErrorMessage.STRING_IN_OPERATION);
+      throw new EvaluationError(ErrorMessage.STRING_IN_OPERATION, undefined, { operator });
     }
     if (typeof left === 'object' && left !== null && !(left instanceof Decimal) && !Array.isArray(left)) {
-      throw new EvaluationError(ErrorMessage.OBJECT_IN_OPERATION);
+      throw new EvaluationError(ErrorMessage.OBJECT_IN_OPERATION, undefined, { operator });
     }
     if (Array.isArray(left)) {
-      throw new EvaluationError(ErrorMessage.ARRAY_IN_OPERATION);
+      throw new EvaluationError(ErrorMessage.ARRAY_IN_OPERATION, undefined, { operator });
     }
     
     // Check right operand
     if (typeof right === 'string') {
-      throw new EvaluationError(ErrorMessage.STRING_IN_OPERATION);
+      throw new EvaluationError(ErrorMessage.STRING_IN_OPERATION, undefined, { operator });
     }
     if (typeof right === 'object' && right !== null && !(right instanceof Decimal) && !Array.isArray(right)) {
-      throw new EvaluationError(ErrorMessage.OBJECT_IN_OPERATION);
+      throw new EvaluationError(ErrorMessage.OBJECT_IN_OPERATION, undefined, { operator });
     }
     if (Array.isArray(right)) {
-      throw new EvaluationError(ErrorMessage.ARRAY_IN_OPERATION);
+      throw new EvaluationError(ErrorMessage.ARRAY_IN_OPERATION, undefined, { operator });
     }
   }
   
@@ -221,13 +221,13 @@ const evaluateUnaryOp = (operator: string, argument: any): any => {
     case '+':
       // Type validation for unary arithmetic operators
       if (typeof argument === 'string') {
-        throw new EvaluationError(ErrorMessage.STRING_WITH_UNARY);
+        throw new EvaluationError(ErrorMessage.STRING_WITH_UNARY, undefined, { operator });
       }
       if (typeof argument === 'object' && argument !== null && !(argument instanceof Decimal) && !Array.isArray(argument)) {
-        throw new EvaluationError(ErrorMessage.OBJECT_WITH_UNARY);
+        throw new EvaluationError(ErrorMessage.OBJECT_WITH_UNARY, undefined, { operator });
       }
       if (Array.isArray(argument)) {
-        throw new EvaluationError(ErrorMessage.ARRAY_WITH_UNARY);
+        throw new EvaluationError(ErrorMessage.ARRAY_WITH_UNARY, undefined, { operator });
       }
       
       if (operator === '-') {

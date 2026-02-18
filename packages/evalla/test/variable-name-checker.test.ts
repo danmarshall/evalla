@@ -142,6 +142,20 @@ describe('checkVariableName - Variable Name Validation', () => {
       expect(result.valid).toBe(false);
       expect(result.error).toBe('Variable name cannot have leading or trailing whitespace');
     });
+
+    it('should reject names with whitespace in the middle', () => {
+      const result1 = checkVariableName('my var');
+      expect(result1.valid).toBe(false);
+      expect(result1.error).toBe('Variable name contains invalid characters (only letters, digits, underscore, or $ allowed)');
+      
+      const result2 = checkVariableName('test\ttab');
+      expect(result2.valid).toBe(false);
+      expect(result2.error).toBe('Variable name contains invalid characters (only letters, digits, underscore, or $ allowed)');
+      
+      const result3 = checkVariableName('my\nvar');
+      expect(result3.valid).toBe(false);
+      expect(result3.error).toBe('Variable name contains invalid characters (only letters, digits, underscore, or $ allowed)');
+    });
   });
 
   describe('Invalid variable names - type validation', () => {

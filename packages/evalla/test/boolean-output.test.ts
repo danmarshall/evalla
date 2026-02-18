@@ -1,3 +1,4 @@
+import { ErrorMessage } from '../src/error-messages.js';
 import { evalla, ValidationError } from '../src/index';
 import Decimal from 'decimal.js';
 
@@ -185,7 +186,7 @@ describe('Boolean and Null Output', () => {
       
       await expect(
         evalla([{ name: 'true', expr: '10' }])
-      ).rejects.toThrow('Variable name cannot be a reserved value: true');
+      ).rejects.toThrow(ErrorMessage.VARIABLE_NAME_RESERVED);
     });
 
     test('cannot use "false" as variable name', async () => {

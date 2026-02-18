@@ -1,3 +1,4 @@
+import { ErrorMessage } from '../src/error-messages.js';
 import { evalla } from '../src/index';
 import Decimal from 'decimal.js';
 
@@ -163,7 +164,7 @@ describe('Arrays in expressions', () => {
         { name: 'point', value: { x: 10 } },
         { name: 'result', expr: 'point[x]' }  // x is undefined
       ]);
-    }).rejects.toThrow('Undefined variable: x');
+    }).rejects.toThrow(ErrorMessage.UNDEFINED_VARIABLE);
   });
 
   test('computed property with numeric index should work', async () => {

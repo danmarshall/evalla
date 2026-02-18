@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js';
 import { EvaluationResult } from './types.js';
+import { ErrorMessage } from './error-messages.js';
 
 /**
  * Format Decimal values in evaluation results to specified decimal places.
@@ -39,7 +40,7 @@ export function formatResults(
   
   // Validate input
   if (typeof decimalPlaces !== 'number' || decimalPlaces < 0 || !Number.isInteger(decimalPlaces)) {
-    throw new Error('decimalPlaces must be a non-negative integer');
+    throw new Error(ErrorMessage.DECIMAL_PLACES_INVALID);
   }
   
   // Create new values object with formatted Decimals

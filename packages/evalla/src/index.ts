@@ -4,27 +4,28 @@ import { topologicalSort } from './toposort.js';
 import { evaluateExpression } from './evaluator.js';
 import { ValidationError } from './errors.js';
 import { checkVariableName } from './variable-name-checker.js';
+import { ErrorMessage } from './error-messages.js';
 
 // Main evalla function - minimal, modular, DRY, testable, safe, secure
 export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResult> => {
   // Input validation - security first
   if (!Array.isArray(inputs)) {
-    throw new ValidationError('Input must be an array');
+    throw new ValidationError(ErrorMessage.INPUT_MUST_BE_ARRAY);
   }
   
   for (const input of inputs) {
     if (!input || typeof input !== 'object') {
-      throw new ValidationError('Each input must be an object');
+      throw new ValidationError(ErrorMessage.INPUT_MUST_BE_OBJECT);
     }
     if (typeof input.name !== 'string' || !input.name) {
-      throw new ValidationError('Each input must have a non-empty string "name"');
+      throw new ValidationError(ErrorMessage.INPUT_NAME_REQUIRED);
     }
     
     // Validate variable name using checkVariableName
     const nameCheck = checkVariableName(input.name);
     if (!nameCheck.valid) {
       throw new ValidationError(
-        `${nameCheck.error}: ${input.name}`,
+        nameCheck.error!,
         input.name
       );
     }
@@ -33,13 +34,13 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
     // But require at least one of expr or value to be present
     if (input.expr === undefined && input.value === undefined) {
       throw new ValidationError(
-        `Each input must have either "expr" or "value": ${input.name}`,
+        ErrorMessage.INPUT_EXPR_OR_VALUE_REQUIRED,
         input.name
       );
     }
     if (input.expr !== undefined && typeof input.expr !== 'string') {
       throw new ValidationError(
-        `"expr" must be a string if provided: ${input.name}`,
+        ErrorMessage.INPUT_EXPR_MUST_BE_STRING,
         input.name
       );
     }
@@ -49,7 +50,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
   const nameSet = new Set<string>();
   for (const input of inputs) {
     if (nameSet.has(input.name)) {
-      throw new ValidationError(`Duplicate name: ${input.name}`, input.name);
+      throw new ValidationError(ErrorMessage.DUPLICATE_NAME, input.name);
     }
     nameSet.add(input.name);
   }
@@ -131,3 +132,7 @@ export {
   RESERVED_VALUES
 } from './variable-name-checker.js';
 export { formatResults } from './format-results.js';
+export { 
+  ErrorMessage,
+  formatErrorMessage 
+} from './error-messages.js';

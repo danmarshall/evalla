@@ -1,4 +1,4 @@
-import { checkSyntax, SyntaxCheckResult } from '../src/index';
+import { checkSyntax, SyntaxCheckResult, ErrorMessage } from '../src/index';
 
 describe('checkSyntax - Expression Syntax Validation', () => {
   describe('Valid Expressions', () => {
@@ -117,19 +117,19 @@ describe('checkSyntax - Expression Syntax Validation', () => {
     test('empty string', () => {
       const result = checkSyntax('');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('empty');
+      expect(result.error).toBe(ErrorMessage.EXPRESSION_EMPTY);
     });
 
     test('only whitespace', () => {
       const result = checkSyntax('   ');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('empty');
+      expect(result.error).toBe(ErrorMessage.EXPRESSION_EMPTY);
     });
 
     test('non-string input', () => {
       const result = checkSyntax(123 as any);
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('must be a string');
+      expect(result.error).toBe(ErrorMessage.EXPRESSION_MUST_BE_STRING);
     });
 
     test('dangling operators', () => {
@@ -273,8 +273,7 @@ describe('checkSyntax - Expression Syntax Validation', () => {
     test('error message includes location', () => {
       const result = checkSyntax('a +');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('line');
-      expect(result.error).toContain('column');
+      expect(result.error).toBe(ErrorMessage.PARSE_ERROR_AT_LOCATION);
     });
   });
 

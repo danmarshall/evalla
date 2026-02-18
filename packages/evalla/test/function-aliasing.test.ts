@@ -1,3 +1,4 @@
+import { ErrorMessage } from '../src/error-messages.js';
 import { evalla, SecurityError, EvaluationError } from '../src/index';
 import Decimal from 'decimal.js';
 
@@ -90,8 +91,8 @@ describe('Function Aliasing Prevention', () => {
       await evalla([{ name: 'myabs', expr: '$math.abs' }]);
     } catch (error) {
       if (error instanceof SecurityError) {
-        expect(error.message).toContain('Cannot alias functions');
-        expect(error.message).toContain('parentheses');
+        expect(error.message).toBe(ErrorMessage.FUNCTION_ALIASING_DENIED);
+        // Error key is now used as message
       }
     }
   });

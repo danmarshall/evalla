@@ -1,3 +1,4 @@
+import { ErrorMessage } from '../src/error-messages.js';
 import { evalla, SecurityError, CircularDependencyError, ValidationError, EvaluationError } from '../src/index';
 
 describe('Error Type Differentiation', () => {
@@ -10,9 +11,10 @@ describe('Error Type Differentiation', () => {
       fail('Should have thrown SecurityError');
     } catch (error) {
       expect(error).toBeInstanceOf(SecurityError);
-      if (error instanceof Error) {
+      if (error instanceof SecurityError) {
         expect(error.name).toBe('SecurityError');
-        expect(error.message).toContain('prototype');
+        expect(error.message).toBe(ErrorMessage.PROPERTY_ACCESS_DENIED);
+        expect(error.property).toBe('prototype');
       }
     }
   });
@@ -26,9 +28,10 @@ describe('Error Type Differentiation', () => {
       fail('Should have thrown CircularDependencyError');
     } catch (error) {
       expect(error).toBeInstanceOf(CircularDependencyError);
-      if (error instanceof Error) {
+      if (error instanceof CircularDependencyError) {
         expect(error.name).toBe('CircularDependencyError');
-        expect(error.message).toContain('Circular dependency');
+        expect(error.message).toBe(ErrorMessage.CIRCULAR_DEPENDENCY);
+        expect(error.cycle).toBeDefined();
       }
     }
   });
@@ -41,9 +44,10 @@ describe('Error Type Differentiation', () => {
       fail('Should have thrown ValidationError');
     } catch (error) {
       expect(error).toBeInstanceOf(ValidationError);
-      if (error instanceof Error) {
+      if (error instanceof ValidationError) {
         expect(error.name).toBe('ValidationError');
-        expect(error.message).toContain('cannot start with $');
+        expect(error.message).toBe(ErrorMessage.VARIABLE_NAME_DOLLAR_PREFIX);
+        expect(error.variableName).toBe('$invalid');
       }
     }
   });
@@ -56,9 +60,10 @@ describe('Error Type Differentiation', () => {
       fail('Should have thrown EvaluationError');
     } catch (error) {
       expect(error).toBeInstanceOf(EvaluationError);
-      if (error instanceof Error) {
+      if (error instanceof EvaluationError) {
         expect(error.name).toBe('EvaluationError');
-        expect(error.message).toContain('Undefined variable');
+        expect(error.message).toBe(ErrorMessage.UNDEFINED_VARIABLE);
+        expect(error.variableName).toBe('undefinedVar');
       }
     }
   });

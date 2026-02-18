@@ -1,3 +1,4 @@
+import { ErrorMessage } from '../src/error-messages.js';
 import { evalla, formatResults, Decimal } from '../src/index';
 
 describe('formatResults', () => {
@@ -155,7 +156,7 @@ describe('formatResults', () => {
     };
     
     expect(() => formatResults(result, { decimalPlaces: -1 }))
-      .toThrow('decimalPlaces must be a non-negative integer');
+      .toThrow(ErrorMessage.DECIMAL_PLACES_INVALID);
   });
 
   test('throws error for non-integer decimal places', () => {
@@ -165,7 +166,7 @@ describe('formatResults', () => {
     };
     
     expect(() => formatResults(result, { decimalPlaces: 2.5 }))
-      .toThrow('decimalPlaces must be a non-negative integer');
+      .toThrow(ErrorMessage.DECIMAL_PLACES_INVALID);
   });
 
   test('throws error for non-numeric decimal places', () => {
@@ -175,7 +176,7 @@ describe('formatResults', () => {
     };
     
     expect(() => formatResults(result, { decimalPlaces: '7' as any }))
-      .toThrow('decimalPlaces must be a non-negative integer');
+      .toThrow(ErrorMessage.DECIMAL_PLACES_INVALID);
   });
 
   test('can format multiple times with different precisions', async () => {

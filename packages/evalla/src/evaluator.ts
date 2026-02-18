@@ -2,6 +2,7 @@ import Decimal from 'decimal.js';
 import { createNamespaces, isNamespaceHead } from './namespaces.js';
 import { evaluateAST } from './ast-evaluator.js';
 import { EvallaError, SecurityError, EvaluationError } from './errors.js';
+import { ErrorMessage } from './error-messages.js';
 
 // Safe expression evaluator - no arbitrary code execution
 // Accepts a pre-parsed AST for efficiency (no double parsing)
@@ -31,7 +32,7 @@ export const evaluateExpression = async (
     // Namespace heads like $math, $angle should never be used as standalone values
     if (isNamespaceHead(result)) {
       throw new EvaluationError(
-        'Cannot use namespace head as a value - namespace heads must be used with property access (e.g., $math.PI) or method calls (e.g., $math.abs(x))'
+        ErrorMessage.NAMESPACE_HEAD_AS_VALUE
       );
     }
     
@@ -39,7 +40,7 @@ export const evaluateExpression = async (
     // Functions from namespaces must be called, not assigned to variables
     if (typeof result === 'function') {
       throw new SecurityError(
-        'Cannot alias functions - functions must be called with parentheses'
+        ErrorMessage.FUNCTION_ALIASING_DENIED
       );
     }
     
@@ -48,11 +49,11 @@ export const evaluateExpression = async (
     if (typeof result === 'object' && result !== null && !(result instanceof Decimal)) {
       if (Array.isArray(result)) {
         throw new EvaluationError(
-          'Expressions cannot return arrays - arrays must be provided via the value property'
+          ErrorMessage.EXPRESSION_CANNOT_RETURN_ARRAY
         );
       } else {
         throw new EvaluationError(
-          'Expressions cannot return objects - objects must be provided via the value property'
+          ErrorMessage.EXPRESSION_CANNOT_RETURN_OBJECT
         );
       }
     }
@@ -65,7 +66,7 @@ export const evaluateExpression = async (
       }
       // Non-numeric strings are not allowed
       throw new EvaluationError(
-        'Expressions cannot return strings - strings must be provided via the value property'
+        ErrorMessage.EXPRESSION_CANNOT_RETURN_STRING
       );
     }
     
@@ -82,9 +83,7 @@ export const evaluateExpression = async (
       return null;
     } else {
       // This should not be reached due to the checks above
-      throw new EvaluationError(
-        `Unsupported expression result type: ${typeof result}`
-      );
+      throw new EvaluationError(ErrorMessage.UNSUPPORTED_RESULT_TYPE, undefined, { resultType: typeof result });
     }
   } catch (error) {
     // Re-throw our custom error types directly
@@ -92,6 +91,10 @@ export const evaluateExpression = async (
       throw error;
     }
     // Wrap other errors
-    throw new Error(`Failed to evaluate expression: ${error instanceof Error ? error.message : String(error)}`);
+    const wrappedError = new Error(ErrorMessage.FAILED_TO_EVALUATE);
+    if (error instanceof Error) {
+      (wrappedError as any).cause = error;
+    }
+    throw wrappedError;
   }
 };

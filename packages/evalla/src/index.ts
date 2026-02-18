@@ -132,3 +132,8 @@ export {
   RESERVED_VALUES
 } from './variable-name-checker.js';
 export { formatResults } from './format-results.js';
+export { 
+  ErrorMessageKey, 
+  ErrorMessages_en, 
+  getErrorMessage 
+} from './error-messages.js';

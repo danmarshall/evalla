@@ -10,6 +10,25 @@ import { checkVariableName } from '../src/variable-name-checker.js';
 import { checkSyntax } from '../src/syntax-checker.js';
 import { formatResults } from '../src/format-results.js';
 
+describe('Error Message Exports', () => {
+  it('should export error message utilities from main index', async () => {
+    // Test that the exports are available from the main package
+    const { 
+      ErrorMessageKey: ExportedKey, 
+      ErrorMessages_en: ExportedMessages, 
+      getErrorMessage: exportedGetErrorMessage 
+    } = await import('../src/index.js');
+    
+    expect(ExportedKey).toBeDefined();
+    expect(ExportedMessages).toBeDefined();
+    expect(typeof exportedGetErrorMessage).toBe('function');
+    
+    // Test that they work
+    const message = exportedGetErrorMessage('INPUT_MUST_BE_ARRAY');
+    expect(message).toBe('Input must be an array');
+  });
+});
+
 describe('Error Message Constants', () => {
   it('should have all message keys defined in the dictionary', () => {
     // Verify all keys in ErrorMessageKey have corresponding messages

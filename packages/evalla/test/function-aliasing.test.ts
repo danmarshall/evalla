@@ -91,7 +91,7 @@ describe('Function Aliasing Prevention', () => {
       await evalla([{ name: 'myabs', expr: '$math.abs' }]);
     } catch (error) {
       if (error instanceof SecurityError) {
-        expect(error.message).toContain(ErrorMessage.FUNCTION_ALIASING_DENIED);
+        expect(error.message).toBe(ErrorMessage.FUNCTION_ALIASING_DENIED);
         // Error key is now used as message
       }
     }

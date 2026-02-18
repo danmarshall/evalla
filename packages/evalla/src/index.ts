@@ -25,7 +25,7 @@ export const evalla = async (inputs: ExpressionInput[]): Promise<EvaluationResul
     const nameCheck = checkVariableName(input.name);
     if (!nameCheck.valid) {
       throw new ValidationError(
-        `${nameCheck.error}: ${input.name}`,
+        nameCheck.error!,
         input.name
       );
     }

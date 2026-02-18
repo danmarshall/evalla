@@ -28,9 +28,10 @@ describe('Error Type Differentiation', () => {
       fail('Should have thrown CircularDependencyError');
     } catch (error) {
       expect(error).toBeInstanceOf(CircularDependencyError);
-      if (error instanceof Error) {
+      if (error instanceof CircularDependencyError) {
         expect(error.name).toBe('CircularDependencyError');
-        expect(error.message).toContain(ErrorMessage.CIRCULAR_DEPENDENCY);
+        expect(error.message).toBe(ErrorMessage.CIRCULAR_DEPENDENCY);
+        expect(error.cycle).toBeDefined();
       }
     }
   });
@@ -43,9 +44,10 @@ describe('Error Type Differentiation', () => {
       fail('Should have thrown ValidationError');
     } catch (error) {
       expect(error).toBeInstanceOf(ValidationError);
-      if (error instanceof Error) {
+      if (error instanceof ValidationError) {
         expect(error.name).toBe('ValidationError');
-        expect(error.message).toContain(ErrorMessage.VARIABLE_NAME_DOLLAR_PREFIX);
+        expect(error.message).toBe(ErrorMessage.VARIABLE_NAME_DOLLAR_PREFIX);
+        expect(error.variableName).toBe('$invalid');
       }
     }
   });
@@ -58,9 +60,10 @@ describe('Error Type Differentiation', () => {
       fail('Should have thrown EvaluationError');
     } catch (error) {
       expect(error).toBeInstanceOf(EvaluationError);
-      if (error instanceof Error) {
+      if (error instanceof EvaluationError) {
         expect(error.name).toBe('EvaluationError');
-        expect(error.message).toContain(ErrorMessage.UNDEFINED_VARIABLE);
+        expect(error.message).toBe(ErrorMessage.UNDEFINED_VARIABLE);
+        expect(error.variableName).toBe('undefinedVar');
       }
     }
   });

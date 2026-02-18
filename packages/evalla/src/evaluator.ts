@@ -83,7 +83,7 @@ export const evaluateExpression = async (
       return null;
     } else {
       // This should not be reached due to the checks above
-      throw new EvaluationError(ErrorMessage.UNSUPPORTED_RESULT_TYPE);
+      throw new EvaluationError(ErrorMessage.UNSUPPORTED_RESULT_TYPE, undefined, { resultType: typeof result });
     }
   } catch (error) {
     // Re-throw our custom error types directly
@@ -91,6 +91,10 @@ export const evaluateExpression = async (
       throw error;
     }
     // Wrap other errors
-    throw new Error(ErrorMessage.FAILED_TO_EVALUATE);
+    const wrappedError = new Error(ErrorMessage.FAILED_TO_EVALUATE);
+    if (error instanceof Error) {
+      (wrappedError as any).cause = error;
+    }
+    throw wrappedError;
   }
 };

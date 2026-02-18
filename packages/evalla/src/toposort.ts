@@ -53,13 +53,18 @@ export const topologicalSort = (inputs: ExpressionInput[]): { order: string[]; a
               variableName: input.name,
               expression: input.expr,
               line: error.line,
-              column: error.column
+              column: error.column,
+              originalMessage: error.message
             }
           );
         }
         throw new ParseError(
           ErrorMessage.PARSE_ERROR_FOR_VARIABLE,
-          { variableName: input.name, expression: input.expr }
+          { 
+            variableName: input.name, 
+            expression: input.expr,
+            originalMessage: error instanceof Error ? error.message : String(error)
+          }
         );
       }
     }

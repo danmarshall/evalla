@@ -131,7 +131,7 @@ describe('Error Messages in Practice', () => {
     it('should use PARSE_ERROR_AT_LOCATION message', () => {
       const result = checkSyntax('(a + b');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain(ErrorMessage.PARSE_ERROR_AT_LOCATION);
+      expect(result.error).toBe(ErrorMessage.PARSE_ERROR_AT_LOCATION);
     });
   });
 

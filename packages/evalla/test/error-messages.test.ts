@@ -278,15 +278,33 @@ describe('Error Message Placeholder Verification', () => {
       try {
         await evalla([{ name: 'badVar', expr: '(unclosed' }]);
       } catch (err: any) {
-        if (err.message === ErrorMessage.PARSE_ERROR_FOR_VARIABLE) {
-          const formatted = formatErrorMessage(err.message, 'en', {
-            variableName: err.variableName,
-            message: err.originalMessage || 'parse error'
-          });
-          expect(formatted).toContain('badVar');
-          expect(formatted).not.toContain('{variableName}');
-          expect(formatted).not.toContain('{message}');
-        }
+        expect(err.message).toBe(ErrorMessage.PARSE_ERROR_FOR_VARIABLE);
+        // Should work with error object directly now
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        expect(formatted).toContain('badVar');
+        expect(formatted).toContain('line');
+        expect(formatted).toContain('column');
+        expect(formatted).not.toContain('{variableName}');
+        expect(formatted).not.toContain('{message}');
+      }
+    });
+
+    it('should populate all placeholders in nested parse errors (issue with "a b")', async () => {
+      try {
+        await evalla([{ name: 'test', expr: 'a b' }]);
+      } catch (err: any) {
+        expect(err.message).toBe(ErrorMessage.PARSE_ERROR_FOR_VARIABLE);
+        const formatted = formatErrorMessage(err.message, 'en', err);
+        // Should have variable name
+        expect(formatted).toContain('test');
+        // Should have line and column info
+        expect(formatted).toContain('line');
+        expect(formatted).toContain('column');
+        // Should have actual Peggy error message
+        expect(formatted).toContain('Expected');
+        // Should not have any placeholders remaining
+        expect(formatted).not.toContain('{');
+        expect(formatted).not.toContain('}');
       }
     });
   });

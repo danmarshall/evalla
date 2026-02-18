@@ -571,6 +571,25 @@ Playground
 <span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> formatted</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> formatResults</span><span style="color:#24292E">(result, </span><span style="color:#005CC5">2</span><span style="color:#24292E">);</span></span>
 <span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(formatted.values.pi.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">());   </span><span style="color:#6A737D">// "3.14"</span></span>
 <span class="line"><span style="color:#24292E">console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(formatted.values.area.</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">()); </span><span style="color:#6A737D">// "314.16"</span></span></code></pre>
+<h3 id="error-handling">Error Handling</h3>
+<p>evalla throws typed errors with programmatic enum keys. Error messages are <strong>enum keys</strong> (e.g., <code>UNDEFINED_VARIABLE</code>), with context available via error properties.</p>
+<p><strong>Error Types:</strong></p>
+<ul>
+<li><code>ValidationError</code> - Invalid input (bad variable names, missing fields)</li>
+<li><code>EvaluationError</code> - Runtime errors (undefined variables, type mismatches)</li>
+<li><code>SecurityError</code> - Dangerous property access attempts</li>
+<li><code>ParseError</code> - Syntax errors in expressions</li>
+<li><code>CircularDependencyError</code> - Circular dependencies detected</li>
+</ul>
+<p><strong>Error Keys:</strong> See <a href="src/error-messages.ts"><code>ErrorMessage</code> enum</a> for all 48 error keys.</p>
+<p><strong>Example:</strong></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49">try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">  await</span><span style="color:#6F42C1"> evalla</span><span style="color:#24292E">([{ name: </span><span style="color:#032F62">'y'</span><span style="color:#24292E">, expr: </span><span style="color:#032F62">'x + 1'</span><span style="color:#24292E"> }]);</span></span>
+<span class="line"><span style="color:#24292E">} </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (error) {</span></span>
+<span class="line"><span style="color:#24292E">  console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(error.message);      </span><span style="color:#6A737D">// "UNDEFINED_VARIABLE"</span></span>
+<span class="line"><span style="color:#24292E">  console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(error.variableName); </span><span style="color:#6A737D">// "x"</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><strong>Optional i18n:</strong> Use <code>formatErrorMessage(key, lang, params)</code> to get human-readable messages.</p>
 <h2 id="philosophy">Philosophy</h2>
 <ul>
 <li><strong>Minimal</strong>: Bare minimum dependencies and code</li>

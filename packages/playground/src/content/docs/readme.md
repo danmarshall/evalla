@@ -524,13 +524,14 @@ Checks the syntax of an expression without evaluating it. Useful for text editor
 **Returns:**
 - Object with the following properties:
   - `valid`: boolean - Whether the syntax is valid
-  - `error?`: string - Error message if syntax is invalid
+  - `error?`: string - Error message enum key (e.g., `"PARSE_ERROR_AT_LOCATION"`)
   - `line?`: number - Line number where error occurred (1-indexed)
   - `column?`: number - Column number where error occurred (1-indexed)
+  - `message?`: string - Raw parser error message for formatting
 
 **Example:**
 ```typescript
-import { checkSyntax } from 'evalla';
+import { checkSyntax, formatErrorMessage } from 'evalla';
 
 // Valid expression
 const result1 = checkSyntax('a + b * 2');
@@ -539,10 +540,43 @@ console.log(result1.valid); // true
 // Invalid expression - missing closing parenthesis
 const result2 = checkSyntax('(a + b');
 console.log(result2.valid); // false
-console.log(result2.error); // "Parse error at line 1, column 7: Expected..."
+console.log(result2.error); // "PARSE_ERROR_AT_LOCATION"
 console.log(result2.line); // 1
 console.log(result2.column); // 7
+
+// Get human-readable error message
+const formatted = formatErrorMessage(result2.error, 'en', result2);
+console.log(formatted);
+// "Parse error at line 1, column 7: Expected ")", "+", "-", "*", "/", "%", "**", ".", "[", "?", "??", "&&", "||", "=", "==", "!=", "<", ">", "<=", ">=", or end of input but end of input found."
 ```
+
+**Formatting Error Messages:**
+
+The `error` field contains an enum key. To get a human-readable message with placeholders filled in, use `formatErrorMessage()`:
+
+```typescript
+import { checkSyntax, formatErrorMessage, ErrorMessage } from 'evalla';
+
+const result = checkSyntax('a b');
+
+if (!result.valid) {
+  // Option 1: Get formatted error message
+  const message = formatErrorMessage(result.error as ErrorMessage, 'en', result);
+  console.log(message);
+  // "Parse error at line 1, column 3: Expected "!=", "&&", "(", "**", ".", "<=", "=", "==", ">=", "?", "??", "[", "||", [%*/], [+\-], [<>], or end of input but "b" found."
+  
+  // Option 2: Use individual fields for custom formatting
+  console.log(`Error at ${result.line}:${result.column}: ${result.message}`);
+  // "Error at 1:3: Expected "!=", "&&", ... but "b" found."
+}
+```
+
+The result object contains all the data needed for proper formatting:
+- `error`: The error key (e.g., `PARSE_ERROR_AT_LOCATION`)
+- `line`, `column`: Location information
+- `message`: The raw parser error message
+
+Pass the entire result object to `formatErrorMessage()` as the third parameter to replace all placeholders (`{line}`, `{column}`, `{message}`) with actual values.
 
 **Usage Patterns:**
 

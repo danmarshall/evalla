@@ -90,11 +90,13 @@ export const evaluateExpression = async (
     if (error instanceof EvallaError) {
       throw error;
     }
-    // Wrap other errors
-    const wrappedError = new Error(ErrorMessage.FAILED_TO_EVALUATE);
-    if (error instanceof Error) {
-      (wrappedError as any).cause = error;
-    }
-    throw wrappedError;
+    // Wrap other errors with the original message in context
+    const originalMessage = error instanceof Error ? error.message : String(error);
+    throw new EvaluationError(
+      ErrorMessage.FAILED_TO_EVALUATE,
+      undefined,
+      { originalMessage },
+      error instanceof Error ? error : undefined
+    );
   }
 };

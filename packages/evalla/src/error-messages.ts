@@ -108,7 +108,10 @@ export function formatErrorMessage(
     const params: Record<string, any> = {};
     for (const key of Object.keys(paramsOrError)) {
       const value = (paramsOrError as any)[key];
-      if (Array.isArray(value)) {
+      if (key === 'context' && typeof value === 'object' && value !== null) {
+        // Spread context properties into params
+        Object.assign(params, value);
+      } else if (Array.isArray(value)) {
         params[key] = value.join(' -> ');
       } else if (value !== undefined && value !== null) {
         params[key] = value;

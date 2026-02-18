@@ -37,7 +37,7 @@ export const messages_en: Record<ErrorMessage, string> = {
   [ErrorMessage.UNSUPPORTED_BINARY_OPERATOR]: 'Unsupported binary operator: {operator}',
   [ErrorMessage.UNSUPPORTED_UNARY_OPERATOR]: 'Unsupported unary operator: {operator}',
   [ErrorMessage.NO_AST_FOUND]: 'No AST found for: {variableName}',
-  [ErrorMessage.FAILED_TO_EVALUATE]: 'Failed to evaluate expression: {message}',
+  [ErrorMessage.FAILED_TO_EVALUATE]: 'Failed to evaluate expression: {originalMessage}',
   
   // Type errors
   [ErrorMessage.NAMESPACE_HEAD_AS_VALUE]: 'Cannot use namespace head as a value - namespace heads must be used with property access (e.g., $math.PI) or method calls (e.g., $math.abs(x))',

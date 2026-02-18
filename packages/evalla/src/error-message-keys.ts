@@ -67,4 +67,7 @@ export enum ErrorMessage {
   // Syntax errors
   EXPRESSION_MUST_BE_STRING = 'EXPRESSION_MUST_BE_STRING',
   EXPRESSION_EMPTY = 'EXPRESSION_EMPTY',
+  
+  // Internationalization errors
+  UNSUPPORTED_LANGUAGE = 'UNSUPPORTED_LANGUAGE',
 }

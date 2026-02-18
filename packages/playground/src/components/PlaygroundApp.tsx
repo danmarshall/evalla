@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Plus, Trash2, Play, Upload, Download, FileText, X } from 'lucide-react';
 import { examples, type Expression } from '../data/examples';
-import { evalla, formatResults, checkSyntax, checkVariableName } from 'evalla';
+import { evalla, formatResults, checkSyntax, checkVariableName, formatErrorMessage, ErrorMessage } from 'evalla';
 
 export default function PlaygroundApp() {
   const [expressions, setExpressions] = useState<Expression[]>([
@@ -87,7 +87,11 @@ export default function PlaygroundApp() {
         setNameErrors(prev => {
           const newNameErrors = new Map(prev);
           if (!nameResult.valid) {
-            newNameErrors.set(index, nameResult.error || 'Invalid variable name');
+            const errorKey = nameResult.error || 'Invalid variable name';
+            const errorMsg = Object.values(ErrorMessage).includes(errorKey as ErrorMessage)
+              ? formatErrorMessage(errorKey as ErrorMessage, 'en', nameResult)
+              : errorKey;
+            newNameErrors.set(index, errorMsg);
           } else {
             newNameErrors.delete(index);
           }
@@ -121,7 +125,11 @@ export default function PlaygroundApp() {
         setSyntaxErrors(prev => {
           const newSyntaxErrors = new Map(prev);
           if (!syntaxResult.valid) {
-            newSyntaxErrors.set(index, syntaxResult.error || 'Syntax error');
+            const errorKey = syntaxResult.error || 'Syntax error';
+            const errorMsg = Object.values(ErrorMessage).includes(errorKey as ErrorMessage)
+              ? formatErrorMessage(errorKey as ErrorMessage, 'en')
+              : errorKey;
+            newSyntaxErrors.set(index, errorMsg);
           } else {
             newSyntaxErrors.delete(index);
           }
@@ -489,7 +497,11 @@ export default function PlaygroundApp() {
       
       setResult(finalResult);
     } catch (err: any) {
-      setError(err.message);
+      // Convert error key to human-readable message if it's an ErrorMessage enum value
+      const errorMessage = Object.values(ErrorMessage).includes(err.message)
+        ? formatErrorMessage(err.message as ErrorMessage, 'en', err)
+        : err.message;
+      setError(errorMessage);
       setResult(null);
 
       if (err.variableName) {

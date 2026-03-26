@@ -11,7 +11,7 @@
     "test": "echo \"No tests for playground\""
   },
   "dependencies": {
-    "astro": "^5.0.0",
+    "astro": "^5.18.1",
     "evalla": "file:../evalla",
     "lucide-react": "^0.563.0"
   },

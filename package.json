@@ -14,7 +14,7 @@
     "sync-readme": "node scripts/sync-readme.js"
   },
   "overrides": {
-    "lodash": "^4.17.23"
+    "lodash": "^4.18.1"
   },
   "author": "Dan Marshall",
   "license": "MIT",

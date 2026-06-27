@@ -1,9 +1,9 @@
 ---
-import { getEntry } from 'astro:content';
+import { getEntry, render } from 'astro:content';
 
 const entry = await getEntry('docs', 'readme');
 if (!entry) throw new Error('README not found');
-const { Content } = await entry.render();
+const { Content } = await render(entry);
 ---
 
 <div class="content">

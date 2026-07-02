@@ -1,0 +1,53 @@
+# evalla
+
+> Safe math expression evaluator with variables, dependencies, and decimal precision. Follows an "Algebra, not code" philosophy.
+
+evalla evaluates mathematical expressions with variable references, topological dependency ordering, and arbitrary-precision arithmetic via decimal.js. It uses a PEG grammar (Peggy) for safe parsing — no eval() or Function().
+
+## Links
+
+- [Playground](https://danmarshall.github.io/evalla/playground): Interactive demo for testing evalla expressions in the browser
+- [README](https://danmarshall.github.io/evalla/readme): Full documentation including API reference, examples, and namespace reference
+- [npm package](https://www.npmjs.com/package/evalla): Install via `npm install evalla`
+- [GitHub repository](https://github.com/danmarshall/evalla): Source code
+
+## Features
+
+- Decimal precision arithmetic (decimal.js) — 0.1 + 0.2 = 0.3 exactly
+- Variable dependencies with automatic topological ordering
+- Circular dependency detection
+- Boolean output from comparisons and logical operators
+- Null output support
+- Ternary expressions
+- Built-in namespaces: $math (trig, log, constants), $unit (length conversions), $angle (deg/rad)
+- Object and array input via `value` property with dot-notation and bracket access
+- Keywords (return, if, for, etc.) are valid variable names
+- Structured error types: ValidationError, ParseError, EvaluationError, SecurityError, CircularDependencyError
+- formatResults() utility for rounding output to a fixed number of decimal places
+
+## Security
+
+- No eval() or Function() — AST-based evaluation only
+- Blocked access to prototype, __proto__, constructor, and __ prefixed properties
+- No function aliasing (namespace functions must be called, not assigned)
+- Sandboxed scope via Object.create(null)
+
+## API
+
+```typescript
+import { evalla, formatResults } from 'evalla';
+
+const result = await evalla([
+  { name: 'a', expr: 'c + 5' },
+  { name: 'b', expr: 'a * 2' },
+  { name: 'c', expr: '1 + 1' }
+]);
+
+// result.values.a === Decimal(7)
+// result.values.b === Decimal(14)
+// result.order === ['c', 'a', 'b']
+```
+
+Input: `ExpressionInput[]` — each item has `name` (string) and either `expr` (math expression string) or `value` (any, for objects/arrays).
+
+Output: `{ values: Record<string, Decimal | boolean | null>, order: string[] }`

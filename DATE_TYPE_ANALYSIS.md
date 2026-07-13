@@ -13,9 +13,10 @@ This document analyzes whether evalla should support Date types, exploring three
 1. [Current State](#current-state)
 2. [Three Implementation Options](#three-implementation-options)
 3. [Critical Issue: Date-Decimal Collision](#critical-issue-date-decimal-collision)
-4. [Implications Analysis](#implications-analysis)
-5. [Recommendation](#recommendation)
-6. [Open Questions](#open-questions)
+4. [Consumer Impact: If Date Were a First-Class Output Type](#consumer-impact-if-date-were-a-first-class-output-type)
+5. [Implications Analysis](#implications-analysis)
+6. [Recommendation](#recommendation)
+7. [Open Questions](#open-questions)
 
 ---
 
@@ -223,6 +224,246 @@ result.values.year;       // Decimal(1990) ✅
 - No collision because Date objects never enter results
 - Day.js used internally, Decimal returned
 - Clear contract: $date functions return numbers
+
+---
+
+## Consumer Impact: If Date Were a First-Class Output Type
+
+**Hypothetical scenario:** What if we added `Date` to the output type signature?
+
+```typescript
+// Hypothetical change (NOT recommended)
+interface EvaluationResult {
+  values: Record<string, Decimal | boolean | null | Date>;  // Add Date
+}
+```
+
+### Consumer Code Without Date Output Type (Current & $date namespace)
+
+**Simple, clean consumer code:**
+
+```typescript
+// Using $date namespace (recommended approach)
+const result = await evalla([
+  { name: 'start', value: '2024-01-01' },
+  { name: 'startTs', expr: '$date.parse(start)' },
+  { name: 'year', expr: '$date.year(startTs)' }
+]);
+
+// Consumer knows exact types - no type checking needed
+const startTs: Decimal = result.values.startTs;  // Always Decimal
+const year: Decimal = result.values.year;        // Always Decimal
+
+console.log(startTs.toString());  // Works - Decimal has .toString()
+console.log(year.toNumber());     // Works - Decimal has .toNumber()
+```
+
+**No casting, no type guards, no runtime checks.**
+
+### Consumer Code WITH Date Output Type (Hypothetical)
+
+**Complex consumer code requiring type checking:**
+
+```typescript
+// Hypothetical API if Date were a first-class type
+const result = await evalla([
+  { name: 'birthday', expr: '$date.parse("1990-05-15")' },  // Returns Date?
+  { name: 'year', expr: '$date.year(birthday)' },           // Returns Decimal?
+  { name: 'isAdult', expr: '$date.diff($date.now(), birthday, "year") >= 18' }  // Returns boolean?
+]);
+
+// Problem 1: Consumer doesn't know what type each result is
+// Must use type guards for EVERY value:
+
+const birthday = result.values.birthday;
+if (birthday instanceof Date) {
+  console.log(birthday.getFullYear());  // Safe
+} else if (birthday instanceof Decimal) {
+  console.log(birthday.toString());     // Safe
+} else if (typeof birthday === 'boolean') {
+  console.log(birthday);                // Safe
+} else if (birthday === null) {
+  console.log('null');                  // Safe
+}
+
+// Problem 2: Different access patterns for each type
+function displayValue(value: Decimal | boolean | null | Date) {
+  if (value instanceof Date) {
+    return value.toISOString();         // Date method
+  } else if (value instanceof Decimal) {
+    return value.toString();            // Decimal method
+  } else if (typeof value === 'boolean') {
+    return String(value);               // Boolean primitive
+  } else {
+    return 'null';                      // null
+  }
+}
+
+// Problem 3: Iteration requires type checking
+for (const name of result.order) {
+  const value = result.values[name];
+  console.log(`${name}: ${displayValue(value)}`);  // Must handle all types
+}
+
+// Problem 4: JSON serialization inconsistency
+const json = JSON.stringify(result.values);
+// Decimals → strings (via .toString())
+// Dates → ISO strings (via .toJSON())
+// booleans → booleans
+// null → null
+// Parsing back is ambiguous - can't tell if "2024-01-01T00:00:00Z" was Date or string
+
+// Problem 5: TypeScript doesn't help without metadata
+// Which values are Dates? Consumer must know from documentation or runtime checks
+const maybeBirthday = result.values.birthday;  // Type: Decimal | boolean | null | Date
+// TypeScript can't narrow without runtime check
+```
+
+### Real-World Consumer Burden Example
+
+**Scenario:** Display all results in a table
+
+```typescript
+// WITHOUT Date type (current/recommended):
+function renderTable(result: EvaluationResult) {
+  return result.order.map(name => {
+    const value = result.values[name];
+    // Simple - all values have .toString() or are primitives
+    const display = value === null ? 'null' 
+                  : typeof value === 'boolean' ? String(value)
+                  : value.toString();  // Decimal
+    
+    return `<tr><td>${name}</td><td>${display}</td></tr>`;
+  });
+}
+
+// WITH Date type (hypothetical):
+function renderTable(result: EvaluationResult) {
+  return result.order.map(name => {
+    const value = result.values[name];
+    
+    // Complex - must handle 4 different types
+    let display: string;
+    if (value === null) {
+      display = 'null';
+    } else if (typeof value === 'boolean') {
+      display = String(value);
+    } else if (value instanceof Date) {
+      // Which format? ISO? Locale? Timestamp?
+      display = value.toISOString();  // Or .toLocaleString()? Or .getTime()?
+    } else {  // Decimal
+      display = value.toString();
+    }
+    
+    return `<tr><td>${name}</td><td>${display}</td></tr>`;
+  });
+}
+```
+
+### Serialization/Deserialization Complexity
+
+**WITHOUT Date type:**
+```typescript
+// Serialize
+const json = JSON.stringify(result.values);
+// {"age": "33", "isAdult": true, "account": null}
+
+// Deserialize (if needed)
+const parsed = JSON.parse(json);
+// Simple mapping back to types if needed
+```
+
+**WITH Date type:**
+```typescript
+// Serialize
+const json = JSON.stringify(result.values);
+// {"birthday": "1990-05-15T00:00:00.000Z", "age": "33", "isAdult": true}
+// ⚠️ Problem: Can't distinguish between Date and Decimal (both become strings)
+
+// Deserialize
+const parsed = JSON.parse(json);
+// ⚠️ Lost type information - "1990-05-15T00:00:00.000Z" is now a string
+// Consumer needs separate metadata to know which fields to re-parse as Dates
+
+// Need type metadata schema:
+const schema = {
+  birthday: 'Date',
+  age: 'Decimal',
+  isAdult: 'boolean'
+};
+
+// Reconstruct types:
+const reconstructed: Record<string, Decimal | boolean | null | Date> = {};
+for (const [key, value] of Object.entries(parsed)) {
+  switch (schema[key]) {
+    case 'Date':
+      reconstructed[key] = new Date(value as string);
+      break;
+    case 'Decimal':
+      reconstructed[key] = new Decimal(value as string);
+      break;
+    case 'boolean':
+      reconstructed[key] = value as boolean;
+      break;
+    default:
+      reconstructed[key] = value;
+  }
+}
+```
+
+### API Confusion
+
+**WITHOUT Date type ($date namespace):**
+```typescript
+// Clear contract: All $date functions return Decimal or boolean
+$date.parse(str)       // → Decimal (timestamp)
+$date.year(ts)         // → Decimal (year)
+$date.diff(ts1, ts2)   // → Decimal (difference)
+$date.isBefore(ts1, ts2) // → boolean
+
+// Consumer knows: Decimal = use .toString(), .toNumber(), etc.
+```
+
+**WITH Date type:**
+```typescript
+// Confusing contract: What does each function return?
+$date.parse(str)       // → Date? Or Decimal? Documentation required!
+$date.year(date)       // → Decimal? Or number? Or Date?
+$date.now()            // → Date? Or Decimal timestamp?
+
+// Each function needs clear docs about return type
+// Consumer must check types at runtime
+```
+
+### Summary: Consumer Burden
+
+| Aspect | Without Date Type | With Date Type |
+|--------|-------------------|----------------|
+| **Type checking** | None needed | Required for every value |
+| **Rendering** | Simple `.toString()` | Complex type-based logic |
+| **JSON serialization** | Straightforward | Lossy, needs metadata |
+| **JSON deserialization** | Simple | Requires schema mapping |
+| **API clarity** | Clear (always Decimal/boolean) | Ambiguous (check docs) |
+| **TypeScript support** | Precise types | Wide unions, limited help |
+| **Consumer code complexity** | Low | High |
+| **Runtime errors** | Unlikely | Common (wrong method on type) |
+
+### Why This Matters
+
+Adding `Date` as an output type shifts the complexity burden to **every consumer**:
+
+1. **Type guard everywhere:** Every consumer must add `instanceof Date` checks
+2. **Display logic complexity:** Can't just call `.toString()` on everything
+3. **Serialization issues:** JSON round-trip loses type information
+4. **API ambiguity:** Which functions return Date vs Decimal?
+5. **Migration pain:** Existing code breaks when Dates appear in results
+
+**Contrast with $date namespace:**
+- Returns Decimal timestamps (integers) explicitly
+- No type checking needed
+- JSON serialization works identically to numbers
+- Clear API contract: timestamps are numbers
+- Zero consumer burden
 
 ---
 

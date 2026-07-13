@@ -2,16 +2,16 @@
 
 ## Executive Summary
 
-This document analyzes whether evalla should support Date types, exploring three implementation options and their implications. Special attention is given to the collision between dates and decimals, and what this means for the type system and user experience.
+This document analyzes whether evalla should support Date types, exploring four implementation options and their implications. Special attention is given to the collision between dates and decimals, and what this means for the type system and user experience.
 
-**Key Finding:** Dates already work via the `value` property, but a `$date` namespace wrapping Day.js would provide superior UX while maintaining type safety.
+**Key Finding:** Dates already work via the `value` property, but a `$date` namespace wrapping Day.js would provide superior UX while maintaining type safety. Type-segregated properties (type aliases) don't solve the Date-Decimal collision.
 
 ---
 
 ## Table of Contents
 
 1. [Current State](#current-state)
-2. [Three Implementation Options](#three-implementation-options)
+2. [Four Implementation Options](#four-implementation-options)
 3. [Critical Issue: Date-Decimal Collision](#critical-issue-date-decimal-collision)
 4. [Consumer Impact: If Date Were a First-Class Output Type](#consumer-impact-if-date-were-a-first-class-output-type)
 5. [Implications Analysis](#implications-analysis)
@@ -46,7 +46,7 @@ console.log(result.values.start); // undefined (dates stay in context)
 
 ---
 
-## Three Implementation Options
+## Four Implementation Options
 
 ### Option 1: Add Date as First-Class Output Type ❌
 
@@ -112,6 +112,163 @@ $date.diff(ts1, ts2, "day")   // → Decimal(7)
 - Maintenance responsibility
 
 **Verdict:** Best balance of UX and complexity
+
+### Option 4: Type-Segregated Properties (Type Aliases) ⚠️
+
+**What it means:**
+```typescript
+// Split result.values into type-specific properties
+interface EvaluationResult {
+  values: Record<string, Decimal | boolean | null | Date>;  // Mixed (current + Date)
+  valuesDecimal: Record<string, Decimal>;   // Alias for Decimal values only
+  valuesBoolean: Record<string, boolean>;   // Alias for boolean values only
+  valuesDate: Record<string, Date>;         // Alias for Date values only
+  valuesNull: Record<string, null>;         // Alias for null values only
+  order: string[];
+}
+```
+
+**Example usage:**
+```typescript
+const result = await evalla([
+  { name: 'birthday', expr: '$date.parse("1990-05-15")' },  // → Date
+  { name: 'age', expr: '$date.diff($date.now(), birthday, "year")' },  // → Decimal
+  { name: 'isAdult', expr: 'age >= 18' }  // → boolean
+]);
+
+// Type-safe access without type guards
+const birthday: Date = result.valuesDate.birthday;     // TypeScript knows it's Date
+const age: Decimal = result.valuesDecimal.age;         // TypeScript knows it's Decimal
+const isAdult: boolean = result.valuesBoolean.isAdult; // TypeScript knows it's boolean
+
+// No type checking needed!
+console.log(birthday.getFullYear());  // ✅ Safe
+console.log(age.toNumber());          // ✅ Safe
+console.log(isAdult);                 // ✅ Safe
+```
+
+**Pros:**
+- ✅ Type-safe access without type guards
+- ✅ TypeScript provides excellent autocomplete
+- ✅ No runtime type checking needed
+- ✅ Clear separation of concerns
+- ✅ Consumer knows exactly what type each value is
+
+**Cons:**
+- ❌ **Still doesn't solve Date-Decimal collision** (see below)
+- ❌ Multiple properties to check/search across
+- ❌ Unclear which property contains a given variable without metadata
+- ❌ Breaking change to add new properties
+- ❌ Iteration complexity (must iterate all type-specific properties)
+- ❌ Memory duplication if values stored in multiple places
+- ❌ Larger API surface
+- ❌ Doesn't help with `values` property (still mixed types)
+
+**Critical Problem: The Collision Persists**
+
+This approach **does not solve the Date-Decimal collision**. Two scenarios:
+
+**Scenario A: Store Date objects separately (bypass Decimal conversion)**
+```typescript
+// Hypothetical: evaluator detects Date returns and stores separately
+const result = await evalla([
+  { name: 'birthday', expr: 'someDateFunction()' }  // Returns Date object
+]);
+
+// Problem: How does evaluator know NOT to convert to Decimal?
+// - All expression results currently go through Decimal conversion
+// - Would need type tracking throughout evaluation pipeline
+// - Complex refactor of core evaluator logic
+// - Date objects still appear in results (same issues as Option 1)
+```
+
+**Scenario B: Convert Dates to Decimal, then populate type properties**
+```typescript
+// Date → Decimal conversion still happens
+const result = await evalla([
+  { name: 'birthday', expr: '$date.parse("1990-05-15")' }  // Returns Date
+]);
+
+// After Decimal conversion:
+result.values.birthday        // Decimal(643939200000) ❌ Not a Date!
+result.valuesDecimal.birthday // Decimal(643939200000)
+result.valuesDate.birthday    // undefined or error? ⚠️
+
+// Can't populate valuesDate because Date was converted to Decimal
+// The collision already destroyed the Date object
+```
+
+**Consumer Burden Comparison:**
+
+| Aspect | Single `values` | Type Aliases | $date Namespace |
+|--------|-----------------|--------------|-----------------|
+| **Type guards needed** | Yes, everywhere | No (if you know which property) | No |
+| **Find a variable** | Check `values[name]` | Check all `values*` properties | Check `values[name]` |
+| **Iteration** | One loop | Multiple loops or complex logic | One loop |
+| **Solves collision** | No | No | Yes |
+| **Breaking change** | Yes (add Date type) | Yes (add properties) | No (additive) |
+| **Which property?** | N/A | Requires metadata/documentation | N/A |
+| **TypeScript help** | Limited (wide union) | Excellent (if you know property) | Excellent (Decimal only) |
+
+**Real-World Usage Example:**
+
+```typescript
+// Problem: Consumer needs to find 'age' value but doesn't know its type
+const result = await evalla([...]);
+
+// Approach 1: Check all properties
+const age = result.valuesDecimal.age 
+         ?? result.valuesBoolean.age
+         ?? result.valuesDate.age
+         ?? result.valuesNull.age;
+
+// Approach 2: Use mixed values (back to type guards)
+const age = result.values.age;  // Type: Decimal | boolean | null | Date
+if (age instanceof Decimal) { ... }
+
+// Approach 3: Require metadata
+const schema = getSchema();  // { age: 'Decimal', birthday: 'Date' }
+const age = schema.age === 'Decimal' ? result.valuesDecimal.age : ...;
+```
+
+**Iteration Complexity:**
+
+```typescript
+// Current approach (single values)
+for (const name of result.order) {
+  const value = result.values[name];
+  // Handle value (requires type guard)
+}
+
+// Type alias approach
+for (const name of result.order) {
+  // Check all properties to find the value
+  const value = result.valuesDecimal[name]
+             ?? result.valuesBoolean[name]
+             ?? result.valuesDate[name]
+             ?? result.valuesNull[name];
+  
+  // Or: determine type first
+  const type = getTypeForName(name);  // Where does this come from?
+  const value = result[`values${type}`][name];
+}
+
+// $date namespace approach
+for (const name of result.order) {
+  const value = result.values[name];  // Always Decimal | boolean | null
+  // Simple .toString() or typeof check
+}
+```
+
+**Verdict:** ⚠️ **Doesn't solve the core problem**
+
+Type aliases provide better TypeScript ergonomics but:
+1. **Don't solve the Date-Decimal collision** (fundamental architectural issue)
+2. **Add complexity** for finding/iterating values
+3. **Still require** either type guards or metadata to know which property to use
+4. **Breaking change** to API surface
+
+If the collision were somehow solved (e.g., by not using Decimal.js for everything), type aliases might help. But the $date namespace approach is simpler: avoid the collision entirely by returning Decimal timestamps explicitly.
 
 ---
 

@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.1",
-    "astro": "^7.1.0",
+    "astro": "^7.2.8",
     "evalla": "file:../evalla",
     "lucide-react": "^0.563.0"
   },
